@@ -120,8 +120,14 @@ step("root and per-package eslint agree", () =>
   run("node", ["scripts/check-eslint-parity.mjs"]),
 );
 step("documented filters resolve", () => run("node", ["scripts/check-filters.mjs"]));
-step("lint passes", () => run("pnpm", ["turbo", "run", "lint"]));
-step("typecheck passes", () => run("pnpm", ["turbo", "run", "typecheck"]));
+step("lint passes", () =>
+  // api lints through uv, which a JS-only environment may not have —
+  // the python job owns it.
+  run("pnpm", ["turbo", "run", "lint", "--filter=!api"]),
+);
+step("typecheck passes", () =>
+  run("pnpm", ["turbo", "run", "typecheck", "--filter=!api"]),
+);
 step("formatting is clean", () => run("pnpm", ["format:check"]));
 
 process.exit(failed ? 1 : 0);

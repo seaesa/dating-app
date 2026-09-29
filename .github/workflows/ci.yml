@@ -29,10 +29,13 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Lint
-        run: pnpm turbo run lint
+        # The api package lints through uv (ruff), which this job deliberately
+        # does not install — the python job owns it. Without the exclusion
+        # turbo runs api:lint here and fails with `uv: command not found`.
+        run: pnpm turbo run lint --filter=!api
 
       - name: Typecheck
-        run: pnpm turbo run typecheck
+        run: pnpm turbo run typecheck --filter=!api
 
       - name: Check formatting
         run: pnpm format:check

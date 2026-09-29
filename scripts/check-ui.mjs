@@ -242,7 +242,9 @@ step("the web app builds with webpack, not Turbopack", () => {
   }
 });
 
-step("lint", () => run("pnpm", ["turbo", "run", "lint"]));
-step("typecheck", () => run("pnpm", ["turbo", "run", "typecheck"]));
+// The api package lints and typechecks through uv, which the ui gate does not
+// install — the python job owns those. Excluding it here keeps this gate JS-only.
+step("lint", () => run("pnpm", ["turbo", "run", "lint", "--filter=!api"]));
+step("typecheck", () => run("pnpm", ["turbo", "run", "typecheck", "--filter=!api"]));
 
 process.exit(failed ? 1 : 0);
