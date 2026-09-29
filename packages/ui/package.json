@@ -27,15 +27,15 @@
     "@repo/typescript-config": "workspace:*",
     "@testing-library/dom": "^10.4.2",
     "@types/react": "~19.2.10",
-    "@vitejs/plugin-react": "^5.2.0",
-    "eslint": "^9.0.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.11.0",
     "nativewind": "^4.2.7",
     "react": "19.2.3",
     "react-native": "0.86.3",
     "react-native-css-interop": "0.2.7",
     "react-native-web": "^0.21.3",
-    "tailwindcss": "^3.4.19",
-    "typescript": "^6.0.3"
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "@rn-primitives/avatar": "^1.5.2",
