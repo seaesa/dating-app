@@ -4,7 +4,7 @@
   "tasks": {
     "build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "!.next/dev/**"],
+      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"],
       "dependsOn": ["^build"]
     },
     "dev": {
@@ -12,7 +12,19 @@
       "persistent": true
     },
     "lint": {},
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
+    },
+    "test": {
+      "outputs": []
+    },
+    "format:check": {},
     "clean": {
+      "cache": false
+    },
+    "generate": {
+      "inputs": ["openapi.json", "openapi-ts.config.ts"],
+      "outputs": ["src/generated/**"],
       "cache": false
     }
   }

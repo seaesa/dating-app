@@ -1,0 +1,22 @@
+# Without this the build context includes node_modules and .venv, and every
+# build uploads hundreds of megabytes.
+**/node_modules
+**/.next
+**/.expo
+**/.turbo
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/dist
+**/coverage
+**/ios
+**/android
+**/.env
+**/.env.*
+!**/.env.example
+.git
+.superpowers
+docs
+*.md

@@ -1,0 +1,44 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # One PR per ecosystem rather than thirty: a grouped update is reviewable
+      # and CI runs once instead of thirty times.
+      dev-dependencies:
+        dependency-type: development
+      production-dependencies:
+        dependency-type: production
+    ignore:
+      # Expo pins its own versions; `expo install --fix` is the upgrade path,
+      # and a Dependabot bump here breaks the SDK's compatibility matrix.
+      - dependency-name: expo
+      - dependency-name: expo-*
+      - dependency-name: react-native
+      - dependency-name: react-native-*
+
+  - package-ecosystem: uv
+    directory: /apps/api
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+
+  - package-ecosystem: docker
+    directory: /docker
+    schedule:
+      interval: monthly
+
+  # The compose files live at the root, so the base images in them —
+  # caddy, mongo, redis — are invisible to the /docker entry above.
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: monthly

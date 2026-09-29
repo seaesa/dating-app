@@ -2,19 +2,52 @@
   "private": true,
   "scripts": {
     "dev": "turbo run dev",
+    "dev:api": "turbo run dev --filter=api",
+    "dev:web": "turbo run dev --filter=web",
+    "dev:mobile": "turbo run dev --filter=mobile",
+    "services:up": "docker compose up -d --wait mongo redis s3",
+    "services:down": "docker compose down",
+    "services:reset": "docker compose down -v && pnpm services:up",
+    "services:logs": "docker compose logs -f",
+    "openapi": "pnpm --filter=api run openapi",
+    "generate": "turbo run generate",
+    "contract": "pnpm --filter=api run openapi && pnpm --filter=@repo/api-contract run generate",
     "build": "turbo run build",
-    "clean": "turbo run clean && rm -rf node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore"
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write . --cache",
+    "format:check": "prettier --check . --cache",
+    "check:versions": "node scripts/check-versions.mjs",
+    "check:filters": "node scripts/check-filters.mjs",
+    "check:lint-pipeline": "node scripts/check-lint-pipeline.mjs",
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "check:hooks": "node scripts/check-hooks.mjs",
+    "prepare": "husky",
+    "check:foundation": "node scripts/check-foundation.mjs",
+    "check:eslint-parity": "node scripts/check-eslint-parity.mjs",
+    "check:api": "node scripts/check-api.mjs",
+    "check:ui": "node scripts/check-ui.mjs",
+    "check": "pnpm check:foundation && pnpm check:api && pnpm check:ui && pnpm check:workflows && pnpm check:eas && pnpm check:docs",
+    "check:docker": "node scripts/check-docker.mjs",
+    "check:workflows": "node scripts/check-workflows.mjs",
+    "check:eas": "node scripts/check-eas.mjs",
+    "check:docs": "node scripts/check-docs.mjs"
   },
   "devDependencies": {
-    "@types/minimatch": "^6.0.0",
-    "prettier": "^3.1.1",
+    "@commitlint/cli": "^20.5.3",
+    "@commitlint/config-conventional": "^20.5.3",
+    "@repo/eslint-config": "workspace:*",
+    "eslint": "^9.39.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.9.9",
     "turbo": "^2.11.5"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20.9.0"
   },
-  "name": "with-react-native-web",
+  "name": "terdin-date",
   "devEngines": {
     "packageManager": {
       "name": "pnpm",

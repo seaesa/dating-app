@@ -1,0 +1,77 @@
+name: terdin-date
+
+services:
+  mongo:
+    image: mongo:8
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      # This both INITIATES and verifies the replica set. It cannot be done from
+      # docker-entrypoint-initdb.d: that runs while mongod is still on a local
+      # socket, so a member addressed as mongo:27017 does not yet map to this
+      # node and rs.initiate fails with NodeNotFound.
+      #
+      # Reporting healthy only once there is a primary also stops the API
+      # starting and failing its first write.
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--quiet",
+          "--eval",
+          "try { rs.status().ok } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}).ok }",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Object storage. MinIO's public images were withdrawn from Docker Hub and
+  # quay.io, so this is SeaweedFS's S3 gateway instead — same S3 API, so
+  # production still points at Cloudflare R2 or AWS S3 unchanged.
+  #
+  # It runs WITH an identities config on purpose. Unconfigured, the gateway
+  # serves every object to anyone who guesses a key, which would make local
+  # development quietly contradict this product's central rule that private
+  # photos stay private.
+  s3:
+    image: chrislusf/seaweedfs:latest
+    command:
+      - server
+      - -s3
+      - -s3.port=8333
+      - -s3.config=/etc/seaweedfs/s3.json
+      - -dir=/data
+    ports:
+      - "8333:8333"
+    volumes:
+      - ./docker/seaweedfs-s3.json:/etc/seaweedfs/s3.json:ro
+      - s3-data:/data
+    healthcheck:
+      # Plain curl, not `curl -f`: with the identities config above, an
+      # anonymous GET / correctly returns 403. That answer proves the gateway
+      # is up AND enforcing auth, which is exactly what healthy means here —
+      # `-f` would read it as a failure and the service would never start.
+      test: ["CMD", "curl", "-s", "-o", "/dev/null", "http://localhost:8333/"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+volumes:
+  mongo-data:
+  s3-data:

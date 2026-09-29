@@ -1,0 +1,20 @@
+@import "@repo/tailwind-config/theme.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+  /* Plain var() rather than @apply: @apply resolves against generated
+     utilities, so it depends on preset merge order and fails the build with
+     "the bg-background class does not exist" if anything shifts. The variables
+     are already in scope from the import above. */
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}

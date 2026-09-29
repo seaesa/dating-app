@@ -1,0 +1,90 @@
+name: Mobile build
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to build
+        type: choice
+        options: [all, android, ios]
+        default: android
+      profile:
+        description: EAS build profile
+        type: choice
+        options: [development, preview, production]
+        default: preview
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+# Never on every push: EAS build minutes are finite, and a build nobody asked
+# for is quota nobody gets back.
+concurrency:
+  group: mobile-build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: EAS build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # eas.json sets requireCommit, so the build needs real history.
+          fetch-depth: 0
+
+      # Before the CLI, so a missing token fails in ten seconds with an
+      # explanation rather than inside expo/expo-github-action.
+      - name: Fail early without a token
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN is not set. Create one at expo.dev and add it as a repository secret."
+            exit 1
+          fi
+
+      - uses: ./.github/actions/setup
+
+      - name: Install the EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # A tag builds for the store; a manual run builds what was asked for.
+      - name: Resolve the profile
+        id: resolve
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_PROFILE: ${{ inputs.profile }}
+          INPUT_PLATFORM: ${{ inputs.platform }}
+        run: |
+          if [ "$EVENT" = "push" ]; then
+            echo "profile=production" >> "$GITHUB_OUTPUT"
+            echo "platform=all" >> "$GITHUB_OUTPUT"
+          else
+            echo "profile=$INPUT_PROFILE" >> "$GITHUB_OUTPUT"
+            echo "platform=$INPUT_PLATFORM" >> "$GITHUB_OUTPUT"
+          fi
+
+      # --no-wait returns once the build is queued. Holding a runner for forty
+      # minutes to watch a build EAS already tracks wastes Actions minutes.
+      - name: Build
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          PLATFORM: ${{ steps.resolve.outputs.platform }}
+          PROFILE: ${{ steps.resolve.outputs.profile }}
+        run: |
+          eas build \
+            --platform "$PLATFORM" \
+            --profile "$PROFILE" \
+            --non-interactive \
+            --no-wait
+
+      - name: Where to find it
+        run: echo "Builds are listed at https://expo.dev/accounts/_/projects/terdin-date/builds"

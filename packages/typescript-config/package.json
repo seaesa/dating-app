@@ -2,12 +2,9 @@
   "name": "@repo/typescript-config",
   "version": "0.0.0",
   "private": true,
-  "publishConfig": {
-    "access": "public"
-  },
-  "exports": {
-    "./base.json": "./base.json",
-    "./nextjs.json": "./nextjs.json",
-    "./react-native-library.json": "./react-native-library.json"
-  }
+  "files": [
+    "base.json",
+    "nextjs.json",
+    "library.json"
+  ]
 }

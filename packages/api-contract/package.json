@@ -1,0 +1,36 @@
+{
+  "name": "@repo/api-contract",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "files": [
+    "src",
+    "openapi.json"
+  ],
+  "scripts": {
+    "generate": "openapi-ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf node_modules .turbo"
+  },
+  "dependencies": {
+    "@repo/core": "workspace:*",
+    "@tanstack/react-query": "^5.66.0",
+    "axios": "^1.13.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.99.0",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^20.10.6",
+    "eslint": "^9.0.0",
+    "typescript": "^6.0.3"
+  }
+}

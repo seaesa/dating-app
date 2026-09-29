@@ -1,0 +1,29 @@
+{
+  "name": "@repo/tailwind-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./preset": "./preset.cjs",
+    "./theme.css": "./theme.css",
+    "./colors": {
+      "types": "./colors.d.ts",
+      "default": "./colors.cjs"
+    }
+  },
+  "files": [
+    "preset.cjs",
+    "colors.cjs",
+    "colors.d.ts",
+    "theme.css"
+  ],
+  "scripts": {
+    "clean": "rm -rf node_modules .turbo"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  },
+  "peerDependencies": {
+    "tailwindcss": "^3.4.14"
+  }
+}

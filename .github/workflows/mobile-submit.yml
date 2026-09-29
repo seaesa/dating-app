@@ -1,0 +1,73 @@
+name: Mobile submit
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Store to submit to
+        type: choice
+        options: [android, ios]
+        default: android
+
+permissions:
+  contents: read
+
+jobs:
+  submit:
+    name: EAS submit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Manual only, and gated on an environment so a store release needs an
+    # approval rather than one click.
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      # Before anything slow, and with a message that names the missing secret.
+      - name: Fail early without the credentials
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          KEY_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          PLATFORM: ${{ inputs.platform }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN is not set. Create one at expo.dev and add it as a repository secret."
+            exit 1
+          fi
+          if [ "$PLATFORM" = "android" ] && [ -z "$KEY_JSON" ]; then
+            echo "::error::GOOGLE_SERVICE_ACCOUNT_JSON is not set, so the Play key would be written empty."
+            exit 1
+          fi
+
+      - uses: ./.github/actions/setup
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # Written from an env var, not interpolated into the script: a key
+      # containing a quote would otherwise break out of the command.
+      - name: Write the Play service account key
+        if: inputs.platform == 'android'
+        working-directory: apps/mobile
+        env:
+          KEY_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: printf '%s' "$KEY_JSON" > google-service-account.json
+
+      - name: Submit
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          PLATFORM: ${{ inputs.platform }}
+        run: eas submit --platform "$PLATFORM" --latest --non-interactive
+
+      # The key is a credential on disk; the runner is ephemeral but the archive
+      # step of a later job is not, so remove it explicitly.
+      - name: Remove the service account key
+        if: always()
+        working-directory: apps/mobile
+        run: rm -f google-service-account.json

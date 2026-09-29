@@ -1,28 +1,73 @@
-## Getting Started
+# Terdin Date — Web
 
-First, run the development server:
+The browser client. Next.js App Router rendering the same React Native
+components the mobile app uses, through react-native-web.
+
+See [AGENTS.md](./AGENTS.md) for the rules — particularly the two that will
+surprise you: the build runs on webpack rather than Turbopack, and NativeWind is
+configured through tsconfig rather than Babel.
+
+## Tech stack
+
+| Layer     | Choice                                                              |
+| --------- | ------------------------------------------------------------------- |
+| Framework | Next.js 16 App Router                                               |
+| Rendering | react-native-web, so `@repo/ui` components run unchanged            |
+| Styling   | NativeWind 4 + Tailwind 3, tokens from `@repo/tailwind-config`      |
+| Data      | `@repo/api-contract` — generated types, Zod, axios, query options   |
+| State     | `@repo/store` (Zustand); refresh token in `localStorage`            |
+| Bundler   | webpack (`--webpack`), because Turbopack panics on react-native-web |
+
+## Setup
 
 ```bash
-yarn dev
+pnpm install                      # from the repository root
+cp apps/web/.env.example apps/web/.env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Variable              | Meaning                                                     |
+| --------------------- | ----------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL` | Where the API is. Inlined into client JS, so never a secret |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Run locally
 
-To create [API routes](https://nextjs.org/docs/app/building-your-application/routing/router-handlers) add an `api/` directory to the `app/` directory with a `route.ts` file. For individual endpoints, create a subfolder in the `api` directory, like `api/hello/route.ts` would map to [http://localhost:3000/api/hello](http://localhost:3000/api/hello).
+```bash
+pnpm services:up      # MongoDB, Redis, S3 — the API needs them
+pnpm dev:api          # the API this client talks to
+pnpm dev:web          # http://localhost:3000
+```
 
-## Learn More
+Sign in with any phone number: `SMS_PROVIDER=console` in development prints the
+OTP to the API's log under `sms.console`.
 
-To learn more about Next.js, take a look at the following resources:
+| Route         | What                                        |
+| ------------- | ------------------------------------------- |
+| `/`           | Routes to login or profile once hydrated    |
+| `/login`      | Phone, then OTP                             |
+| `/onboarding` | The first public profile                    |
+| `/profile`    | Own profile, both tiers                     |
+| `/u/<id>`     | A public profile — server rendered, for SEO |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn/foundations/about-nextjs) - an interactive Next.js tutorial.
+## Verify
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+There is no JavaScript test runner in this repository — a deliberate scope
+decision. `pnpm check:ui` stands in for one: it builds the app and asserts
+against the output.
 
-## Deploy on Vercel
+```bash
+pnpm --filter=web lint && pnpm --filter=web typecheck
+pnpm check:ui             # tokens in the CSS, package boundaries, the build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_source=github.com&utm_medium=referral&utm_campaign=turborepo-readme) from the creators of Next.js.
+## Deploy
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Ships as a container built by `docker/web.Dockerfile`, published to GHCR on every
+push to `main`, and served by Caddy on the same origin as the API — so production
+needs no CORS.
+
+```bash
+docker compose -f docker-compose.prod.yml up -d web
+```
+
+`NEXT_PUBLIC_API_URL` is a build argument, not a runtime one: it is inlined into
+the client bundle, so changing it means rebuilding the image.

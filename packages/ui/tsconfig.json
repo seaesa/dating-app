@@ -1,8 +1,10 @@
 {
-  "extends": "@repo/typescript-config/react-native-library.json",
-  "include": ["."],
-  "exclude": ["dist", "build", "node_modules"],
+  "extends": "@repo/typescript-config/library.json",
+  "include": ["src"],
+  "exclude": ["node_modules", ".turbo"],
   "compilerOptions": {
-    "strict": true
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   }
 }

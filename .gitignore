@@ -1,37 +1,93 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-node_modules
+# Dependencies
+node_modules/
 .pnp
 .pnp.js
+.pnpm-store/
 
-# testing
-coverage
+# Build output
+dist/
+build/
+out/
+*.tsbuildinfo
 
-# next.js
+# Turborepo
+.turbo/
+
+# Next.js
 .next/
 .swc/
-out/
-build
+next-env.d.ts
 
-# expo
-.expo
+# Expo / React Native
+.expo/
+.expo-shared/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.keystore
+# Android's debug keystore is meant to be shared, so every developer's debug
+# builds carry the same signature.
+!debug.keystore
 
-# misc
-.DS_Store
-*.pem
-dist
+# Continuous Native Generation: these are produced by `expo prebuild`
+apps/mobile/ios/
+apps/mobile/android/
 
-# debug
+# EAS local builds
+*.aab
+*.apk
+*.ipa
+*.tar.gz
+
+# Python / uv
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Testing
+coverage/
+*.lcov
+
+# Environment — .env.example is committed on purpose
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# local env files
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Editors and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+*.swp
 
-# turbo
-.turbo
+# Local data volumes from docker compose
+.data/
+
+# Superpowers execution ledger (scratch)
+.superpowers/
+
+# A Play Store service account key, written by the submit workflow and by a
+# local `eas submit`. It is a credential; it must never be committed.
+google-service-account.json
+docs/
+.codegraph/

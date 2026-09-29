@@ -1,0 +1,6 @@
+# Type checking, not tests: Turborepo caches this so a clean tree is near-instant,
+# while a full test run would make pushing painful enough to bypass.
+pnpm turbo run typecheck
+
+# The API type check runs through uv. Verified here so a push cannot skip it.
+uv run --project apps/api mypy

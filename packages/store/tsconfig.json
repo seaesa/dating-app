@@ -1,0 +1,16 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    // DOM because storage.web.ts uses localStorage, and because the generated
+    // API client this package consumes references DOM types such as BodyInit.
+    // node because that client's runtime.ts reads process.env.
+    //
+    // Both are needed here rather than only in @repo/api-contract: packages ship
+    // source, so a consumer typechecks its dependency's files with its own lib
+    // and types settings.
+    "lib": ["ES2023", "DOM"],
+    "types": ["node"]
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", ".turbo"]
+}

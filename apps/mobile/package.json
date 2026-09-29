@@ -1,0 +1,68 @@
+{
+  "name": "mobile",
+  "version": "1.0.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start",
+    "dev:web": "expo start --web",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "prebuild": "expo prebuild --clean",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .expo node_modules .turbo ios android",
+    "build:dev": "eas build --profile development",
+    "build:preview": "eas build --profile preview",
+    "build:prod": "eas build --profile production"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.9.1",
+    "@repo/api-contract": "workspace:*",
+    "@repo/core": "workspace:*",
+    "@repo/i18n": "workspace:*",
+    "@repo/store": "workspace:*",
+    "@repo/tailwind-config": "workspace:*",
+    "@repo/ui": "workspace:*",
+    "@rn-primitives/portal": "^1.5.3",
+    "@tanstack/react-query": "^5.104.0",
+    "expo": "~57.0.25",
+    "expo-constants": "~57.0.19",
+    "expo-linking": "~57.0.11",
+    "expo-router": "~57.0.23",
+    "expo-secure-store": "^57.0.4",
+    "expo-splash-screen": "~57.0.9",
+    "expo-status-bar": "~57.0.1",
+    "expo-system-ui": "~57.0.4",
+    "nativewind": "^4.2.7",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-hook-form": "^7.89.0",
+    "react-native": "0.86.3",
+    "react-native-css-interop": "0.2.7",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "4.26.2",
+    "react-native-svg": "15.15.4",
+    "react-native-web": "^0.21.0",
+    "react-native-worklets": "0.10.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/react": "~19.2.10",
+    "eas-cli": "^16.32.0",
+    "eslint": "^9.0.0",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^6.0.3"
+  },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "listUnknownPackages": false
+      }
+    }
+  }
+}

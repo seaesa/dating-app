@@ -1,0 +1,24 @@
+# What NOT to upload to an EAS build.
+#
+# At the repository root, not in apps/mobile: in a pnpm workspace EAS archives
+# the whole workspace so the shared packages resolve, and an ignore file inside
+# apps/mobile cannot exclude a sibling app.
+node_modules
+.turbo
+.expo
+.next
+dist
+build
+coverage
+
+# Continuous Native Generation regenerates these during the build.
+ios
+android
+
+# Nothing the bundler reads.
+apps/api
+docs
+.superpowers
+.github
+docker
+*.log

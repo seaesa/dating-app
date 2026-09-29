@@ -1,0 +1,11 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    // Explicit, not ambient. env.ts reads process.env, and these types used to
+    // arrive by accident through a test runner's own dependency — so removing
+    // that runner broke a typecheck in a package that never mentioned it.
+    "types": ["node"]
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", ".turbo"]
+}

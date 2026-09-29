@@ -1,0 +1,16 @@
+{
+  "name": "api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "uv run fastapi dev src/app/asgi.py --port 8000",
+    "start": "uv run fastapi run src/app/asgi.py --port 8000",
+    "lint": "uv run ruff check .",
+    "format": "uv run ruff format .",
+    "format:check": "uv run ruff format --check .",
+    "typecheck": "uv run mypy",
+    "test": "uv run pytest",
+    "openapi": "uv run python -m app.cli export-openapi ../../packages/api-contract/openapi.json",
+    "clean": "rm -rf .venv .pytest_cache .ruff_cache .mypy_cache node_modules .turbo"
+  }
+}

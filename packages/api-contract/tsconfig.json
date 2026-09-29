@@ -1,0 +1,14 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    // Explicit, not ambient. The generated client uses fetch/DOM globals
+    // (BodyInit, Headers) and runtime.ts reads process.env for the public base
+    // URL. Both sets of types used to arrive by accident through a test runner's
+    // own dependencies, so removing that runner broke a package that never
+    // mentioned it.
+    "lib": ["ES2023", "DOM"],
+    "types": ["node"]
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", ".turbo"]
+}

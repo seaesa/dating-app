@@ -1,0 +1,97 @@
+name: Publish images
+
+on:
+  # Gated on CI rather than on the push itself: docker-compose.prod.yml pulls
+  # `latest` by default, and publishing in parallel with CI means a commit whose
+  # tests failed can still overwrite the tag a deploy will pull.
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # A completed workflow_run includes a failed one.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: terdin-date-api
+            dockerfile: docker/api.Dockerfile
+          - image: terdin-date-web
+            dockerfile: docker/web.Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Sign in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          # The built-in token: no secret to create, rotate or leak.
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # GHCR rejects an uppercase path, and an owner name is not guaranteed lowercase.
+      - name: Lower-case the owner
+        id: owner
+        run: echo "name=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Derive tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ steps.owner.outputs.name }}/${{ matrix.image }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=long
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # A repository VARIABLE, not a secret: this is inlined into client
+          # JavaScript and readable by anyone who opens the site. It defaults to
+          # the origin-relative path Caddy serves the API on, so an unset
+          # variable still produces a working image.
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || '/api' }}
+
+      # Reports rather than blocks: a base-image CVE with no fix available
+      # should not stop a deploy. Set exit-code to "1" once the team is ready to
+      # treat findings as a gate.
+      - name: Scan for known vulnerabilities
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ghcr.io/${{ steps.owner.outputs.name }}/${{ matrix.image }}:sha-${{ github.sha }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "0"
+          ignore-unfixed: true

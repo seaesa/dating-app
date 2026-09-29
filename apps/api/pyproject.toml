@@ -1,0 +1,91 @@
+[project]
+name = "terdin-date-api"
+version = "0.1.0"
+description = "Terdin Date API"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "aioboto3>=15.5.0",
+    "argon2-cffi>=25.1.0",
+    "beanie>=2.2.0",
+    "fastapi[standard]>=0.141.1",
+    "phonenumbers>=9.0.40",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.15.0",
+    "pyjwt>=2.15.0",
+    "pymongo>=4.18.2",
+    "redis>=8.1.0",
+    "structlog>=26.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-asyncio>=1.4.0",
+    "httpx>=0.28.0",
+    "mypy>=1.18.0",
+    "ruff>=0.16.9",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/app"]
+
+[tool.ruff]
+line-length = 90
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",    # pycodestyle
+    "F",         # pyflakes
+    "I",         # isort
+    "N",         # pep8-naming
+    "UP",        # pyupgrade
+    "B",         # bugbear
+    "C4",        # comprehensions
+    "SIM",       # simplify
+    "TC",        # type-checking imports
+    "RUF",       # ruff-specific
+    "ASYNC",     # async correctness
+    "DTZ",       # naive datetime — mechanically enforces the aware-UTC rule
+    "S",         # bandit security
+]
+ignore = [
+    "S101",  # assert: pytest uses it
+    "B008",  # function call in default: FastAPI's Depends() idiom
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+files = ["src"]
+plugins = ["pydantic.mypy"]
+
+[tool.pydantic-mypy]
+# Without init_typed, mypy accepts a wrong type in any model constructor —
+# including UserRead(id=None), which pydantic then silently replaces with a
+# freshly invented ObjectId.
+init_typed = true
+init_forbid_extra = true
+warn_required_dynamic_aliases = true
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = ["aioboto3.*", "botocore.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+# Function scope, matching the `app` fixture: AsyncMongoClient binds to the
+# event loop it was created on, so a session-scoped fixture loop would hand
+# every test a client built on a different loop than the one it runs in.
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["src"]
