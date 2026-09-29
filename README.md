@@ -145,13 +145,12 @@ and a `v*` tag builds for production automatically.
 
 ## Documentation
 
-| File                                                 | Covers                                             |
-| ---------------------------------------------------- | -------------------------------------------------- |
-| [AGENTS.md](./AGENTS.md)                             | Where the rules live, and the workspace-wide ones  |
-| [apps/api/AGENTS.md](./apps/api/AGENTS.md)           | Adding an endpoint, the visibility invariant       |
-| [apps/web/AGENTS.md](./apps/web/AGENTS.md)           | Server and client components with react-native-web |
-| [apps/mobile/AGENTS.md](./apps/mobile/AGENTS.md)     | expo-router, CNG, EAS                              |
-| [packages/ui/AGENTS.md](./packages/ui/AGENTS.md)     | Adding a component, universal code                 |
-| [packages/README.md](./packages/README.md)           | What each shared package is for                    |
-| [CONTRIBUTING.md](./CONTRIBUTING.md)                 | Branching, review expectations                     |
-| [docs/superpowers/specs/](./docs/superpowers/specs/) | Design decisions and their reasoning               |
+| File                                             | Covers                                             |
+| ------------------------------------------------ | -------------------------------------------------- |
+| [AGENTS.md](./AGENTS.md)                         | Where the rules live, and the workspace-wide ones  |
+| [apps/api/AGENTS.md](./apps/api/AGENTS.md)       | Adding an endpoint, the visibility invariant       |
+| [apps/web/AGENTS.md](./apps/web/AGENTS.md)       | Server and client components with react-native-web |
+| [apps/mobile/AGENTS.md](./apps/mobile/AGENTS.md) | expo-router, CNG, EAS                              |
+| [packages/ui/AGENTS.md](./packages/ui/AGENTS.md) | Adding a component, universal code                 |
+| [packages/README.md](./packages/README.md)       | What each shared package is for                    |
+| [CONTRIBUTING.md](./CONTRIBUTING.md)             | Branching, review expectations                     |
