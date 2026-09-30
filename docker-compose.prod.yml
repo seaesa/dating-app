@@ -43,6 +43,15 @@ services:
       S3_PUBLIC_BASE_URL: ${S3_PUBLIC_BASE_URL:?set S3_PUBLIC_BASE_URL}
       CORS_ORIGINS: https://${DOMAIN}
       LOG_JSON: "true"
+    # Only binding under --profile selfhosted; with managed stores these
+    # services are not started and `required: false` skips the wait.
+    depends_on:
+      mongo:
+        condition: service_healthy
+        required: false
+      redis:
+        condition: service_healthy
+        required: false
 
   web:
     image: ghcr.io/${GITHUB_OWNER:-terdin}/terdin-date-web:${IMAGE_TAG:-latest}
@@ -82,6 +91,11 @@ services:
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
 
 volumes:
   caddy-data:

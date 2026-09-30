@@ -16,9 +16,7 @@
 		X-Content-Type-Options "nosniff"
 		X-Frame-Options "DENY"
 		Referrer-Policy "strict-origin-when-cross-origin"
-		# The refresh token lives in localStorage (spec §10), so a strict CSP is
-		# what keeps an injected script from reading it. Loosening this weakens
-		# the mitigation that decision depends on.
-		Content-Security-Policy "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'"
+		# Content-Security-Policy is set by apps/web/proxy.ts: it needs a
+		# per-request nonce, which only the app can generate.
 	}
 }

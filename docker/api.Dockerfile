@@ -57,5 +57,5 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
 # container that came up before its database looks like a clean shutdown.
 # `restart: unless-stopped` (compose), `Restart=always` (systemd) and the default
 # `restartPolicy: Always` (Kubernetes) all recover; `on-failure`/`OnFailure` give
-# a permanently dead API. docker-compose.prod.yml is checked for this.
+# a permanently dead API.
 CMD ["uvicorn", "app.asgi:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]

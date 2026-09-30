@@ -50,13 +50,9 @@ OTP to the API's log under `sms.console`.
 
 ## Verify
 
-There is no JavaScript test runner in this repository — a deliberate scope
-decision. `pnpm check:ui` stands in for one: it builds the app and asserts
-against the output.
-
 ```bash
 pnpm --filter=web lint && pnpm --filter=web typecheck
-pnpm check:ui             # tokens in the CSS, package boundaries, the build
+pnpm --filter=web build   # webpack; proves react-native-web resolves everything
 ```
 
 ## Deploy

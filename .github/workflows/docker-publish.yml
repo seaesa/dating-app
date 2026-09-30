@@ -34,9 +34,9 @@ jobs:
       matrix:
         include:
           - image: terdin-date-api
-            dockerfile: docker/api.Dockerfile
+            target: api
           - image: terdin-date-web
-            dockerfile: docker/web.Dockerfile
+            target: web
     steps:
       - uses: actions/checkout@v4
 
@@ -71,12 +71,13 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ${{ matrix.dockerfile }}
+          file: docker/${{ matrix.target }}.Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Same scope as the CI build job, so publishing reuses its layers.
+          cache-from: type=gha,scope=${{ matrix.target }}
+          cache-to: type=gha,scope=${{ matrix.target }},mode=max
           # A repository VARIABLE, not a secret: this is inlined into client
           # JavaScript and readable by anyone who opens the site. It defaults to
           # the origin-relative path Caddy serves the API on, so an unset

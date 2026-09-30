@@ -1,142 +1,167 @@
 # AGENTS.md
 
-Rules for working in this repository. Read the file for the area you are
-changing — this one covers what applies everywhere.
+Terdin Date — a dating app where real identities stay hidden until both people
+choose to reveal them. pnpm + Turborepo monorepo: FastAPI API, Next.js web, Expo
+mobile, sharing React Native components.
 
-## Where the rules live
+Before changing code under a directory, read the nearest `AGENTS.md`:
 
-| Changing                                | Read                                                    |
-| --------------------------------------- | ------------------------------------------------------- |
-| An endpoint, a document, business logic | [apps/api/AGENTS.md](./apps/api/AGENTS.md)              |
-| A web page or layout                    | [apps/web/AGENTS.md](./apps/web/AGENTS.md)              |
-| A mobile screen or native config        | [apps/mobile/AGENTS.md](./apps/mobile/AGENTS.md)        |
-| A shared component                      | [packages/ui/AGENTS.md](./packages/ui/AGENTS.md)        |
-| Colour, spacing, typography             | `packages/tailwind-config/theme.css` — and nowhere else |
-| The API client                          | Nothing by hand. Run `pnpm contract`                    |
+| Changing                           | Read                                             |
+| ---------------------------------- | ------------------------------------------------ |
+| `apps/api/**` — endpoints, logic   | [apps/api/AGENTS.md](./apps/api/AGENTS.md)       |
+| `apps/web/**` — pages, layouts     | [apps/web/AGENTS.md](./apps/web/AGENTS.md)       |
+| `apps/mobile/**` — screens, native | [apps/mobile/AGENTS.md](./apps/mobile/AGENTS.md) |
+| `packages/ui/**` — components      | [packages/ui/AGENTS.md](./packages/ui/AGENTS.md) |
 
-## The one rule that outranks the rest
+## Rule zero: the private identity
 
-A user's `PrivateIdentity` — real name, real photos, socials, precise location —
-must never reach anyone but that user, until a mutual reveal is recorded.
+A user's `PrivateIdentity` (real name, real photos, socials, precise location)
+and `phone` reach nobody but that user until a mutual reveal is recorded. This
+outranks every other rule; a change that makes it harder to hold is wrong.
 
-Everything else in this repository is a preference. This is the product.
+- API: every response containing a user goes through `project_user()` in
+  `apps/api/src/app/modules/users/visibility.py`. Never serialize a `User`.
+- Clients: only the owner's own profile screen reads `identity`. Public views
+  render `profile` only.
+- Clients: the TanStack Query cache is cleared on every sign-in/sign-out
+  (`onSessionChange` in `@repo/store`). Keep it that way — `getMe` has no user
+  in its cache key.
 
-- One function projects a user: `project_user()` in
-  `apps/api/src/app/modules/users/visibility.py`. No route serializes a `User`.
-- `tests/test_visibility.py` compares response key sets against the private
-  field names, so adding a field to `PrivateIdentity` and forgetting to hide it
-  fails the test rather than shipping.
-- Private media is presigned inside the same function, so it passes the same
-  gate rather than a second one that could drift.
-- On the clients, the query cache is cleared at every session boundary.
-  `getMe`'s cache key carries no user identity, so without that a second user on
-  the same device is served the first one's cached profile — real name included.
-  `onSessionChange` in `@repo/store` is where that is wired.
+## Stack
 
-If a change makes any of that harder to hold, the change is wrong.
+| Layer   | Choice                                                            |
+| ------- | ----------------------------------------------------------------- |
+| API     | Python 3.13, FastAPI, Beanie (MongoDB), Redis, S3, uv, ruff, mypy |
+| Web     | Next.js 16 App Router, react-native-web, NativeWind 4, webpack    |
+| Mobile  | Expo SDK 57, React Native 0.86, expo-router, NativeWind 4         |
+| Shared  | TypeScript 6, React 19, TanStack Query 5, Zustand, Zod 4, Axios   |
+| Tooling | pnpm 12 workspaces, Turborepo, ESLint 9, Prettier, Husky          |
 
-## Package dependencies flow one way
+## Packages and dependency direction
 
 ```
-apps/*  ──►  @repo/ui  ──►  @repo/core
-        ──►  @repo/api-contract  ──►  @repo/core
-        ──►  @repo/store  ──►  @repo/core
-        ──►  @repo/i18n
+apps/*  ──►  @repo/ui            components, props only
+        ──►  @repo/api-contract  GENERATED client: types, Zod, SDK, query options
+        ──►  @repo/store         Zustand session store + platform storage
+        ──►  @repo/core          pure TS helpers (phone, age, env)
+@repo/tailwind-config            design tokens — the only place colours live
 ```
 
 - A package never imports from an app.
-- `@repo/core` imports neither `react` nor `react-native`. It runs under plain
-  Node, which is what keeps it cheap to reason about.
-- `@repo/ui` never imports `@repo/api-contract` or `@repo/store`. Components
-  take data through props, so they render from a fixture.
-- Route files hold no business logic. They compose a `@repo/ui` screen with an
-  `@repo/api-contract` hook. Logic worth reusing belongs in a package.
+- `@repo/core` imports neither `react` nor `react-native`.
+- `@repo/ui` never imports `@repo/api-contract` or `@repo/store`.
+- pnpm is isolated: a package can only import what its own `package.json`
+  declares. Add the dependency to that package, not to the root.
+- Packages ship TypeScript source, no build step. A new package needs
+  `"main": "./src/index.ts"`, `"exports": { ".": "./src/index.ts", "./*": "./src/*" }`
+  and an entry in `transpilePackages` in `apps/web/next.config.js`.
 
-`pnpm check:ui` enforces the last two.
+## Commands
 
-## Internal packages ship source, not builds
-
-Every `packages/*` exports TypeScript from `src/`. There is no `build` script
-and no `dist`.
-
-Two reasons: Tailwind must scan component source to find class names, and Metro
-resolves source directly instead of waiting on a build. Adding a build step to a
-package breaks both.
-
-A new package therefore needs `"main": "./src/index.ts"` and
-`"exports": { ".": "./src/index.ts", "./*": "./src/*" }`, plus an entry in
-`apps/web/next.config.js` under `transpilePackages`.
-
-## Changing an endpoint
-
-```
-1. Edit apps/api/src/app/modules/<domain>/
-2. pnpm contract          # re-export the schema, regenerate the client
-3. Commit packages/api-contract/ alongside the API change
+```bash
+pnpm install
+pnpm services:up              # MongoDB (replica set), Redis, S3 in Docker
+pnpm dev                      # all apps; or dev:api · dev:web · dev:mobile
+pnpm contract                 # after any API schema change: regenerate the client
+pnpm lint && pnpm typecheck   # everything, through turbo
+pnpm format                   # prettier
+pnpm --filter=<pkg> <script>  # one package — never `npm run x --filter`
 ```
 
-Skipping step 3 makes CI's `contract` job fail. Never hand-edit
-`packages/api-contract/src/generated/` — the next `pnpm contract` overwrites it.
+## Workflows
+
+**Changing an endpoint**
+
+1. Edit `apps/api/src/app/modules/<domain>/`.
+2. Run `pnpm contract`.
+3. Use the regenerated hook/type from `@repo/api-contract` in the client.
+4. Commit `packages/api-contract/` in the same commit — CI fails on drift.
+
+**Adding a screen**: `@repo/ui` component (data via props) + generated query
+hook from `@repo/api-contract`, composed in the route file. Logic worth reusing
+goes into a package, not the route.
 
 ## Conventions
 
-**Files.** `kebab-case.tsx` in TypeScript, `snake_case.py` in Python. A React
-component's file is named after the component: `profile-card.tsx` exports
-`ProfileCard`.
-
-**Commits.** Conventional Commits, enforced by commitlint. Scope is the package
-or app: `feat(api):`, `fix(mobile):`, `refactor(ui):`. Subject is lower case,
-no trailing period — proper nouns are allowed, so `fix(web): keep Turbopack out
-of the build` passes. Breaking changes use `!` and a `BREAKING CHANGE:` footer.
-
-**Branches.** `feat/<short-name>`, `fix/<short-name>`.
-
-**Tests.** Do not write JavaScript tests and do not add a test runner — testing
-is out of scope on the TypeScript side. What protects it instead are the gates in
-`scripts/`, run by `pnpm check:*`. To protect something new, add an assertion to
-a gate, never a test file.
-
-The API keeps a pytest suite covering the visibility projection, authentication,
-media access control and profile updates. Write the failing test first there, and
-prefer a real dependency over a mock.
-
-When you add a gate, plant a violation and watch it fail before you trust it.
-
-## Before pushing
-
-```bash
-pnpm check              # every gate below except docker, in sequence
-pnpm check:docker       # images build, start and answer — needs a Docker daemon
-```
-
-Hooks run a subset automatically: `pre-commit` formats and lints staged files,
-`commit-msg` validates the message, `pre-push` typechecks. Do not bypass them
-with `--no-verify`; if a hook is wrong, fix the hook.
+- Files: `kebab-case.tsx` (component `ProfileCard` → `profile-card.tsx`),
+  `snake_case.py`.
+- UI copy is Vietnamese. Validation messages live in
+  `packages/api-contract/src/forms.ts`.
+- Styling: NativeWind token classes (`bg-primary`, `text-foreground`). Never a
+  literal colour (`#fff`, `rgb()`, `hsl()`); add a token to
+  `packages/tailwind-config/theme.css` instead.
+- Requests: never `fetch`/`axios` by hand; use the generated SDK or
+  `...Options()` from `@repo/api-contract`.
+- Never edit `packages/api-contract/src/generated/` — `pnpm contract` overwrites it.
+- Secrets: nothing secret behind `NEXT_PUBLIC_` or `EXPO_PUBLIC_`; both are
+  inlined into client bundles.
+- No tests. Do not add test files, test runners or test dependencies.
 
 ## Performance
 
-**Database.** Every query needs an index — add it to the document's
-`Settings.indexes` in the same change as the query. Paginate with cursors, never
-`skip`/`limit`: `skip` re-reads what it skips and returns duplicates when
-documents shift. Fetch a batch in one `$in` query rather than looping
-(`MediaService.urls_for` is the pattern).
+- MongoDB: every new query gets an index in the document's `Settings.indexes`,
+  in the same change. Paginate with cursors (`BaseRepository.list_page`), never
+  `skip`. Batch lookups with one `$in`, not a loop (`MediaService.urls_for`).
+- Query cache: keep `gcTime` below the presigned-URL lifetime; both come from
+  `createQueryClient` in `@repo/api-contract`. Do not override per query.
+- Lists: `FlashList` for unbounded lists on mobile; stable `key`s, never the index.
+- Images: `expo-image` on mobile, `next/image` on web for remote photos.
+- Bundle: check `@repo/core` before adding a dependency; every dependency ships
+  to every screen.
 
-**Lists.** Use `FlashList` over `FlatList` on mobile for anything unbounded.
-Give every list item a stable `key`; an index key re-renders the whole list on
-insert.
+## Git
 
-**Images.** `expo-image` on mobile, `next/image` on web. Never a raw `Image` for
-remote content — neither caches, and a dating app is mostly photographs.
+- Conventional Commits, scope = app or package: `feat(api):`, `fix(mobile):`,
+  `refactor(ui):`. Lower-case subject, no trailing period.
+- Branches: `feat/<name>`, `fix/<name>`.
+- Hooks: pre-commit lints/formats staged files, pre-push typechecks. Never
+  `--no-verify`; fix the cause.
 
-**Queries.** `gcTime` — not just `staleTime` — stays well under the presigned
-media lifetime. Cached data renders on mount whatever its staleness, so `gcTime`
-is what bounds the age of a URL on screen. Both come from `createQueryClient`.
+## How to work
 
-**Bundles.** Before adding a dependency, check whether `@repo/core` already
-covers it. Each app's bundle is built separately, so a package added for one
-screen costs every screen.
+Adapted from
+[andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills/blob/main/CLAUDE.md).
+These bias toward caution over speed; for trivial tasks, use judgment.
 
-<!-- BEGIN:turborepo-agent-rules -->
+**1. Think before coding.** Don't assume, don't hide confusion, surface tradeoffs.
+
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them — don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop, name what is confusing, and ask.
+
+**2. Simplicity first.** Minimum code that solves the problem, nothing speculative.
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No flexibility or configurability that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+**3. Surgical changes.** Touch only what you must; clean up only your own mess.
+
+- Don't "improve" adjacent code, comments or formatting.
+- Don't refactor what isn't broken. Match the existing style.
+- Unrelated dead code: mention it, don't delete it.
+- Remove the imports, variables and functions that _your_ change made unused.
+- Every changed line should trace directly to the request.
+
+**4. Goal-driven execution.** Define success criteria, loop until verified.
+There are no tests here, so verify by running things:
+
+- "Add an endpoint" → `pnpm contract` produces the hook, and a `curl` against
+  `pnpm dev:api` returns the expected shape.
+- "Fix the bug" → reproduce it first (request, screen, log line), fix it, then
+  show the reproduction no longer fails.
+- "Refactor X" → `pnpm lint && pnpm typecheck` and the affected app's build
+  (`pnpm --filter=web build`, `expo export`) pass before and after.
+
+For multi-step tasks, state a brief plan first:
+
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+```
 
 # This is NOT the Turborepo you know
 

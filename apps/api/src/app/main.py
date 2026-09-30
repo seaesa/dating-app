@@ -14,8 +14,8 @@ from app.core.redis import close_redis, init_redis, ping_redis
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Build the application.
 
-    A factory rather than a module-level singleton: tests construct a fresh app
-    per case, and the CLI builds one without starting a server.
+    A factory rather than a module-level singleton: the CLI builds one without
+    starting a server.
     """
     resolved = settings or get_settings()
     configure_logging(level=resolved.log_level, json=resolved.log_json)

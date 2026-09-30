@@ -50,13 +50,8 @@ __pycache__/
 *.egg-info/
 .ruff_cache/
 .mypy_cache/
-.pytest_cache/
 .coverage
 htmlcov/
-
-# Testing
-coverage/
-*.lcov
 
 # Environment — .env.example is committed on purpose
 .env

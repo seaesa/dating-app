@@ -61,7 +61,7 @@ apps/web ────────►│   types · zod ·   │                 
 | ---------------------- | ------- | ---------------------------------------------------------- |
 | Node                   | 24+     | Workspace tooling                                          |
 | pnpm                   | 12.5.1  | Workspaces; `npm` does not forward `--filter` to Turborepo |
-| Docker                 | 27+     | MongoDB, Redis, the S3 gateway, and the API's tests        |
+| Docker                 | 27+     | MongoDB, Redis and the S3 gateway                          |
 | uv                     | 0.12+   | Python for the API. It downloads Python itself             |
 | Xcode / Android Studio | current | Only for running on a simulator                            |
 
@@ -102,12 +102,6 @@ printed to the API's output rather than sent. Enter a phone number, find the
 | `pnpm services:up` · `services:down` · `services:reset` | Development infrastructure                                                     |
 | `pnpm contract`                                         | Re-export the schema and regenerate the client. Run after changing an endpoint |
 | `pnpm lint` · `typecheck` · `format`                    | Across the workspace                                                           |
-| `pnpm test`                                             | The API suite. There is no JavaScript test runner                              |
-| `pnpm check`                                            | Every gate, in sequence                                                        |
-
-Individually: `check:foundation`, `check:api`, `check:ui`, `check:workflows`,
-`check:eas`, `check:docs` — and `check:docker`, which `pnpm check` leaves out
-because it builds two images and needs a Docker daemon.
 
 `pnpm dev --filter=<app>` also works. `npm run dev --filter=api` does not — npm
 treats `--filter` as its own flag and never passes it to Turborepo.

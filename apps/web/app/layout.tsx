@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 
 import { THEME_COLORS } from "@repo/tailwind-config/colors";
 
@@ -39,14 +40,17 @@ const APPLY_COLOR_SCHEME = `try{var m=matchMedia("(prefers-color-scheme: dark)")
 var a=function(){document.documentElement.classList.toggle("dark",m.matches)};
 a();m.addEventListener("change",a)}catch(e){}`;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Set by proxy.ts in production; the CSP there blocks this script without it.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   // Real HTML lives here. react-native-web renders every View and Text as a
   // div, so anything a crawler should read belongs at this level rather than
   // inside a React Native tree.
   return (
     <html lang="vi" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: APPLY_COLOR_SCHEME }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: APPLY_COLOR_SCHEME }} />
       </head>
       <body>
         <Providers>{children}</Providers>

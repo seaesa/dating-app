@@ -8,6 +8,7 @@ dependencies = [
     "argon2-cffi>=25.1.0",
     "beanie>=2.2.0",
     "fastapi[standard]>=0.141.1",
+    "httpx>=0.28.0",
     "phonenumbers>=9.0.40",
     "pydantic>=2.13.5",
     "pydantic-settings>=2.15.0",
@@ -19,9 +20,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest>=8.4.0",
-    "pytest-asyncio>=1.4.0",
-    "httpx>=0.28.0",
     "mypy>=1.18.0",
     "ruff>=0.16.9",
 ]
@@ -36,7 +34,7 @@ packages = ["src/app"]
 [tool.ruff]
 line-length = 90
 target-version = "py313"
-src = ["src", "tests"]
+src = ["src"]
 
 [tool.ruff.lint]
 select = [
@@ -55,12 +53,8 @@ select = [
     "S",         # bandit security
 ]
 ignore = [
-    "S101",  # assert: pytest uses it
     "B008",  # function call in default: FastAPI's Depends() idiom
 ]
-
-[tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S105", "S106"]
 
 [tool.mypy]
 python_version = "3.13"
@@ -80,12 +74,3 @@ warn_unreachable = true
 [[tool.mypy.overrides]]
 module = ["aioboto3.*", "botocore.*"]
 ignore_missing_imports = true
-
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-# Function scope, matching the `app` fixture: AsyncMongoClient binds to the
-# event loop it was created on, so a session-scoped fixture loop would hand
-# every test a client built on a different loop than the one it runs in.
-asyncio_default_fixture_loop_scope = "function"
-testpaths = ["tests"]
-pythonpath = ["src"]

@@ -13,7 +13,7 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
-    environment: Literal["development", "test", "production"] = "development"
+    environment: Literal["development", "production"] = "development"
 
     # Database
     mongodb_url: str

@@ -18,7 +18,6 @@ adding an endpoint.
 | Auth                    | JWT access and refresh tokens, phone OTP                  |
 | Lint and format         | Ruff                                                      |
 | Types                   | mypy strict                                               |
-| Tests                   | pytest against the real development stack                 |
 
 ## Setup
 
@@ -50,19 +49,9 @@ stdout rather than sent. Look for the `sms.console` line. No SMS account needed.
 | Command                       | Does                                           |
 | ----------------------------- | ---------------------------------------------- |
 | `pnpm dev:api`                | Dev server with reload                         |
-| `pnpm test`                   | The pytest suite (this is the only one)        |
 | `pnpm --filter=api lint`      | Ruff                                           |
 | `pnpm --filter=api typecheck` | mypy strict                                    |
 | `pnpm openapi`                | Re-export `packages/api-contract/openapi.json` |
-| `pnpm check:api`              | Every gate, including the OpenAPI drift check  |
-
-This is the only test suite in the repository; the TypeScript side is covered by
-the gate scripts instead. It is deliberately scoped to the logic where being
-wrong is expensive — the visibility projection, authentication, media access
-control and profile updates.
-
-It runs against the compose stack using a separate `terdin_test` database, so
-`pnpm services:up` must be running first.
 
 ## Deploy
 

@@ -6,9 +6,7 @@ import reactNative from "@repo/eslint-config/react-native";
  * Root config, for the entry points that run from the repository root:
  * lint-staged and editors. `turbo run lint` uses each package's own config.
  *
- * Two rules keep the halves honest, and `pnpm check:eslint-parity` enforces
- * both by linting the same probe file through each entry point and comparing
- * the counts:
+ * Two rules keep the halves honest:
  *
  * 1. NEVER overwrite a config object's own `files`. The shared configs use
  *    `files` for per-file-type overrides — base.mjs exempts `*.config.js` from

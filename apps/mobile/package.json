@@ -17,7 +17,6 @@
     "build:prod": "eas build --profile production"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.9.1",
     "@repo/api-contract": "workspace:*",
     "@repo/core": "workspace:*",
     "@repo/i18n": "workspace:*",
@@ -37,7 +36,6 @@
     "nativewind": "^4.2.7",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-hook-form": "^7.89.0",
     "react-native": "0.86.3",
     "react-native-css-interop": "0.2.7",
     "react-native-reanimated": "4.5.1",

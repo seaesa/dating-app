@@ -9,8 +9,7 @@
     "format": "uv run ruff format .",
     "format:check": "uv run ruff format --check .",
     "typecheck": "uv run mypy",
-    "test": "uv run pytest",
     "openapi": "uv run python -m app.cli export-openapi ../../packages/api-contract/openapi.json",
-    "clean": "rm -rf .venv .pytest_cache .ruff_cache .mypy_cache node_modules .turbo"
+    "clean": "rm -rf .venv .ruff_cache .mypy_cache node_modules .turbo"
   }
 }

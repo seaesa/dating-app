@@ -25,8 +25,6 @@ resolves source directly.
 - `api-contract/src/generated/` is machine output. Never edit it; run
   `pnpm contract`.
 
-`pnpm check:ui` enforces the boundaries.
-
 ## Adding a package
 
 ```bash

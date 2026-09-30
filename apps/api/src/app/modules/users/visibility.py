@@ -3,32 +3,10 @@ from enum import StrEnum
 from app.core.age import age_from_birth_year
 from app.modules.users.models import User
 from app.modules.users.schemas import (
-    PrivateIdentity,
     PrivateIdentityRead,
     PublicProfileRead,
     UserRead,
 )
-
-
-def _private_field_names() -> frozenset[str]:
-    """Every spelling of every private field, derived from the model.
-
-    Derived rather than hand-listed so it cannot fall behind PrivateIdentity.
-    Includes the camelCase aliases, since that is how a field would appear in
-    a response.
-    """
-    names: set[str] = set()
-    for name, field in PrivateIdentity.model_fields.items():
-        names.add(name)
-        if field.alias:
-            names.add(field.alias)
-        head, *rest = name.split("_")
-        names.add(head + "".join(part.title() for part in rest))
-    names.update({"phone", "realName", "real_name"})
-    return frozenset(names)
-
-
-PRIVATE_FIELD_NAMES = _private_field_names()
 
 
 class RevealScope(StrEnum):

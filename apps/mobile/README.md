@@ -45,14 +45,13 @@ Sign in with any phone number: the OTP is printed to the API's log under
 
 ## Verify
 
-There is no JavaScript test runner in this repository — a deliberate scope
-decision. `expo export` is the check that matters here: it is the only thing
-that proves Metro and NativeWind still resolve every import on both platforms.
+`expo export` is the check that matters here: it is the only thing that proves
+Metro and NativeWind still resolve every import on both platforms.
 
 ```bash
 pnpm --filter=mobile lint && pnpm --filter=mobile typecheck
 pnpm exec expo export --platform all --output-dir dist
-pnpm check:eas            # build profiles and bundle identifiers
+pnpm dlx expo-doctor@latest   # dependency health, as CI runs it
 ```
 
 ## Build and deploy
@@ -68,9 +67,9 @@ directory to create the project. For CI, add `EXPO_TOKEN` as a repository
 secret — the **Mobile build** workflow takes a platform and a profile, and a
 `v*` tag builds production automatically.
 
-Submitting to the stores is the **Mobile submit** workflow, which is manual and
-gated on the `production` environment so a release needs an approval. It expects
-`GOOGLE_SERVICE_ACCOUNT_JSON`, `APPLE_ID`, `ASC_APP_ID` and `APPLE_TEAM_ID`.
+Submit to the stores from this directory with `eas submit --platform <android|ios> --latest`.
+Android needs `google-service-account.json` here (gitignored); iOS reads
+`APPLE_ID`, `ASC_APP_ID` and `APPLE_TEAM_ID` from the environment.
 
 All three variants install side by side, so a tester can hold the production app
 and a preview build at once.

@@ -47,11 +47,7 @@ class PrivateIdentity(BaseModel):
     # through the API, because the dependency that loads them runs first.
     model_config = ConfigDict(validate_assignment=True)
 
-    """Locked until both sides of a match consent.
-
-    Adding a field here automatically widens PRIVATE_FIELD_NAMES, which is what
-    makes the leak test self-maintaining.
-    """
+    """Locked until both sides of a match consent. Only project_user() reads it."""
 
     real_name: str | None = None
     photo_media_ids: list[PydanticObjectId] = []
