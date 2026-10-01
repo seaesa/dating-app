@@ -84,5 +84,5 @@ Thumbs.db
 # A Play Store service account key, written by the submit workflow and by a
 # local `eas submit`. It is a credential; it must never be committed.
 google-service-account.json
-docs/
+
 .codegraph/
