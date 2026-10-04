@@ -45,6 +45,9 @@ const hasOnlyIgnores = (config) =>
   Object.keys(config).length === 1 && "ignores" in config;
 
 export default [
+  {
+    ignores: [".agents/**"],
+  },
   // Global ignores and the base rules apply everywhere, so a package that no
   // list below mentions is still linted.
   ...base,

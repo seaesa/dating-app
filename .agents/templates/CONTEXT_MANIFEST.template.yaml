@@ -1,0 +1,29 @@
+schema_version: 1
+task_id: <TASK-ID>
+base_sha: <BASE-COMMIT-SHA>
+head_sha: <HEAD-COMMIT-SHA>
+
+intent:
+  problem: <Mô tả ngắn gọn lỗi/tính năng cần giải quyết>
+  acceptance_criteria:
+    - <Tiêu chí nghiệm thu 1>
+    - <Tiêu chí nghiệm thu 2>
+
+entry_points:
+  - path: <path/to/file1.ts>
+    symbol: <FunctionNameOrClass>
+    reason: <Lý do vào file này>
+
+relevant_artifacts:
+  - path: <path/to/service.ts>
+    symbols: [<method1>, <method2>]
+  - path: <path/to/test.test.ts>
+
+excluded:
+  - glob: logs/**
+  - glob: data/**
+
+verification:
+  commands:
+    - npm run lint
+    - npm test
