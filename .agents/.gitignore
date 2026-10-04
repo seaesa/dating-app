@@ -1,0 +1,5 @@
+indexes/
+memory/daily/
+.venv/
+# Added by code-review-graph
+.code-review-graph/

@@ -86,3 +86,8 @@ Thumbs.db
 google-service-account.json
 
 .codegraph/
+# Harness Agent Kit Local Cache & Index Files
+.agents/.venv/
+.code-review-graph/
+.agents/indexes/*.sqlite
+.agents/indexes/*.json

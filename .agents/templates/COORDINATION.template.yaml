@@ -1,0 +1,17 @@
+schema_version: 1
+task_id: <TASK-ID>
+owner: <dev-or-agent-name>
+branch: feature/<TASK-ID>
+worktree_path: ../project-<TASK-ID>
+
+read_scope:
+  - <path/to/read_dir/>
+
+write_scope:
+  - <path/to/write_file_or_dir>
+
+hotspots:
+  - <None | DB_Migrations | Auth | Lockfile | Shared_Types>
+
+status: active
+updated_at: 2026-08-03T00:00:00Z

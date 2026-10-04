@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "mcpServers": {
+    "code-review-graph": {
+      "command": ".agents/.venv/Scripts/code-review-graph.exe",
+      "args": ["mcp"],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      },
+      "description": "Project-embedded tirth8205/code-review-graph MCP Server using Tree-sitter and SQLite for blast-radius context filtering."
+    }
+  }
+}
