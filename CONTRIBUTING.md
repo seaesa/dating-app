@@ -9,7 +9,7 @@ See [README.md](./README.md#quickstart).
 1. Branch from `main`: `git checkout -b feat/<short-name>`
 2. Write the code
 3. `pnpm lint && pnpm typecheck`
-4. Commit using Conventional Commits — the hook enforces it
+4. Commit using Conventional Commits
 5. Open a pull request
 
 ## Changing an endpoint

@@ -3,13 +3,13 @@ import { router } from "expo-router";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { getMeOptions } from "@repo/api-contract";
+import { meQuery } from "@repo/api-contract";
 import { useAuthStore } from "@repo/store";
 import { Button, ProfileCard, Skeleton, Text } from "@repo/ui";
 
 export default function ProfileScreen() {
   const signOut = useAuthStore((s) => s.signOut);
-  const { data, isPending, isError } = useQuery(getMeOptions());
+  const { data, isPending, isError } = useQuery(meQuery());
 
   return (
     <SafeAreaView className="flex-1 bg-background">

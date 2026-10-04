@@ -6,7 +6,7 @@ resolves source directly.
 
 | Package             | What                                                                | Depends on |
 | ------------------- | ------------------------------------------------------------------- | ---------- |
-| `api-contract`      | Generated client: types, Zod schemas, axios SDK, query options      | `core`     |
+| `api-contract`      | Generated types + hand-written axios calls and query options        | —          |
 | `ui`                | React Native components for both apps · [AGENTS.md](./ui/AGENTS.md) | `core`     |
 | `tailwind-config`   | Design tokens and the shared Tailwind preset                        | —          |
 | `core`              | Pure TypeScript helpers. No React, no React Native                  | —          |

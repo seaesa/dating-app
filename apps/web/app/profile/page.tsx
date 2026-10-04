@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { View } from "react-native";
 
-import { getMeOptions } from "@repo/api-contract";
+import { meQuery } from "@repo/api-contract";
 import { useAuthStore } from "@repo/store";
 import { Button, ProfileCard, Skeleton, Text } from "@repo/ui";
 
@@ -16,7 +16,7 @@ export default function ProfilePage() {
   const signOut = useAuthStore((s) => s.signOut);
 
   const { data, isPending, isError } = useQuery({
-    ...getMeOptions(),
+    ...meQuery(),
     enabled: signedIn,
   });
 

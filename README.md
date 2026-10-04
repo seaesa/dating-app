@@ -21,7 +21,7 @@ apps/
   web/       Next.js + react-native-web → apps/web/README.md
   mobile/    Expo, iOS and Android      → apps/mobile/README.md
 packages/
-  api-contract/    generated client: types, Zod schemas, query hooks
+  api-contract/    API client: generated types, hand-written axios calls
   ui/              React Native Reusables components, shared by web and mobile
   tailwind-config/ design tokens, defined once
   core/            pure TypeScript helpers
@@ -31,8 +31,9 @@ packages/
 
 One component library serves all three platforms: `@repo/ui` holds React Native
 components, which Expo renders natively and Next renders through
-react-native-web. Neither app hand-writes a request — `@repo/api-contract` is
-generated from the API's own OpenAPI document.
+react-native-web. Neither app calls axios directly — `@repo/api-contract` has
+one function per endpoint, typed by types generated from the API's OpenAPI
+document.
 
 ## Architecture
 
@@ -40,8 +41,8 @@ generated from the API's own OpenAPI document.
                   ┌───────────────────┐
 apps/mobile ─────►│                   │
                   │ @repo/api-contract│──── generated from ────┐
-apps/web ────────►│   types · zod ·   │                        │
-                  │   axios · query   │                        │
+apps/web ────────►│   types (gen) ·   │                        │
+                  │   axios calls     │                        │
                   └───────────────────┘                        │
        │                                                       │
        ├──► @repo/ui ──► @repo/tailwind-config                 ▼

@@ -4,7 +4,7 @@ import * as React from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { parseProfileForm, updateMyProfileMutation } from "@repo/api-contract";
+import { parseProfileForm, updateMyProfile } from "@repo/api-contract";
 import { useAuthStore } from "@repo/store";
 import { Button, Input, Label, Text } from "@repo/ui";
 
@@ -26,7 +26,7 @@ export default function OnboardingProfileScreen() {
   const [error, setError] = React.useState<string | null>(null);
 
   const update = useMutation({
-    ...updateMyProfileMutation(),
+    mutationFn: updateMyProfile,
     onSuccess: async () => {
       // Clears the persisted pending flag, so the guards stop sending this user
       // back here on every launch.
@@ -37,15 +37,14 @@ export default function OnboardingProfileScreen() {
   });
 
   function submit() {
-    // Shared with web and derived from the generated contract schema, so the
-    // form cannot accept a value the API will refuse.
+    // Shared with web; the bounds match the API, so a valid form is never a 422.
     const parsed = parseProfileForm(values);
     if (!parsed.ok) {
       setError(parsed.error);
       return;
     }
     setError(null);
-    update.mutate({ body: parsed.body });
+    update.mutate(parsed.body);
   }
 
   return (

@@ -4,7 +4,7 @@ import * as React from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { verifyOtpMutation } from "@repo/api-contract";
+import { verifyOtp } from "@repo/api-contract";
 import { useAuthStore } from "@repo/store";
 import { Button, OtpInput, Text } from "@repo/ui";
 
@@ -14,7 +14,7 @@ export default function OtpScreen() {
   const signIn = useAuthStore((s) => s.signIn);
 
   const verify = useMutation({
-    ...verifyOtpMutation(),
+    mutationFn: verifyOtp,
     onSuccess: async (data) => {
       // isNewUser comes from the API so the client needs no second request to
       // decide where a first-time user goes. It is persisted rather than acted on
@@ -46,9 +46,7 @@ export default function OtpScreen() {
           value={code}
           onChangeText={setCode}
           disabled={verify.isPending}
-          onComplete={(value) =>
-            verify.mutate({ body: { phone: phone ?? "", code: value } })
-          }
+          onComplete={(value) => verify.mutate({ phone: phone ?? "", code: value })}
         />
 
         {verify.isError ? (

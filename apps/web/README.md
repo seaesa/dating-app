@@ -14,7 +14,7 @@ configured through tsconfig rather than Babel.
 | Framework | Next.js 16 App Router                                               |
 | Rendering | react-native-web, so `@repo/ui` components run unchanged            |
 | Styling   | NativeWind 4 + Tailwind 3, tokens from `@repo/tailwind-config`      |
-| Data      | `@repo/api-contract` — generated types, Zod, axios, query options   |
+| Data      | `@repo/api-contract` — generated types, axios calls, query options  |
 | State     | `@repo/store` (Zustand); refresh token in `localStorage`            |
 | Bundler   | webpack (`--webpack`), because Turbopack panics on react-native-web |
 

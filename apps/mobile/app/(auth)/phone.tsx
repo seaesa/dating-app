@@ -4,7 +4,7 @@ import * as React from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { requestOtpMutation } from "@repo/api-contract";
+import { requestOtp } from "@repo/api-contract";
 import { Button, Input, Text } from "@repo/ui";
 
 import { preparePhone } from "./phone-form";
@@ -14,11 +14,11 @@ export default function PhoneScreen() {
   const [error, setError] = React.useState<string | null>(null);
 
   const request = useMutation({
-    ...requestOtpMutation(),
+    mutationFn: requestOtp,
     onSuccess: (_data, variables) => {
       router.push({
         pathname: "/(auth)/otp",
-        params: { phone: variables.body?.phone ?? "" },
+        params: { phone: variables.phone },
       });
     },
     onError: () => setError("Không gửi được mã. Thử lại sau ít phút."),
@@ -31,7 +31,7 @@ export default function PhoneScreen() {
       return;
     }
     setError(null);
-    request.mutate({ body: { phone: prepared.e164 } });
+    request.mutate({ phone: prepared.e164 });
   }
 
   return (

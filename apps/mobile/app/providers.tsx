@@ -24,14 +24,14 @@ configureApiClient({
   },
 });
 
-// The query cache is keyed by endpoint, not by user — getMe's key carries no
+// The query cache is keyed by endpoint, not by user — meQuery's key carries no
 // identity. Two accounts on one device would otherwise see each other's cached
 // profile, real name included.
 onSessionChange(() => queryClient.clear());
 
 // So a deliberate sign-out revokes the jti instead of leaving it redeemable for
 // the rest of its lifetime. Best effort: the store ignores a failure here.
-registerSessionRevoke((refreshToken) => logout({ body: { refreshToken } }));
+registerSessionRevoke((refreshToken) => logout(refreshToken));
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const hydrate = useAuthStore((s) => s.hydrate);

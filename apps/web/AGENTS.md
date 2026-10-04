@@ -41,7 +41,7 @@ enables its queries on the session:
 "use client";
 export default function ProfilePage() {
   const { hydrated, signedIn } = useRequireSession();
-  const { data, isPending } = useQuery({ ...getMeOptions(), enabled: signedIn });
+  const { data, isPending } = useQuery({ ...meQuery(), enabled: signedIn });
   if (!hydrated || isPending) return <Skeleton className="h-40 w-full" />;
   // compose @repo/ui components from `data`
 }
@@ -59,7 +59,7 @@ export default function ProfilePage() {
   column.
 - Forms: validate with the shared parser from `@repo/api-contract`
   (`parseProfileForm`) before `mutate`, so the form never accepts what the API
-  refuses. Mutations use the generated `...Mutation()` options.
+  refuses. Mutations: `useMutation({ mutationFn: updateMyProfile })`.
 
 ## Env
 

@@ -1,9 +1,8 @@
 {
   "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
-    // DOM because storage.web.ts uses localStorage, and because the generated
-    // API client this package consumes references DOM types such as BodyInit.
-    // node because that client's runtime.ts reads process.env.
+    // DOM because storage.web.ts uses localStorage; node because the API
+    // client in @repo/api-contract reads process.env.
     //
     // Both are needed here rather than only in @repo/api-contract: packages ship
     // source, so a consumer typechecks its dependency's files with its own lib

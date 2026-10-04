@@ -51,8 +51,8 @@ async def update_my_profile(
     return await UserService(settings=settings).update_profile(user, patch)
 ```
 
-- Every route sets `operation_id` in camelCase — it becomes the generated
-  client's function and hook name (`updateMyProfile`, `updateMyProfileMutation`).
+- Every route sets `operation_id` in camelCase — it names the generated types
+  (`UpdateMyProfileData`, `UpdateMyProfileResponse`) and the client function.
 - Settings: inject `SettingsDep`. Never call `get_settings()` inside a
   dependency or service.
 - Errors: raise an `AppError` subclass (`NotFoundError`, `ConflictError`,
@@ -79,7 +79,8 @@ async def update_my_profile(
 2. `service.py` — the logic; `repository.py` for any new query (+ index).
 3. `router.py` — wire it with `operation_id`; a new module's router gets
    included in `api/v1.py`.
-4. From the root: `pnpm contract`, then commit `packages/api-contract/` with it.
+4. From the root: `pnpm contract`, add the call to `packages/api-contract/src/api.ts`,
+   then commit `packages/api-contract/` with it.
 
 ## Commands
 

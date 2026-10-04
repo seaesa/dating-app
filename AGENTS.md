@@ -24,7 +24,7 @@ outranks every other rule; a change that makes it harder to hold is wrong.
 - Clients: only the owner's own profile screen reads `identity`. Public views
   render `profile` only.
 - Clients: the TanStack Query cache is cleared on every sign-in/sign-out
-  (`onSessionChange` in `@repo/store`). Keep it that way — `getMe` has no user
+  (`onSessionChange` in `@repo/store`). Keep it that way — `meQuery` has no user
   in its cache key.
 
 ## Stack
@@ -41,7 +41,7 @@ outranks every other rule; a change that makes it harder to hold is wrong.
 
 ```
 apps/*  ──►  @repo/ui            components, props only
-        ──►  @repo/api-contract  GENERATED client: types, Zod, SDK, query options
+        ──►  @repo/api-contract  generated types + one axios function per endpoint
         ──►  @repo/store         Zustand session store + platform storage
         ──►  @repo/core          pure TS helpers (phone, age, env)
 @repo/tailwind-config            design tokens — the only place colours live
@@ -62,7 +62,7 @@ apps/*  ──►  @repo/ui            components, props only
 pnpm install
 pnpm services:up              # MongoDB (replica set), Redis, S3 in Docker
 pnpm dev                      # all apps; or dev:api · dev:web · dev:mobile
-pnpm contract                 # after any API schema change: regenerate the client
+pnpm contract                 # after any API schema change: regenerate the types
 pnpm lint && pnpm typecheck   # everything, through turbo
 pnpm format                   # prettier
 pnpm --filter=<pkg> <script>  # one package — never `npm run x --filter`
@@ -73,12 +73,19 @@ pnpm --filter=<pkg> <script>  # one package — never `npm run x --filter`
 **Changing an endpoint**
 
 1. Edit `apps/api/src/app/modules/<domain>/`.
-2. Run `pnpm contract`.
-3. Use the regenerated hook/type from `@repo/api-contract` in the client.
+2. Run `pnpm contract` to regenerate `src/generated/types.gen.ts`.
+3. Add or update the function in `packages/api-contract/src/api.ts`, typed with
+   the generated request/response types:
+   ```ts
+   export const getUser = (userId: string) =>
+     http.get<UserRead>(`/v1/users/${encodeURIComponent(userId)}`).then((r) => r.data);
+   ```
+   A query read by more than one screen also gets a `...Query()` there.
 4. Commit `packages/api-contract/` in the same commit — CI fails on drift.
 
-**Adding a screen**: `@repo/ui` component (data via props) + generated query
-hook from `@repo/api-contract`, composed in the route file. Logic worth reusing
+**Adding a screen**: `@repo/ui` component (data via props) + `useQuery(meQuery())`
+or `useMutation({ mutationFn: updateMyProfile })` from `@repo/api-contract`,
+composed in the route file. Logic worth reusing
 goes into a package, not the route.
 
 ## Conventions
@@ -90,8 +97,8 @@ goes into a package, not the route.
 - Styling: NativeWind token classes (`bg-primary`, `text-foreground`). Never a
   literal colour (`#fff`, `rgb()`, `hsl()`); add a token to
   `packages/tailwind-config/theme.css` instead.
-- Requests: never `fetch`/`axios` by hand; use the generated SDK or
-  `...Options()` from `@repo/api-contract`.
+- Requests: never `fetch`/`axios` in an app; call the functions in
+  `@repo/api-contract`. Errors are `ApiError` (axios error with a `Problem` body).
 - Never edit `packages/api-contract/src/generated/` — `pnpm contract` overwrites it.
 - Secrets: nothing secret behind `NEXT_PUBLIC_` or `EXPO_PUBLIC_`; both are
   inlined into client bundles.
@@ -149,7 +156,7 @@ These bias toward caution over speed; for trivial tasks, use judgment.
 **4. Goal-driven execution.** Define success criteria, loop until verified.
 There are no tests here, so verify by running things:
 
-- "Add an endpoint" → `pnpm contract` produces the hook, and a `curl` against
+- "Add an endpoint" → `pnpm contract` produces the types, and a `curl` against
   `pnpm dev:api` returns the expected shape.
 - "Fix the bug" → reproduce it first (request, screen, log line), fix it, then
   show the reproduction no longer fails.

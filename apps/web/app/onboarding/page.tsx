@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { View } from "react-native";
 
-import { parseProfileForm, updateMyProfileMutation } from "@repo/api-contract";
+import { parseProfileForm, updateMyProfile } from "@repo/api-contract";
 import { useAuthStore } from "@repo/store";
 import { Button, Input, Label, Text } from "@repo/ui";
 
@@ -34,7 +34,7 @@ export default function OnboardingPage() {
   const [error, setError] = React.useState<string | null>(null);
 
   const update = useMutation({
-    ...updateMyProfileMutation(),
+    mutationFn: updateMyProfile,
     onSuccess: async () => {
       await completeOnboarding();
       router.replace("/profile");
@@ -43,15 +43,14 @@ export default function OnboardingPage() {
   });
 
   function submit() {
-    // Shared with mobile and derived from the generated contract schema, so the
-    // form cannot accept a value the API will refuse.
+    // Shared with mobile; the bounds match the API, so a valid form is never a 422.
     const parsed = parseProfileForm(values);
     if (!parsed.ok) {
       setError(parsed.error);
       return;
     }
     setError(null);
-    update.mutate({ body: parsed.body });
+    update.mutate(parsed.body);
   }
 
   return (

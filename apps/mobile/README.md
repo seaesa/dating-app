@@ -8,14 +8,14 @@ See [AGENTS.md](./AGENTS.md) for the rules — particularly that `ios/` and
 
 ## Tech stack
 
-| Layer      | Choice                                                            |
-| ---------- | ----------------------------------------------------------------- |
-| Runtime    | Expo SDK 57, React Native 0.86, New Architecture                  |
-| Navigation | expo-router, typed routes, route groups for auth state            |
-| Styling    | NativeWind 4, tokens from `@repo/tailwind-config`                 |
-| Data       | `@repo/api-contract` — generated types, Zod, axios, query options |
-| State      | `@repo/store` (Zustand); refresh token in the keychain            |
-| Builds     | EAS, with Continuous Native Generation                            |
+| Layer      | Choice                                                             |
+| ---------- | ------------------------------------------------------------------ |
+| Runtime    | Expo SDK 57, React Native 0.86, New Architecture                   |
+| Navigation | expo-router, typed routes, route groups for auth state             |
+| Styling    | NativeWind 4, tokens from `@repo/tailwind-config`                  |
+| Data       | `@repo/api-contract` — generated types, axios calls, query options |
+| State      | `@repo/store` (Zustand); refresh token in the keychain             |
+| Builds     | EAS, with Continuous Native Generation                             |
 
 ## Setup
 

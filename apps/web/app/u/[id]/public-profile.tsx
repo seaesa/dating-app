@@ -2,11 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getUserOptions } from "@repo/api-contract";
+import { userQuery } from "@repo/api-contract";
 import { ProfileCard, Skeleton, Text } from "@repo/ui";
 
 export function PublicProfile({ userId }: { userId: string }) {
-  const { data, isPending, isError } = useQuery(getUserOptions({ path: { userId } }));
+  const { data, isPending, isError } = useQuery(userQuery(userId));
 
   if (isPending) return <Skeleton className="h-40 w-full rounded-lg" />;
   if (isError || !data) {

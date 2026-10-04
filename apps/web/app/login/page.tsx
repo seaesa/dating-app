@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { View } from "react-native";
 
-import { requestOtpMutation, verifyOtpMutation } from "@repo/api-contract";
+import { requestOtp, verifyOtp } from "@repo/api-contract";
 import { toE164 } from "@repo/core";
 import { useAuthStore } from "@repo/store";
 import { Button, Input, OtpInput, Text } from "@repo/ui";
@@ -25,13 +25,13 @@ export default function LoginPage() {
   const [error, setError] = React.useState<string | null>(null);
 
   const request = useMutation({
-    ...requestOtpMutation(),
-    onSuccess: (_d, variables) => setSentTo(variables.body?.phone ?? null),
+    mutationFn: requestOtp,
+    onSuccess: (_d, variables) => setSentTo(variables.phone),
     onError: () => setError("Không gửi được mã. Thử lại sau."),
   });
 
   const verify = useMutation({
-    ...verifyOtpMutation(),
+    mutationFn: verifyOtp,
     onSuccess: async (data) => {
       await signIn({
         accessToken: data.accessToken,
@@ -51,15 +51,14 @@ export default function LoginPage() {
   });
 
   function sendCode() {
-    // The generated Zod schema checks length only, so validity is checked here
-    // too — otherwise the user waits for a 422 to learn the number is wrong.
+    // Checked here so the user does not wait for a 422 to learn the number is wrong.
     const e164 = toE164(phone, "VN");
     if (!e164) {
       setError("Số điện thoại không hợp lệ");
       return;
     }
     setError(null);
-    request.mutate({ body: { phone: e164 } });
+    request.mutate({ phone: e164 });
   }
 
   return (
@@ -86,9 +85,7 @@ export default function LoginPage() {
             value={code}
             onChangeText={setCode}
             disabled={verify.isPending}
-            onComplete={(value) =>
-              verify.mutate({ body: { phone: sentTo, code: value } })
-            }
+            onComplete={(value) => verify.mutate({ phone: sentTo, code: value })}
           />
           <Button variant="ghost" onPress={() => setSentTo(null)}>
             <Text>Đổi số điện thoại</Text>
