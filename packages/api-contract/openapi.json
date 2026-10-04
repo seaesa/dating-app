@@ -285,6 +285,22 @@
             "title": "City",
             "type": "string"
           },
+          "gender": {
+            "anyOf": [
+              {
+                "enum": [
+                  "male",
+                  "female",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
           "interests": {
             "items": {
               "type": "string"
@@ -356,6 +372,22 @@
               }
             ],
             "title": "City"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "enum": [
+                  "male",
+                  "female",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
           },
           "interests": {
             "anyOf": [

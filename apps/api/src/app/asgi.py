@@ -1,4 +1,4 @@
-"""ASGI entrypoint.
+"""ASGI entrypoint for Terdin Date API.
 
 Separate from `main` on purpose. Servers locate the application by inspecting
 a module for a FastAPI instance, so it must exist as a real module-level

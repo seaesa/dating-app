@@ -36,6 +36,7 @@ export default function ProfilePage() {
             nickname={data.profile.nickname}
             age={data.profile.age}
             city={data.profile.city}
+            gender={data.profile.gender}
             bio={data.profile.bio}
             interests={data.profile.interests}
             avatarUrl={data.profile.avatarUrl}

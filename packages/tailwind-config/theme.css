@@ -16,9 +16,10 @@
   --popover: 0 0% 100%;
   --popover-foreground: 240 10% 4%;
 
-  /* Terdin's brand rose. Changing this line changes both platforms. */
-  --primary: 347 77% 50%;
+  /* Amor / Terdin brand coral (#FF6F61). Changing this line changes both platforms. */
+  --primary: 5 100% 69%;
   --primary-foreground: 0 0% 100%;
+  --primary-muted: 5 100% 96%;
 
   --secondary: 240 5% 96%;
   --secondary-foreground: 240 6% 10%;
@@ -34,7 +35,7 @@
 
   --border: 240 6% 90%;
   --input: 240 6% 90%;
-  --ring: 347 77% 50%;
+  --ring: 5 100% 69%;
 
   --radius: 0.625rem;
 }
@@ -49,8 +50,9 @@
   --popover: 240 10% 6%;
   --popover-foreground: 0 0% 98%;
 
-  --primary: 347 77% 58%;
+  --primary: 5 100% 65%;
   --primary-foreground: 0 0% 100%;
+  --primary-muted: 5 60% 18%;
 
   --secondary: 240 4% 16%;
   --secondary-foreground: 0 0% 98%;
@@ -66,5 +68,5 @@
 
   --border: 240 4% 16%;
   --input: 240 4% 16%;
-  --ring: 347 77% 58%;
+  --ring: 5 100% 65%;
 }

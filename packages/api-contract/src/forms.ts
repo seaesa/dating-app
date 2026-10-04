@@ -9,10 +9,21 @@ export interface ProfileFormValues {
   nickname: string;
   birthYear: string;
   city: string;
+  gender?: "male" | "female" | "other" | null;
+  avatarMediaId?: string | null;
 }
 
 export type ProfileFormResult =
-  | { ok: true; body: { nickname: string; birthYear: number; city: string } }
+  | {
+      ok: true;
+      body: {
+        nickname: string;
+        birthYear: number;
+        city: string;
+        gender?: "male" | "female" | "other" | null;
+        avatarMediaId?: string | null;
+      };
+    }
   | { ok: false; error: string };
 
 const currentYear = () => new Date().getFullYear();
@@ -33,8 +44,10 @@ const formSchema = z.object({
   city: z
     .string()
     .trim()
-    .min(1, "Nhập thành phố")
+    .min(1, "Vui lòng chọn thành phố")
     .max(64, "Tên thành phố tối đa 64 ký tự"),
+  gender: z.enum(["male", "female", "other"]).nullable().optional(),
+  avatarMediaId: z.string().nullable().optional(),
 });
 
 export function parseProfileForm(values: ProfileFormValues): ProfileFormResult {

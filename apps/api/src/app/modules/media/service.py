@@ -10,6 +10,7 @@ from app.modules.media.storage import MediaStorage
 
 EXTENSION = {
     "image/jpeg": "jpg",
+    "image/jpg": "jpg",
     "image/png": "png",
     "image/webp": "webp",
     "image/heic": "heic",

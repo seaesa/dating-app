@@ -21,7 +21,10 @@ module.exports = {
         foreground: withOpacity("--foreground"),
         card: pair("card"),
         popover: pair("popover"),
-        primary: pair("primary"),
+        primary: {
+          ...pair("primary"),
+          muted: withOpacity("--primary-muted"),
+        },
         secondary: pair("secondary"),
         muted: pair("muted"),
         accent: pair("accent"),

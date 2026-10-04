@@ -29,14 +29,13 @@ class MediaStorage:
             config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
         )
 
-    async def presign_put(self, key: str, content_type: str) -> str:
+    async def presign_put(self, key: str, content_type: str | None = None) -> str:
         async with self._client() as s3:
             url: str = await s3.generate_presigned_url(
                 "put_object",
                 Params={
                     "Bucket": self.settings.s3_bucket,
                     "Key": key,
-                    "ContentType": content_type,
                 },
                 ExpiresIn=self.settings.s3_presign_ttl,
             )

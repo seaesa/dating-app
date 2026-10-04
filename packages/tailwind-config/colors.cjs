@@ -15,7 +15,7 @@ const CHANNELS = {
     foreground: "240 10% 4%",
     card: "0 0% 100%",
     border: "240 6% 90%",
-    primary: "347 77% 50%",
+    primary: "5 100% 69%",
     destructive: "0 84% 60%",
   },
   dark: {
@@ -23,7 +23,7 @@ const CHANNELS = {
     foreground: "0 0% 98%",
     card: "240 10% 6%",
     border: "240 4% 16%",
-    primary: "347 77% 58%",
+    primary: "5 100% 65%",
     destructive: "0 72% 51%",
   },
 };

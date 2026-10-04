@@ -27,7 +27,7 @@ export default function OtpScreen() {
       });
       // Both layouts route off the same persisted flag, so this navigation and
       // the auth layout's redirect can no longer disagree.
-      router.replace(data.isNewUser ? "/(onboarding)/profile" : "/(app)/profile");
+      router.replace(data.isNewUser ? "/(onboarding)/profile" : "/(app)/(tabs)/profile");
     },
     // Clear the boxes: the API consumes a code on failure too, so the old one
     // can never work again.
@@ -53,7 +53,16 @@ export default function OtpScreen() {
           <Text className="text-sm text-destructive">Mã không đúng hoặc đã hết hạn.</Text>
         ) : null}
 
-        <Button variant="ghost" onPress={() => router.back()}>
+        <Button
+          variant="ghost"
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/(auth)/phone");
+            }
+          }}
+        >
           <Text>Đổi số điện thoại</Text>
         </Button>
       </View>
