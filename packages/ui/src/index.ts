@@ -1,3 +1,4 @@
+export { ImageUploader, type ImageUploaderProps } from "./components/image-uploader";
 export { OtpInput, type OtpInputProps } from "./components/otp-input";
 export { ProfileCard, type ProfileCardProps } from "./components/profile-card";
 export { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
@@ -11,8 +12,22 @@ export {
   CardHeader,
   CardTitle,
 } from "./components/ui/card";
+export {
+  DatePickerInput,
+  type DatePickerInputProps,
+} from "./components/ui/date-picker-input";
 export { Input } from "./components/ui/input";
 export { Label } from "./components/ui/label";
+export {
+  SegmentedControl,
+  type SegmentedControlProps,
+  type SegmentOption,
+} from "./components/ui/segmented-control";
+export {
+  SelectPicker,
+  type SelectPickerProps,
+  VIETNAM_CITIES,
+} from "./components/ui/select-picker";
 export { Separator } from "./components/ui/separator";
 export { Skeleton } from "./components/ui/skeleton";
 export { Text, TextClassContext } from "./components/ui/text";

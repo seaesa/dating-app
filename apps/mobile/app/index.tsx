@@ -10,6 +10,8 @@ export default function Index() {
   // user in the wrong stack if the store changes underneath it.
   if (!refreshToken) return <Redirect href="/(auth)/phone" />;
   return (
-    <Redirect href={onboardingPending ? "/(onboarding)/profile" : "/(app)/profile"} />
+    <Redirect
+      href={onboardingPending ? "/(onboarding)/profile" : "/(app)/(tabs)/profile"}
+    />
   );
 }

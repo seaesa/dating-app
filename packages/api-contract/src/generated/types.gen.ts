@@ -173,6 +173,10 @@ export type PublicProfileRead = {
    */
   city: string;
   /**
+   * Gender
+   */
+  gender?: "male" | "female" | "other" | null;
+  /**
    * Interests
    */
   interests: Array<string>;
@@ -199,6 +203,10 @@ export type PublicProfileUpdate = {
    * City
    */
   city?: string | null;
+  /**
+   * Gender
+   */
+  gender?: "male" | "female" | "other" | null;
   /**
    * Interests
    */

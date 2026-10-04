@@ -5,7 +5,7 @@ import { StatusBar } from "expo-status-bar";
 
 import { useAuthStore } from "@repo/store";
 
-import { Providers } from "./providers";
+import { Providers } from "../src/providers";
 
 function RootNavigator() {
   const hydrated = useAuthStore((s) => s.hydrated);
@@ -15,7 +15,8 @@ function RootNavigator() {
   if (!hydrated) return null;
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false }} initialRouteName="index">
+      <Stack.Screen name="index" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(onboarding)" />
       <Stack.Screen name="(app)" />

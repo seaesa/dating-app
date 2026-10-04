@@ -47,6 +47,7 @@ def project_user(
         nickname=target.public.nickname,
         age=age_from_birth_year(target.public.birth_year),
         city=target.public.city,
+        gender=getattr(target.public, "gender", None),
         bio=target.public.bio,
         interests=target.public.interests,
         avatar_url=avatar_url,

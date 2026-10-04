@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { requestOtp } from "@repo/api-contract";
 import { Button, Input, Text } from "@repo/ui";
 
-import { preparePhone } from "./phone-form";
+import { preparePhone } from "../../src/phone-form";
 
 export default function PhoneScreen() {
   const [raw, setRaw] = React.useState("");

@@ -8,7 +8,9 @@ from app.modules.media.models import MediaKind
 
 # An allow-list by type, not a deny-list by extension: an uploader that accepts
 # text/html serves stored XSS from your own origin.
-ALLOWED_CONTENT_TYPES = frozenset({"image/jpeg", "image/png", "image/webp", "image/heic"})
+ALLOWED_CONTENT_TYPES = frozenset(
+    {"image/jpeg", "image/jpg", "image/png", "image/webp", "image/heic"}
+)
 
 
 class UploadUrlBody(BaseSchema):

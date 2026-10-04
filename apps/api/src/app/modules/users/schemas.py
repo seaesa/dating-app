@@ -36,6 +36,7 @@ class PublicProfile(BaseModel):
     nickname: Annotated[str, Field(min_length=2, max_length=32)]
     birth_year: Annotated[int, Field(ge=1900, le=2100)]
     city: Annotated[str, Field(max_length=64)]
+    gender: Literal["male", "female", "other"] | None = None
     bio: Annotated[str, Field(max_length=500)] = ""
     interests: Annotated[list[str], Field(max_length=20)] = []
     avatar_media_id: PydanticObjectId | None = None
@@ -62,6 +63,7 @@ class PublicProfileRead(BaseSchema):
     nickname: str
     age: int
     city: str
+    gender: Literal["male", "female", "other"] | None = None
     bio: str
     interests: list[str]
     avatar_url: str | None = None
@@ -97,6 +99,7 @@ class PublicProfileUpdate(BaseSchema):
     nickname: Annotated[str, Field(min_length=2, max_length=32)] | None = None
     birth_year: Annotated[int, Field(ge=1900, le=2100)] | None = None
     city: Annotated[str, Field(max_length=64)] | None = None
+    gender: Literal["male", "female", "other"] | None = None
     bio: Annotated[str, Field(max_length=500)] | None = None
     interests: Annotated[list[str], Field(max_length=20)] | None = None
     avatar_media_id: PydanticObjectId | None = None

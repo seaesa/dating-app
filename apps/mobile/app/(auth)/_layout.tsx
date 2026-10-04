@@ -12,9 +12,16 @@ export default function AuthLayout() {
   // race the one in otp.tsx.
   if (refreshToken) {
     return (
-      <Redirect href={onboardingPending ? "/(onboarding)/profile" : "/(app)/profile"} />
+      <Redirect
+        href={onboardingPending ? "/(onboarding)/profile" : "/(app)/(tabs)/profile"}
+      />
     );
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack screenOptions={{ headerShown: false }} initialRouteName="phone">
+      <Stack.Screen name="phone" />
+      <Stack.Screen name="otp" />
+    </Stack>
+  );
 }
