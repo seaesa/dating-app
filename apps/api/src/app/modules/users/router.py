@@ -4,9 +4,11 @@ from beanie import PydanticObjectId
 from fastapi import APIRouter, Path
 
 from app.core.deps import CurrentUser, OptionalUser, SettingsDep
+from app.modules.users.criteria import MatchCriteria
 from app.modules.users.schemas import (
     PrivateIdentityUpdate,
     PublicProfileUpdate,
+    SensitiveAttributes,
     UserRead,
 )
 from app.modules.users.service import UserService
@@ -31,6 +33,29 @@ async def update_my_identity(
     user: CurrentUser, patch: PrivateIdentityUpdate, settings: SettingsDep
 ) -> UserRead:
     return await UserService(settings=settings).update_identity(user, patch)
+
+
+@router.put("/me/criteria", response_model=UserRead, operation_id="updateMyCriteria")
+async def update_my_criteria(
+    user: CurrentUser, body: MatchCriteria, settings: SettingsDep
+) -> UserRead:
+    return await UserService(settings=settings).update_criteria(user, body)
+
+
+@router.patch("/me/sensitive", response_model=UserRead, operation_id="updateMySensitive")
+async def update_my_sensitive(
+    user: CurrentUser, body: SensitiveAttributes, settings: SettingsDep
+) -> UserRead:
+    return await UserService(settings=settings).update_sensitive(user, body)
+
+
+@router.post(
+    "/me/onboarding/complete",
+    response_model=UserRead,
+    operation_id="completeMyOnboarding",
+)
+async def complete_my_onboarding(user: CurrentUser, settings: SettingsDep) -> UserRead:
+    return await UserService(settings=settings).complete_onboarding(user)
 
 
 @router.get("/{userId}", response_model=UserRead, operation_id="getUser")

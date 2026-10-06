@@ -36,6 +36,20 @@ class Settings(BaseSettings):
     twilio_auth_token: str = ""
     twilio_from_number: str = ""
 
+    # Face verification. Off until the worker is deployed: the API then refuses
+    # challenges and the app hides the feature.
+    verification_enabled: bool = False
+    verification_max_attempts_per_day: int = 3
+    verification_challenge_ttl: int = 120
+    # A submission still `pending` after this long was lost with its worker.
+    verification_pending_timeout: int = 600
+    # distance / model threshold: at or under this ratio the face matches. There
+    # is no manual review, so anything above it is refused and the user retries.
+    verification_auto_ratio: float = 0.8
+    # Head pose from the eye/nose landmarks; calibrated in the DeepFace spike.
+    verification_yaw_straight_max: float = 0.12
+    verification_yaw_turn_min: float = 0.25
+
     # Object storage
     s3_endpoint: str = "http://localhost:8333"
     s3_region: str = "us-east-1"

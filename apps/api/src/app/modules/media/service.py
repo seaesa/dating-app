@@ -4,9 +4,12 @@ from beanie import PydanticObjectId
 
 from app.core.config import Settings
 from app.core.errors import ForbiddenError, NotFoundError, ValidationError
+from app.core.logging import get_logger
 from app.modules.media.models import MediaAsset, MediaKind, MediaStatus
 from app.modules.media.schemas import UploadUrlResponse
 from app.modules.media.storage import MediaStorage
+
+log = get_logger(__name__)
 
 EXTENSION = {
     "image/jpeg": "jpg",
@@ -104,29 +107,10 @@ class MediaService:
             return False
         return not (asset.kind is MediaKind.PRIVATE and not allow_private)
 
-    async def url_for(
-        self,
-        media_id: PydanticObjectId | None,
-        *,
-        owner_id: PydanticObjectId,
-        scope_allows_private: bool,
-    ) -> str | None:
-        if media_id is None:
-            return None
-        asset = await MediaAsset.get(media_id)
-        # A PENDING asset may not exist in storage at all, so it gets no URL.
-        if asset is None or asset.status is not MediaStatus.READY:
-            return None
-        if not self._may_sign(asset, owner_id, allow_private=scope_allows_private):
-            return None
-        return await self.storage.presign_get(
-            asset.key, expires_in=self._ttl_for(asset.kind)
-        )
-
-    async def urls_for(
+    async def signed_for(
         self, media_ids: list[PydanticObjectId], *, owner_id: PydanticObjectId
-    ) -> list[str]:
-        """Signed URLs for the owner's own READY assets, in the order given.
+    ) -> list[tuple[PydanticObjectId, str]]:
+        """(id, signed URL) for the owner's own READY assets, in the order given.
 
         Order is preserved because a user who reorders their photos expects it
         to stick; a plain `$in` returns Mongo's natural order instead.
@@ -142,10 +126,61 @@ class MediaService:
             for asset in assets
             if self._may_sign(asset, owner_id, allow_private=True)
         }
-        return [
-            await self.storage.presign_get(
-                by_id[mid].key, expires_in=self._ttl_for(by_id[mid].kind)
+        ordered = [mid for mid in media_ids if mid in by_id]
+        urls = await self.storage.presign_get_many(
+            [(by_id[mid].key, self._ttl_for(by_id[mid].kind)) for mid in ordered]
+        )
+        return list(zip(ordered, urls, strict=True))
+
+    async def urls_for(
+        self, media_ids: list[PydanticObjectId], *, owner_id: PydanticObjectId
+    ) -> list[str]:
+        return [url for _, url in await self.signed_for(media_ids, owner_id=owner_id)]
+
+    async def _owned_ready(
+        self,
+        media_id: PydanticObjectId,
+        owner_id: PydanticObjectId,
+        *,
+        kind: MediaKind | None = None,
+    ) -> MediaAsset:
+        asset = await MediaAsset.get(media_id)
+        if (
+            asset is None
+            or asset.owner_id != owner_id
+            or asset.status is not MediaStatus.READY
+            or (kind is not None and asset.kind is not kind)
+        ):
+            # One answer for "missing", "not yours" and "wrong kind", so the
+            # response is not an oracle for other users' media ids.
+            raise ValidationError(
+                detail="That media cannot be used here.",
+                errors={"mediaIds": ["invalid"]},
             )
-            for mid in media_ids
-            if mid in by_id
-        ]
+        return asset
+
+    async def assert_private_frames(
+        self, media_ids: list[PydanticObjectId], *, owner_id: PydanticObjectId
+    ) -> None:
+        for media_id in media_ids:
+            await self._owned_ready(media_id, owner_id, kind=MediaKind.PRIVATE)
+
+    async def read_owned(
+        self, media_id: PydanticObjectId, *, owner_id: PydanticObjectId
+    ) -> bytes:
+        asset = await self._owned_ready(media_id, owner_id)
+        return await self.storage.read(asset.key)
+
+    async def delete_assets(
+        self, media_ids: list[PydanticObjectId], *, owner_id: PydanticObjectId
+    ) -> None:
+        """Remove objects and records; a failure on one must not skip the rest."""
+        for media_id in media_ids:
+            asset = await MediaAsset.get(media_id)
+            if asset is None or asset.owner_id != owner_id:
+                continue
+            try:
+                await self.storage.delete(asset.key)
+            except Exception:
+                log.exception("media.delete_failed", media_id=str(media_id))
+            await asset.delete()

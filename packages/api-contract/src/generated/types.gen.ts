@@ -5,6 +5,92 @@ export type ClientOptions = {
 };
 
 /**
+ * AccountRead
+ *
+ * What only the account owner sees about their own account.
+ */
+export type AccountRead = {
+  criteria: MatchCriteria | null;
+  /**
+   * Dateofbirth
+   */
+  dateOfBirth: string | null;
+  location: GeoPoint | null;
+  /**
+   * Photos
+   */
+  photos: Array<PhotoRead>;
+  sensitive: SensitiveAttributes;
+  verification: VerificationRead;
+};
+
+/**
+ * AttributeRead
+ */
+export type AttributeRead = {
+  /**
+   * Group
+   */
+  group: string;
+  /**
+   * Icon
+   */
+  icon?: string | null;
+  /**
+   * Key
+   */
+  key: string;
+  /**
+   * Label
+   */
+  label: string;
+  /**
+   * Matchingonly
+   */
+  matchingOnly: boolean;
+  /**
+   * Multi
+   */
+  multi: boolean;
+  /**
+   * Options
+   */
+  options: Array<OptionRead>;
+};
+
+/**
+ * ChallengeRead
+ */
+export type ChallengeRead = {
+  /**
+   * Actions
+   */
+  actions: Array<"turn_left" | "turn_right" | "look_straight">;
+  /**
+   * Challengeid
+   */
+  challengeId: string;
+  /**
+   * Expiresin
+   */
+  expiresIn: number;
+};
+
+/**
+ * ChoiceCriterion
+ */
+export type ChoiceCriterion = {
+  /**
+   * Level
+   */
+  level?: "required" | "preferred" | "any";
+  /**
+   * Values
+   */
+  values?: Array<string>;
+};
+
+/**
  * GeoPoint
  *
  * GeoJSON point.
@@ -24,6 +110,59 @@ export type GeoPoint = {
 };
 
 /**
+ * InterestGroupRead
+ */
+export type InterestGroupRead = {
+  /**
+   * Icon
+   */
+  icon?: string | null;
+  /**
+   * Label
+   */
+  label: string;
+  /**
+   * Options
+   */
+  options: Array<OptionRead>;
+};
+
+/**
+ * MatchCriteria
+ */
+export type MatchCriteria = {
+  /**
+   * Agemax
+   */
+  ageMax: number;
+  /**
+   * Agemin
+   */
+  ageMin: number;
+  /**
+   * Attributes
+   */
+  attributes?: {
+    [key: string]: ChoiceCriterion;
+  };
+  /**
+   * Cities
+   */
+  cities?: Array<string>;
+  /**
+   * Genders
+   */
+  genders: Array<"male" | "female" | "other">;
+  height?: RangeCriterion;
+  intent?: ChoiceCriterion;
+  interests?: ChoiceCriterion;
+  /**
+   * Maxdistancekm
+   */
+  maxDistanceKm?: number | null;
+};
+
+/**
  * MediaKind
  */
 export type MediaKind = "public" | "private";
@@ -36,6 +175,24 @@ export type Message = {
    * Message
    */
   message: string;
+};
+
+/**
+ * OptionRead
+ */
+export type OptionRead = {
+  /**
+   * Icon
+   */
+  icon?: string | null;
+  /**
+   * Label
+   */
+  label: string;
+  /**
+   * Value
+   */
+  value: string;
 };
 
 /**
@@ -73,10 +230,20 @@ export type OtpVerifyBody = {
 };
 
 /**
+ * PhotoRead
+ */
+export type PhotoRead = {
+  mediaId: PydanticObjectId;
+  /**
+   * Url
+   */
+  url: string;
+};
+
+/**
  * PrivateIdentityRead
  */
 export type PrivateIdentityRead = {
-  location: GeoPoint | null;
   /**
    * Photourls
    */
@@ -97,6 +264,10 @@ export type PrivateIdentityRead = {
  * PrivateIdentityUpdate
  */
 export type PrivateIdentityUpdate = {
+  /**
+   * Dateofbirth
+   */
+  dateOfBirth?: string | null;
   location?: GeoPoint | null;
   /**
    * Photomediaids
@@ -153,6 +324,107 @@ export type Problem = {
 };
 
 /**
+ * ProfileAttributes
+ *
+ * Self-declared traits every viewer of a profile may see.
+ *
+ * Each value is a key from the catalog, validated against it, so a client
+ * cannot store a label the app has no translation for.
+ */
+export type ProfileAttributes = {
+  /**
+   * Diet
+   */
+  diet?: string | null;
+  /**
+   * Drinking
+   */
+  drinking?: string | null;
+  /**
+   * Education
+   */
+  education?: string | null;
+  /**
+   * Exercise
+   */
+  exercise?: string | null;
+  /**
+   * Haschildren
+   */
+  hasChildren?: string | null;
+  /**
+   * Heightcm
+   */
+  heightCm?: number | null;
+  /**
+   * Hometown
+   */
+  hometown?: string | null;
+  /**
+   * Industry
+   */
+  industry?: string | null;
+  /**
+   * Intent
+   */
+  intent?: string | null;
+  /**
+   * Languages
+   */
+  languages?: Array<string>;
+  /**
+   * Lovelanguage
+   */
+  loveLanguage?: string | null;
+  /**
+   * Mbti
+   */
+  mbti?: string | null;
+  /**
+   * Pets
+   */
+  pets?: string | null;
+  /**
+   * Smoking
+   */
+  smoking?: string | null;
+  /**
+   * Wantschildren
+   */
+  wantsChildren?: string | null;
+  /**
+   * Zodiac
+   */
+  zodiac?: string | null;
+};
+
+/**
+ * ProfileOptionsRead
+ */
+export type ProfileOptionsRead = {
+  /**
+   * Attributes
+   */
+  attributes: Array<AttributeRead>;
+  /**
+   * Heightmax
+   */
+  heightMax: number;
+  /**
+   * Heightmin
+   */
+  heightMin: number;
+  /**
+   * Interestgroups
+   */
+  interestGroups: Array<InterestGroupRead>;
+  /**
+   * Maxinterests
+   */
+  maxInterests: number;
+};
+
+/**
  * PublicProfileRead
  */
 export type PublicProfileRead = {
@@ -160,10 +432,7 @@ export type PublicProfileRead = {
    * Age
    */
   age: number;
-  /**
-   * Avatarurl
-   */
-  avatarUrl?: string | null;
+  attributes: ProfileAttributes;
   /**
    * Bio
    */
@@ -173,6 +442,10 @@ export type PublicProfileRead = {
    */
   city: string;
   /**
+   * Displayname
+   */
+  displayName: string;
+  /**
    * Gender
    */
   gender?: "male" | "female" | "other" | null;
@@ -181,28 +454,28 @@ export type PublicProfileRead = {
    */
   interests: Array<string>;
   /**
-   * Nickname
+   * Verified
    */
-  nickname: string;
+  verified: boolean;
 };
 
 /**
  * PublicProfileUpdate
  */
 export type PublicProfileUpdate = {
-  avatarMediaId?: PydanticObjectId | null;
+  attributes?: ProfileAttributes | null;
   /**
    * Bio
    */
   bio?: string | null;
   /**
-   * Birthyear
-   */
-  birthYear?: number | null;
-  /**
    * City
    */
   city?: string | null;
+  /**
+   * Displayname
+   */
+  displayName?: string | null;
   /**
    * Gender
    */
@@ -211,13 +484,27 @@ export type PublicProfileUpdate = {
    * Interests
    */
   interests?: Array<string> | null;
-  /**
-   * Nickname
-   */
-  nickname?: string | null;
 };
 
 export type PydanticObjectId = string;
+
+/**
+ * RangeCriterion
+ */
+export type RangeCriterion = {
+  /**
+   * Level
+   */
+  level?: "required" | "preferred" | "any";
+  /**
+   * Max
+   */
+  max?: number | null;
+  /**
+   * Min
+   */
+  min?: number | null;
+};
 
 /**
  * RefreshBody
@@ -227,6 +514,36 @@ export type RefreshBody = {
    * Refreshtoken
    */
   refreshToken: string;
+};
+
+/**
+ * SensitiveAttributes
+ *
+ * Sensitive personal data. Read by the owner and the matching engine only.
+ */
+export type SensitiveAttributes = {
+  /**
+   * Maritalstatus
+   */
+  maritalStatus?: string | null;
+  /**
+   * Religion
+   */
+  religion?: string | null;
+};
+
+/**
+ * SubmitBody
+ */
+export type SubmitBody = {
+  /**
+   * Challengeid
+   */
+  challengeId: string;
+  /**
+   * Mediaids
+   */
+  mediaIds: [PydanticObjectId, PydanticObjectId, PydanticObjectId];
 };
 
 /**
@@ -290,11 +607,14 @@ export type UploadUrlResponse = {
  *
  * The only user-shaped response the API emits.
  *
- * `identity` and `phone` are None for a public viewer. They are optional
- * rather than absent so the generated TypeScript has one type for a user and
- * the client branches on null instead of on two different shapes.
+ * `identity`, `account` and `phone` are None for a public viewer. They are
+ * optional rather than absent so the generated TypeScript has one type for a
+ * user and the client branches on null instead of on two different shapes.
+ * `account` is stricter than `identity`: it is SELF only, because `identity`
+ * is also what a revealed match will see.
  */
 export type UserRead = {
+  account?: AccountRead | null;
   /**
    * Createdat
    */
@@ -313,6 +633,34 @@ export type UserRead = {
  * UserStatus
  */
 export type UserStatus = "pending_onboarding" | "active" | "suspended";
+
+/**
+ * VerificationRead
+ */
+export type VerificationRead = {
+  /**
+   * Attemptsleft
+   */
+  attemptsLeft: number;
+  /**
+   * Available
+   */
+  available?: boolean;
+  /**
+   * Consented
+   */
+  consented: boolean;
+  /**
+   * Failurereason
+   */
+  failureReason?: string | null;
+  status: VerificationStatus;
+};
+
+/**
+ * VerificationStatus
+ */
+export type VerificationStatus = "unverified" | "pending" | "verified" | "rejected";
 
 export type HealthData = {
   body?: never;
@@ -543,6 +891,53 @@ export type RefreshTokensResponses = {
 
 export type RefreshTokensResponse = RefreshTokensResponses[keyof RefreshTokensResponses];
 
+export type GetProfileOptionsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v1/catalog/profile-options";
+};
+
+export type GetProfileOptionsErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetProfileOptionsError =
+  GetProfileOptionsErrors[keyof GetProfileOptionsErrors];
+
+export type GetProfileOptionsResponses = {
+  /**
+   * Successful Response
+   */
+  200: ProfileOptionsRead;
+};
+
+export type GetProfileOptionsResponse =
+  GetProfileOptionsResponses[keyof GetProfileOptionsResponses];
+
 export type CreateUploadUrlData = {
   body: UploadUrlBody;
   path?: never;
@@ -681,6 +1076,52 @@ export type GetMeResponses = {
 
 export type GetMeResponse = GetMeResponses[keyof GetMeResponses];
 
+export type UpdateMyCriteriaData = {
+  body: MatchCriteria;
+  path?: never;
+  query?: never;
+  url: "/v1/users/me/criteria";
+};
+
+export type UpdateMyCriteriaErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type UpdateMyCriteriaError = UpdateMyCriteriaErrors[keyof UpdateMyCriteriaErrors];
+
+export type UpdateMyCriteriaResponses = {
+  /**
+   * Successful Response
+   */
+  200: UserRead;
+};
+
+export type UpdateMyCriteriaResponse =
+  UpdateMyCriteriaResponses[keyof UpdateMyCriteriaResponses];
+
 export type UpdateMyIdentityData = {
   body: PrivateIdentityUpdate;
   path?: never;
@@ -726,6 +1167,53 @@ export type UpdateMyIdentityResponses = {
 
 export type UpdateMyIdentityResponse =
   UpdateMyIdentityResponses[keyof UpdateMyIdentityResponses];
+
+export type CompleteMyOnboardingData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v1/users/me/onboarding/complete";
+};
+
+export type CompleteMyOnboardingErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type CompleteMyOnboardingError =
+  CompleteMyOnboardingErrors[keyof CompleteMyOnboardingErrors];
+
+export type CompleteMyOnboardingResponses = {
+  /**
+   * Successful Response
+   */
+  200: UserRead;
+};
+
+export type CompleteMyOnboardingResponse =
+  CompleteMyOnboardingResponses[keyof CompleteMyOnboardingResponses];
 
 export type UpdateMyProfileData = {
   body: PublicProfileUpdate;
@@ -773,6 +1261,53 @@ export type UpdateMyProfileResponses = {
 export type UpdateMyProfileResponse =
   UpdateMyProfileResponses[keyof UpdateMyProfileResponses];
 
+export type UpdateMySensitiveData = {
+  body: SensitiveAttributes;
+  path?: never;
+  query?: never;
+  url: "/v1/users/me/sensitive";
+};
+
+export type UpdateMySensitiveErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type UpdateMySensitiveError =
+  UpdateMySensitiveErrors[keyof UpdateMySensitiveErrors];
+
+export type UpdateMySensitiveResponses = {
+  /**
+   * Successful Response
+   */
+  200: UserRead;
+};
+
+export type UpdateMySensitiveResponse =
+  UpdateMySensitiveResponses[keyof UpdateMySensitiveResponses];
+
 export type GetUserData = {
   body?: never;
   path: {
@@ -819,3 +1354,144 @@ export type GetUserResponses = {
 };
 
 export type GetUserResponse = GetUserResponses[keyof GetUserResponses];
+
+export type CreateVerificationChallengeData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v1/verification/challenge";
+};
+
+export type CreateVerificationChallengeErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type CreateVerificationChallengeError =
+  CreateVerificationChallengeErrors[keyof CreateVerificationChallengeErrors];
+
+export type CreateVerificationChallengeResponses = {
+  /**
+   * Successful Response
+   */
+  200: ChallengeRead;
+};
+
+export type CreateVerificationChallengeResponse =
+  CreateVerificationChallengeResponses[keyof CreateVerificationChallengeResponses];
+
+export type RecordVerificationConsentData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v1/verification/consent";
+};
+
+export type RecordVerificationConsentErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type RecordVerificationConsentError =
+  RecordVerificationConsentErrors[keyof RecordVerificationConsentErrors];
+
+export type RecordVerificationConsentResponses = {
+  /**
+   * Successful Response
+   */
+  200: VerificationRead;
+};
+
+export type RecordVerificationConsentResponse =
+  RecordVerificationConsentResponses[keyof RecordVerificationConsentResponses];
+
+export type SubmitVerificationData = {
+  body: SubmitBody;
+  path?: never;
+  query?: never;
+  url: "/v1/verification/submit";
+};
+
+export type SubmitVerificationErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type SubmitVerificationError =
+  SubmitVerificationErrors[keyof SubmitVerificationErrors];
+
+export type SubmitVerificationResponses = {
+  /**
+   * Successful Response
+   */
+  200: VerificationRead;
+};
+
+export type SubmitVerificationResponse =
+  SubmitVerificationResponses[keyof SubmitVerificationResponses];

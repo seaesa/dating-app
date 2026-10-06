@@ -37,6 +37,10 @@
   --input: 240 6% 90%;
   --ring: 5 100% 69%;
 
+  /* Verified / positive state (#34C759 from DESIGN.md). */
+  --success: 135 59% 49%;
+  --success-foreground: 0 0% 100%;
+
   --radius: 0.625rem;
 }
 
@@ -69,4 +73,7 @@
   --border: 240 4% 16%;
   --input: 240 4% 16%;
   --ring: 5 100% 65%;
+
+  --success: 135 55% 45%;
+  --success-foreground: 0 0% 100%;
 }

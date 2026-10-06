@@ -1,6 +1,176 @@
 {
   "components": {
     "schemas": {
+      "AccountRead": {
+        "additionalProperties": false,
+        "description": "What only the account owner sees about their own account.",
+        "properties": {
+          "criteria": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MatchCriteria"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dateOfBirth": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dateofbirth"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GeoPoint"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "photos": {
+            "items": {
+              "$ref": "#/components/schemas/PhotoRead"
+            },
+            "title": "Photos",
+            "type": "array"
+          },
+          "sensitive": {
+            "$ref": "#/components/schemas/SensitiveAttributes"
+          },
+          "verification": {
+            "$ref": "#/components/schemas/VerificationRead"
+          }
+        },
+        "required": [
+          "dateOfBirth",
+          "photos",
+          "location",
+          "verification",
+          "sensitive",
+          "criteria"
+        ],
+        "title": "AccountRead",
+        "type": "object"
+      },
+      "AttributeRead": {
+        "additionalProperties": false,
+        "properties": {
+          "group": {
+            "title": "Group",
+            "type": "string"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "matchingOnly": {
+            "title": "Matchingonly",
+            "type": "boolean"
+          },
+          "multi": {
+            "title": "Multi",
+            "type": "boolean"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/OptionRead"
+            },
+            "title": "Options",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "group",
+          "multi",
+          "matchingOnly",
+          "options"
+        ],
+        "title": "AttributeRead",
+        "type": "object"
+      },
+      "ChallengeRead": {
+        "additionalProperties": false,
+        "properties": {
+          "actions": {
+            "items": {
+              "enum": [
+                "turn_left",
+                "turn_right",
+                "look_straight"
+              ],
+              "type": "string"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "challengeId": {
+            "title": "Challengeid",
+            "type": "string"
+          },
+          "expiresIn": {
+            "title": "Expiresin",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "challengeId",
+          "actions",
+          "expiresIn"
+        ],
+        "title": "ChallengeRead",
+        "type": "object"
+      },
+      "ChoiceCriterion": {
+        "additionalProperties": false,
+        "properties": {
+          "level": {
+            "default": "any",
+            "enum": [
+              "required",
+              "preferred",
+              "any"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "values": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "title": "ChoiceCriterion",
+        "type": "object"
+      },
       "GeoPoint": {
         "additionalProperties": false,
         "description": "GeoJSON point.\n\nLongitude first \u2014 MongoDB's 2dsphere index requires that order, and\nreversing it silently places everyone in the wrong hemisphere.",
@@ -27,6 +197,114 @@
         "title": "GeoPoint",
         "type": "object"
       },
+      "InterestGroupRead": {
+        "additionalProperties": false,
+        "properties": {
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/OptionRead"
+            },
+            "title": "Options",
+            "type": "array"
+          }
+        },
+        "required": [
+          "label",
+          "options"
+        ],
+        "title": "InterestGroupRead",
+        "type": "object"
+      },
+      "MatchCriteria": {
+        "additionalProperties": false,
+        "properties": {
+          "ageMax": {
+            "maximum": 99.0,
+            "minimum": 18.0,
+            "title": "Agemax",
+            "type": "integer"
+          },
+          "ageMin": {
+            "maximum": 99.0,
+            "minimum": 18.0,
+            "title": "Agemin",
+            "type": "integer"
+          },
+          "attributes": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ChoiceCriterion"
+            },
+            "title": "Attributes",
+            "type": "object"
+          },
+          "cities": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Cities",
+            "type": "array"
+          },
+          "genders": {
+            "items": {
+              "enum": [
+                "male",
+                "female",
+                "other"
+              ],
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Genders",
+            "type": "array"
+          },
+          "height": {
+            "$ref": "#/components/schemas/RangeCriterion"
+          },
+          "intent": {
+            "$ref": "#/components/schemas/ChoiceCriterion"
+          },
+          "interests": {
+            "$ref": "#/components/schemas/ChoiceCriterion"
+          },
+          "maxDistanceKm": {
+            "anyOf": [
+              {
+                "maximum": 300.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maxdistancekm"
+          }
+        },
+        "required": [
+          "genders",
+          "ageMin",
+          "ageMax"
+        ],
+        "title": "MatchCriteria",
+        "type": "object"
+      },
       "MediaKind": {
         "enum": [
           "public",
@@ -47,6 +325,36 @@
           "message"
         ],
         "title": "Message",
+        "type": "object"
+      },
+      "OptionRead": {
+        "additionalProperties": false,
+        "properties": {
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "label"
+        ],
+        "title": "OptionRead",
         "type": "object"
       },
       "OtpRequestBody": {
@@ -103,19 +411,27 @@
         "title": "OtpVerifyBody",
         "type": "object"
       },
+      "PhotoRead": {
+        "additionalProperties": false,
+        "properties": {
+          "mediaId": {
+            "$ref": "#/components/schemas/PydanticObjectId"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mediaId",
+          "url"
+        ],
+        "title": "PhotoRead",
+        "type": "object"
+      },
       "PrivateIdentityRead": {
         "additionalProperties": false,
         "properties": {
-          "location": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/GeoPoint"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "photoUrls": {
             "items": {
               "type": "string"
@@ -145,8 +461,7 @@
         "required": [
           "realName",
           "photoUrls",
-          "socials",
-          "location"
+          "socials"
         ],
         "title": "PrivateIdentityRead",
         "type": "object"
@@ -154,6 +469,17 @@
       "PrivateIdentityUpdate": {
         "additionalProperties": false,
         "properties": {
+          "dateOfBirth": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dateofbirth"
+          },
           "location": {
             "anyOf": [
               {
@@ -170,6 +496,7 @@
                 "items": {
                   "$ref": "#/components/schemas/PydanticObjectId"
                 },
+                "maxItems": 6,
                 "type": "array"
               },
               {
@@ -181,6 +508,8 @@
           "realName": {
             "anyOf": [
               {
+                "maxLength": 64,
+                "minLength": 2,
                 "type": "string"
               },
               {
@@ -259,14 +588,11 @@
         "title": "Problem",
         "type": "object"
       },
-      "PublicProfileRead": {
+      "ProfileAttributes": {
         "additionalProperties": false,
+        "description": "Self-declared traits every viewer of a profile may see.\n\nEach value is a key from the catalog, validated against it, so a client\ncannot store a label the app has no translation for.",
         "properties": {
-          "age": {
-            "title": "Age",
-            "type": "integer"
-          },
-          "avatarUrl": {
+          "diet": {
             "anyOf": [
               {
                 "type": "string"
@@ -275,7 +601,227 @@
                 "type": "null"
               }
             ],
-            "title": "Avatarurl"
+            "title": "Diet"
+          },
+          "drinking": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Drinking"
+          },
+          "education": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Education"
+          },
+          "exercise": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exercise"
+          },
+          "hasChildren": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Haschildren"
+          },
+          "heightCm": {
+            "anyOf": [
+              {
+                "maximum": 220.0,
+                "minimum": 140.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heightcm"
+          },
+          "hometown": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hometown"
+          },
+          "industry": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Industry"
+          },
+          "intent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent"
+          },
+          "languages": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 7,
+            "title": "Languages",
+            "type": "array"
+          },
+          "loveLanguage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lovelanguage"
+          },
+          "mbti": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mbti"
+          },
+          "pets": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pets"
+          },
+          "smoking": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Smoking"
+          },
+          "wantsChildren": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wantschildren"
+          },
+          "zodiac": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zodiac"
+          }
+        },
+        "title": "ProfileAttributes",
+        "type": "object"
+      },
+      "ProfileOptionsRead": {
+        "additionalProperties": false,
+        "properties": {
+          "attributes": {
+            "items": {
+              "$ref": "#/components/schemas/AttributeRead"
+            },
+            "title": "Attributes",
+            "type": "array"
+          },
+          "heightMax": {
+            "title": "Heightmax",
+            "type": "integer"
+          },
+          "heightMin": {
+            "title": "Heightmin",
+            "type": "integer"
+          },
+          "interestGroups": {
+            "items": {
+              "$ref": "#/components/schemas/InterestGroupRead"
+            },
+            "title": "Interestgroups",
+            "type": "array"
+          },
+          "maxInterests": {
+            "title": "Maxinterests",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "attributes",
+          "interestGroups",
+          "maxInterests",
+          "heightMin",
+          "heightMax"
+        ],
+        "title": "ProfileOptionsRead",
+        "type": "object"
+      },
+      "PublicProfileRead": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "title": "Age",
+            "type": "integer"
+          },
+          "attributes": {
+            "$ref": "#/components/schemas/ProfileAttributes"
           },
           "bio": {
             "title": "Bio",
@@ -283,6 +829,10 @@
           },
           "city": {
             "title": "City",
+            "type": "string"
+          },
+          "displayName": {
+            "title": "Displayname",
             "type": "string"
           },
           "gender": {
@@ -308,17 +858,19 @@
             "title": "Interests",
             "type": "array"
           },
-          "nickname": {
-            "title": "Nickname",
-            "type": "string"
+          "verified": {
+            "title": "Verified",
+            "type": "boolean"
           }
         },
         "required": [
-          "nickname",
+          "displayName",
           "age",
           "city",
           "bio",
-          "interests"
+          "attributes",
+          "interests",
+          "verified"
         ],
         "title": "PublicProfileRead",
         "type": "object"
@@ -326,10 +878,10 @@
       "PublicProfileUpdate": {
         "additionalProperties": false,
         "properties": {
-          "avatarMediaId": {
+          "attributes": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/PydanticObjectId"
+                "$ref": "#/components/schemas/ProfileAttributes"
               },
               {
                 "type": "null"
@@ -348,19 +900,6 @@
             ],
             "title": "Bio"
           },
-          "birthYear": {
-            "anyOf": [
-              {
-                "maximum": 2100.0,
-                "minimum": 1900.0,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Birthyear"
-          },
           "city": {
             "anyOf": [
               {
@@ -372,6 +911,19 @@
               }
             ],
             "title": "City"
+          },
+          "displayName": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Displayname"
           },
           "gender": {
             "anyOf": [
@@ -395,7 +947,7 @@
                 "items": {
                   "type": "string"
                 },
-                "maxItems": 20,
+                "maxItems": 10,
                 "type": "array"
               },
               {
@@ -403,19 +955,6 @@
               }
             ],
             "title": "Interests"
-          },
-          "nickname": {
-            "anyOf": [
-              {
-                "maxLength": 32,
-                "minLength": 2,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Nickname"
           }
         },
         "title": "PublicProfileUpdate",
@@ -427,6 +966,49 @@
         "minLength": 24,
         "pattern": "^[0-9a-f]{24}$",
         "type": "string"
+      },
+      "RangeCriterion": {
+        "additionalProperties": false,
+        "properties": {
+          "level": {
+            "default": "any",
+            "enum": [
+              "required",
+              "preferred",
+              "any"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "max": {
+            "anyOf": [
+              {
+                "maximum": 220.0,
+                "minimum": 140.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max"
+          },
+          "min": {
+            "anyOf": [
+              {
+                "maximum": 220.0,
+                "minimum": 140.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min"
+          }
+        },
+        "title": "RangeCriterion",
+        "type": "object"
       },
       "RefreshBody": {
         "additionalProperties": false,
@@ -440,6 +1022,62 @@
           "refreshToken"
         ],
         "title": "RefreshBody",
+        "type": "object"
+      },
+      "SensitiveAttributes": {
+        "additionalProperties": false,
+        "description": "Sensitive personal data. Read by the owner and the matching engine only.",
+        "properties": {
+          "maritalStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maritalstatus"
+          },
+          "religion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Religion"
+          }
+        },
+        "title": "SensitiveAttributes",
+        "type": "object"
+      },
+      "SubmitBody": {
+        "additionalProperties": false,
+        "properties": {
+          "challengeId": {
+            "maxLength": 64,
+            "minLength": 8,
+            "title": "Challengeid",
+            "type": "string"
+          },
+          "mediaIds": {
+            "items": {
+              "$ref": "#/components/schemas/PydanticObjectId"
+            },
+            "maxItems": 3,
+            "minItems": 3,
+            "title": "Mediaids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "challengeId",
+          "mediaIds"
+        ],
+        "title": "SubmitBody",
         "type": "object"
       },
       "TokenPair": {
@@ -525,8 +1163,18 @@
       },
       "UserRead": {
         "additionalProperties": false,
-        "description": "The only user-shaped response the API emits.\n\n`identity` and `phone` are None for a public viewer. They are optional\nrather than absent so the generated TypeScript has one type for a user and\nthe client branches on null instead of on two different shapes.",
+        "description": "The only user-shaped response the API emits.\n\n`identity`, `account` and `phone` are None for a public viewer. They are\noptional rather than absent so the generated TypeScript has one type for a\nuser and the client branches on null instead of on two different shapes.\n`account` is stricter than `identity`: it is SELF only, because `identity`\nis also what a revealed match will see.",
         "properties": {
+          "account": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AccountRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "createdAt": {
             "format": "date-time",
             "title": "Createdat",
@@ -579,6 +1227,55 @@
           "suspended"
         ],
         "title": "UserStatus",
+        "type": "string"
+      },
+      "VerificationRead": {
+        "additionalProperties": false,
+        "properties": {
+          "attemptsLeft": {
+            "title": "Attemptsleft",
+            "type": "integer"
+          },
+          "available": {
+            "default": false,
+            "title": "Available",
+            "type": "boolean"
+          },
+          "consented": {
+            "title": "Consented",
+            "type": "boolean"
+          },
+          "failureReason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failurereason"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VerificationStatus"
+          }
+        },
+        "required": [
+          "status",
+          "attemptsLeft",
+          "consented"
+        ],
+        "title": "VerificationRead",
+        "type": "object"
+      },
+      "VerificationStatus": {
+        "enum": [
+          "unverified",
+          "pending",
+          "verified",
+          "rejected"
+        ],
+        "title": "VerificationStatus",
         "type": "string"
       }
     },
@@ -1074,6 +1771,93 @@
         ]
       }
     },
+    "/v1/catalog/profile-options": {
+      "get": {
+        "operationId": "getProfileOptions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOptionsRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation Failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "summary": "Get Profile Options",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
     "/v1/media/upload-url": {
       "post": {
         "operationId": "createUploadUrl",
@@ -1370,6 +2154,108 @@
         ]
       }
     },
+    "/v1/users/me/criteria": {
+      "put": {
+        "operationId": "updateMyCriteria",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MatchCriteria"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation Failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Update My Criteria",
+        "tags": [
+          "users"
+        ]
+      }
+    },
     "/v1/users/me/identity": {
       "patch": {
         "operationId": "updateMyIdentity",
@@ -1467,6 +2353,98 @@
           }
         ],
         "summary": "Update My Identity",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/v1/users/me/onboarding/complete": {
+      "post": {
+        "operationId": "completeMyOnboarding",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation Failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Complete My Onboarding",
         "tags": [
           "users"
         ]
@@ -1574,6 +2552,108 @@
         ]
       }
     },
+    "/v1/users/me/sensitive": {
+      "patch": {
+        "operationId": "updateMySensitive",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SensitiveAttributes"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation Failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Update My Sensitive",
+        "tags": [
+          "users"
+        ]
+      }
+    },
     "/v1/users/{userId}": {
       "get": {
         "operationId": "getUser",
@@ -1673,6 +2753,292 @@
         "summary": "Get User",
         "tags": [
           "users"
+        ]
+      }
+    },
+    "/v1/verification/challenge": {
+      "post": {
+        "operationId": "createVerificationChallenge",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation Failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Create Challenge",
+        "tags": [
+          "verification"
+        ]
+      }
+    },
+    "/v1/verification/consent": {
+      "post": {
+        "operationId": "recordVerificationConsent",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation Failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Record Consent",
+        "tags": [
+          "verification"
+        ]
+      }
+    },
+    "/v1/verification/submit": {
+      "post": {
+        "operationId": "submitVerification",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation Failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Submit",
+        "tags": [
+          "verification"
         ]
       }
     }

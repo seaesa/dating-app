@@ -1,3 +1,4 @@
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from beanie import PydanticObjectId
@@ -76,7 +77,24 @@ async def get_current_user(
         raise ForbiddenError(detail="This account is suspended.")
     if user.id is None:  # pragma: no cover - a document read from Mongo has an id
         raise UnauthorizedError(detail="Authentication is required.")
+    await _touch_last_active(user)
     return user
+
+
+LAST_ACTIVE_RESOLUTION = timedelta(minutes=5)
+
+
+async def _touch_last_active(user: User) -> None:
+    """Record activity at most every few minutes.
+
+    A targeted `$set` rather than `user.save()`: the route about to run holds
+    this same document and saves it itself; a full save here would race it.
+    """
+    now = datetime.now(UTC)
+    if user.last_active_at and now - user.last_active_at < LAST_ACTIVE_RESOLUTION:
+        return
+    user.last_active_at = now
+    await User.find_one({"_id": user.id}).update({"$set": {"last_active_at": now}})
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]

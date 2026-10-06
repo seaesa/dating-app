@@ -50,6 +50,24 @@ class MediaStorage:
             )
             return url
 
+    async def presign_get_many(self, keys: list[tuple[str, int]]) -> list[str]:
+        """Sign several (key, lifetime) pairs with one client.
+
+        Signing is local computation, but opening a client is not free; a
+        profile with six photos used to open six.
+        """
+        if not keys:
+            return []
+        async with self._client() as s3:
+            return [
+                await s3.generate_presigned_url(
+                    "get_object",
+                    Params={"Bucket": self.settings.s3_bucket, "Key": key},
+                    ExpiresIn=expires_in,
+                )
+                for key, expires_in in keys
+            ]
+
     async def head(self, key: str) -> dict[str, Any] | None:
         async with self._client() as s3:
             try:
@@ -59,6 +77,17 @@ class MediaStorage:
                 return result
             except Exception:
                 return None
+
+    async def read(self, key: str) -> bytes:
+        async with self._client() as s3:
+            obj = await s3.get_object(Bucket=self.settings.s3_bucket, Key=key)
+            async with obj["Body"] as stream:
+                data: bytes = await stream.read()
+            return data
+
+    async def delete(self, key: str) -> None:
+        async with self._client() as s3:
+            await s3.delete_object(Bucket=self.settings.s3_bucket, Key=key)
 
     async def ensure_bucket(self) -> None:
         async with self._client() as s3:

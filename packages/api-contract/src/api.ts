@@ -2,16 +2,22 @@ import { queryOptions } from "@tanstack/react-query";
 
 import { http } from "./client";
 import type {
+  ChallengeRead,
+  MatchCriteria,
   Message,
   OtpRequestBody,
   OtpRequestResponse,
   OtpVerifyBody,
   PrivateIdentityUpdate,
+  ProfileOptionsRead,
   PublicProfileUpdate,
+  SensitiveAttributes,
+  SubmitBody,
   TokenPair,
   UploadUrlBody,
   UploadUrlResponse,
   UserRead,
+  VerificationRead,
 } from "./generated/types.gen";
 
 // One function per endpoint, returning the response body.
@@ -36,6 +42,18 @@ export const updateMyProfile = (body: PublicProfileUpdate) =>
 export const updateMyIdentity = (body: PrivateIdentityUpdate) =>
   http.patch<UserRead>("/v1/users/me/identity", body).then((r) => r.data);
 
+export const getProfileOptions = () =>
+  http.get<ProfileOptionsRead>("/v1/catalog/profile-options").then((r) => r.data);
+
+export const updateMyCriteria = (body: MatchCriteria) =>
+  http.put<UserRead>("/v1/users/me/criteria", body).then((r) => r.data);
+
+export const completeMyOnboarding = () =>
+  http.post<UserRead>("/v1/users/me/onboarding/complete").then((r) => r.data);
+
+export const updateMySensitive = (body: SensitiveAttributes) =>
+  http.patch<UserRead>("/v1/users/me/sensitive", body).then((r) => r.data);
+
 export const createUploadUrl = (body: UploadUrlBody) =>
   http.post<UploadUrlResponse>("/v1/media/upload-url", body).then((r) => r.data);
 
@@ -50,3 +68,20 @@ export const meQuery = () => queryOptions({ queryKey: ["users", "me"], queryFn: 
 
 export const userQuery = (userId: string) =>
   queryOptions({ queryKey: ["users", userId], queryFn: () => getUser(userId) });
+
+// The catalog only changes with a server deploy.
+export const profileOptionsQuery = () =>
+  queryOptions({
+    queryKey: ["catalog", "profile-options"],
+    queryFn: getProfileOptions,
+    staleTime: 60 * 60 * 1000,
+  });
+
+export const recordVerificationConsent = () =>
+  http.post<VerificationRead>("/v1/verification/consent").then((r) => r.data);
+
+export const createVerificationChallenge = () =>
+  http.post<ChallengeRead>("/v1/verification/challenge").then((r) => r.data);
+
+export const submitVerification = (body: SubmitBody) =>
+  http.post<VerificationRead>("/v1/verification/submit", body).then((r) => r.data);

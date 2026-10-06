@@ -1,7 +1,8 @@
-# Terdin Date — Web
+# Terdin Date — Web (admin)
 
-The browser client. Next.js App Router rendering the same React Native
-components the mobile app uses, through react-native-web.
+The admin dashboard. End users use the mobile app (`apps/mobile`); this app is
+for the team that runs the service. Next.js App Router rendering the same React
+Native components as mobile, through react-native-web.
 
 See [AGENTS.md](./AGENTS.md) for the rules — particularly the two that will
 surprise you: the build runs on webpack rather than Turbopack, and NativeWind is
@@ -37,16 +38,7 @@ pnpm dev:api          # the API this client talks to
 pnpm dev:web          # http://localhost:3000
 ```
 
-Sign in with any phone number: `SMS_PROVIDER=console` in development prints the
-OTP to the API's log under `sms.console`.
-
-| Route         | What                                        |
-| ------------- | ------------------------------------------- |
-| `/`           | Routes to login or profile once hydrated    |
-| `/login`      | Phone, then OTP                             |
-| `/onboarding` | The first public profile                    |
-| `/profile`    | Own profile, both tiers                     |
-| `/u/<id>`     | A public profile — server rendered, for SEO |
+No screens yet: `/` renders nothing until the first admin screen lands.
 
 ## Verify
 

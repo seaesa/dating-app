@@ -49,16 +49,16 @@ export function OtpInput({
 
   return (
     <Pressable onPress={() => inputRef.current?.focus()}>
-      <View className="flex-row gap-2">
+      <View className="flex-row gap-3">
         {digits.map((digit, index) => (
           <View
             key={index}
             className={cn(
-              "h-14 w-12 items-center justify-center rounded-lg border border-input bg-background",
-              index === value.length && "border-ring",
+              "h-16 flex-1 items-center justify-center rounded-2xl bg-secondary",
+              index === value.length && "border-2 border-primary bg-primary-muted",
             )}
           >
-            <Text className="text-2xl font-semibold text-foreground">{digit}</Text>
+            <Text className="text-2xl font-bold text-foreground">{digit}</Text>
           </View>
         ))}
       </View>

@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from typing import get_args
 
 from beanie import PydanticObjectId
@@ -5,15 +6,22 @@ from pydantic import BaseModel
 
 from app.core.config import Settings
 from app.core.errors import NotFoundError, ValidationError
+from app.modules.users.criteria import MatchCriteria
 from app.modules.users.models import User
 from app.modules.users.repository import UserRepository
 from app.modules.users.schemas import (
     PrivateIdentityUpdate,
     PublicProfileUpdate,
+    SensitiveAttributes,
     UserRead,
     UserStatus,
+    VerificationStatus,
 )
 from app.modules.users.visibility import RevealScope, project_user, resolve_scope
+
+# Photos a profile needs before it can go live; one photo is too easy to fake.
+# Mirrored by MIN_PHOTOS in @repo/api-contract.
+MIN_PHOTOS = 2
 
 
 def _apply(target: BaseModel, patch: BaseModel) -> None:
@@ -66,21 +74,25 @@ class UserService:
         """
         from app.modules.media.service import MediaService
 
-        media = MediaService(self.settings)
         reveals_private = scope is not RevealScope.PUBLIC
-        avatar_url = await media.url_for(
-            target.public.avatar_media_id,
-            owner_id=target.oid,
-            # False even for the owner: the avatar is shown to strangers, so a
-            # private key must never be signed into it.
-            scope_allows_private=False,
-        )
-        photo_urls = (
-            await media.urls_for(target.private.photo_media_ids, owner_id=target.oid)
+        photos = (
+            await MediaService(self.settings).signed_for(
+                target.private.photo_media_ids, owner_id=target.oid
+            )
             if reveals_private
             else []
         )
-        return project_user(target, scope, avatar_url=avatar_url, photo_urls=photo_urls)
+        attempts_left = target.private.verification.attempts_left(
+            self.settings.verification_max_attempts_per_day,
+            datetime.now(UTC).date().isoformat(),
+        )
+        return project_user(
+            target,
+            scope,
+            photos=photos,
+            attempts_left=attempts_left,
+            verification_available=self.settings.verification_enabled,
+        )
 
     async def get_for_viewer(
         self, user_id: PydanticObjectId, viewer: User | None
@@ -96,13 +108,77 @@ class UserService:
 
     async def update_profile(self, user: User, patch: PublicProfileUpdate) -> UserRead:
         _apply(user.public, patch)
-        # The first successful profile edit completes onboarding.
-        if user.status is UserStatus.PENDING_ONBOARDING:
-            user.status = UserStatus.ACTIVE
         await user.save()
         return await self._project(user, RevealScope.SELF)
 
     async def update_identity(self, user: User, patch: PrivateIdentityUpdate) -> UserRead:
+        if "date_of_birth" in patch.model_fields_set and patch.date_of_birth is None:
+            raise ValidationError(
+                detail="dateOfBirth cannot be null.",
+                errors={"dateOfBirth": ["cannot be null"]},
+            )
+        if (
+            patch.date_of_birth is not None
+            and user.private.date_of_birth is not None
+            and patch.date_of_birth != user.private.date_of_birth
+        ):
+            # Locked once set: changing it would let someone slip past the age
+            # check or rewrite who they match with. Support handles real typos.
+            raise ValidationError(
+                detail="dateOfBirth cannot be changed.",
+                errors={"dateOfBirth": ["locked"]},
+            )
+        old_reference = next(iter(user.private.photo_media_ids), None)
         _apply(user.private, patch)
+        new_reference = next(iter(user.private.photo_media_ids), None)
+        if new_reference != old_reference:
+            # The badge vouches for one face. Another photo has to be checked
+            # again, or a verified account could swap in someone else.
+            state = user.private.verification
+            state.status = VerificationStatus.UNVERIFIED
+            state.verified_at = None
+            state.score = None
+            state.failure_reason = None
+        if patch.date_of_birth is not None:
+            # The public tier keeps only the year; derive it here so the two
+            # tiers cannot drift apart.
+            user.public.birth_year = int(patch.date_of_birth[:4])
         await user.save()
+        return await self._project(user, RevealScope.SELF)
+
+    async def update_sensitive(self, user: User, patch: SensitiveAttributes) -> UserRead:
+        user.matching.sensitive = patch
+        await user.save()
+        return await self._project(user, RevealScope.SELF)
+
+    async def update_criteria(self, user: User, criteria: MatchCriteria) -> UserRead:
+        user.matching.criteria = criteria
+        await user.save()
+        return await self._project(user, RevealScope.SELF)
+
+    async def complete_onboarding(self, user: User) -> UserRead:
+        """Finish sign-up once the profile has what a match card needs.
+
+        Location is not required here: someone who declines it still gets in,
+        and stays out of others' suggestions until a location is stored.
+        """
+        missing = [
+            name
+            for name, present in (
+                ("displayName", user.public.display_name),
+                ("dateOfBirth", user.private.date_of_birth),
+                ("gender", user.public.gender),
+                ("photoMediaIds", len(user.private.photo_media_ids) >= MIN_PHOTOS),
+                ("criteria", user.matching.criteria),
+            )
+            if not present
+        ]
+        if missing:
+            raise ValidationError(
+                detail="The profile is not complete yet.",
+                errors={name: ["required"] for name in missing},
+            )
+        if user.status is UserStatus.PENDING_ONBOARDING:
+            user.status = UserStatus.ACTIVE
+            await user.save()
         return await self._project(user, RevealScope.SELF)

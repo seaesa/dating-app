@@ -1,11 +1,12 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 
 def age_from_birth_year(birth_year: int, now: datetime | None = None) -> int:
-    """Age from a birth year.
+    """Age from a birth year, for the public tier.
 
-    Only the year is stored, never a full birth date, so age is necessarily
-    approximate. That is a privacy decision (spec §5.2), not an oversight.
+    The public tier only carries the year, so the age it yields can be off by
+    one around a birthday. The full date of birth lives in the private tier
+    (`PrivateIdentity.date_of_birth`), where `age_on` gives the exact age.
     Mirrors ageFromBirthYear in @repo/core.
     """
     reference = now or datetime.now(UTC)
@@ -13,3 +14,8 @@ def age_from_birth_year(birth_year: int, now: datetime | None = None) -> int:
     if age < 0:
         raise ValueError(f"birth_year {birth_year} is in the future")
     return age
+
+
+def age_on(birth: date, today: date) -> int:
+    """Exact age in whole years on `today`."""
+    return today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))

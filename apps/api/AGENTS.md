@@ -18,7 +18,7 @@ src/app/
     schemas.py         BaseSchema (camelCase out), CursorPage[T]
     repository.py      BaseRepository[D]: get_or_404, update, list_page
     ratelimit.py       sliding_window(key, limit=, window=)
-  modules/<domain>/    auth · users · media
+  modules/<domain>/    auth · users · media · catalog · verification
     router.py          HTTP only
     service.py         business logic; the only layer that writes
     repository.py      queries, extends BaseRepository
@@ -73,6 +73,14 @@ async def update_my_profile(
   goes in `docker-compose.prod.yml` with `${VAR:?set VAR}`.
 - mypy is `strict`. Do not add `# type: ignore` or loosen the config; type it.
 
+- Face verification runs behind `FaceVerificationProvider` in a **separate
+  worker**, never in the API process: `submit` pushes a job onto the Redis list
+  `verify:jobs`, and `python -m app.cli verification-worker` scores it.
+  DeepFace/TensorFlow are the optional `face` extra, so the API image does not
+  install them. `VERIFICATION_ENABLED=false` (the default) switches the feature
+  off: the API answers 503 and the worker refuses to start. Selfie frames are
+  deleted right after scoring and never stored.
+
 ## Adding an endpoint
 
 1. `schemas.py` — request and response models.
@@ -90,6 +98,7 @@ cp .env.example .env               # once
 uv run fastapi dev src/app/asgi.py # or `pnpm dev:api` from the root
 uv run ruff check --fix . && uv run ruff format .
 uv run mypy
+uv run --extra face python -m app.cli verification-worker   # needs VERIFICATION_ENABLED=true
 ```
 
 Local OTP codes are not sent: `SMS_PROVIDER=console` logs them under
