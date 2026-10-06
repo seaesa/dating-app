@@ -33,6 +33,10 @@ const config: ExpoConfig = {
   ios: {
     bundleIdentifier: bundleId,
     supportsTablet: true,
+    infoPlist: {
+      NSPhotoLibraryUsageDescription:
+        "Terdin cần truy cập thư viện để bạn chọn ảnh hồ sơ.",
+    },
   },
   android: {
     package: bundleId,
@@ -52,6 +56,25 @@ const config: ExpoConfig = {
     // SDK 57 requires expo-status-bar to be registered as a config plugin;
     // importing the component is no longer enough.
     "expo-status-bar",
+    "expo-notifications",
+    [
+      "expo-location",
+      {
+        locationWhenInUsePermission:
+          "Terdin dùng vị trí để gợi ý người ở gần bạn. Không ai thấy vị trí chính xác của bạn.",
+        // Only "while using": no background or "always" location is requested.
+        locationAlwaysAndWhenInUsePermission: false,
+        locationAlwaysPermission: false,
+      },
+    ],
+    [
+      "expo-camera",
+      {
+        cameraPermission:
+          "Terdin dùng camera để xác thực khuôn mặt của bạn. Ảnh được xóa ngay sau khi xử lý.",
+        recordAudioAndroid: false,
+      },
+    ],
     // SDK 56 removed the top-level `splash` key; splash configuration moved
     // into this plugin's options, and expo-doctor rejects the old placement.
     [
@@ -62,6 +85,9 @@ const config: ExpoConfig = {
         backgroundColor: "#ffffff",
       },
     ],
+    // Xcode 27 / iOS 27 SDK requires the UIScene lifecycle. Needs SDK >= 57.0.23;
+    // SDK 58+ does this by default, so remove this entry when upgrading.
+    ["expo-build-properties", { ios: { enableSceneSupport: true } }],
   ],
   experiments: { typedRoutes: true },
 };

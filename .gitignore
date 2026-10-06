@@ -91,3 +91,10 @@ google-service-account.json
 .code-review-graph/
 .agents/indexes/*.sqlite
 .agents/indexes/*.json
+.agents/
+.claude/
+AI_SYSTEM_MANIFEST.yaml
+skills-lock.json
+GEMINI.md
+CODEOWNERS
+docs/superpowers

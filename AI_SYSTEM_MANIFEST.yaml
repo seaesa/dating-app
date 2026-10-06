@@ -1,8 +1,0 @@
-﻿version: "1.0.0"
-kit_version: "1.0.0"
-maturity_level: "M3"
-capabilities:
-  shared_mcp: true
-  vector_indexing: true
-  ast_code_graph: true
-  runtime_isolation: true

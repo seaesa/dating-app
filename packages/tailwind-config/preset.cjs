@@ -29,6 +29,7 @@ module.exports = {
         muted: pair("muted"),
         accent: pair("accent"),
         destructive: pair("destructive"),
+        success: pair("success"),
         border: withOpacity("--border"),
         input: withOpacity("--input"),
         ring: withOpacity("--ring"),

@@ -15,5 +15,5 @@ class UserRepository(BaseRepository[User]):
         return await User(
             phone=phone,
             status=UserStatus.PENDING_ONBOARDING,
-            public=PublicProfile(nickname="new", birth_year=2000, city=""),
+            public=PublicProfile(birth_year=2000, city=""),
         ).insert()

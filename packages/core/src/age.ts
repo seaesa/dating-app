@@ -1,7 +1,6 @@
 /**
- * Age from a birth year. The API stores only the year, never a full birth
- * date, so age is necessarily approximate — this is a privacy decision
- * (spec §5.2), not an oversight.
+ * Age from a birth year, as the public profile carries it. Approximate by up
+ * to a year; the exact date stays in the private tier (see `ageOn`).
  */
 export function ageFromBirthYear(birthYear: number, now: Date = new Date()): number {
   const age = now.getUTCFullYear() - birthYear;

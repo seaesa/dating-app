@@ -21,6 +21,7 @@ from app.modules.auth.exceptions import OtpExpiredError, OtpInvalidError
 from app.modules.auth.schemas import TokenPair
 from app.modules.auth.sms.provider import SmsProvider
 from app.modules.users.repository import UserRepository
+from app.modules.users.schemas import UserStatus
 
 log = get_logger(__name__)
 hasher = PasswordHasher()
@@ -109,7 +110,8 @@ class AuthService:
                 if user is None:  # pragma: no cover - unreachable given the index
                     raise
 
-        return await self._issue(str(user.id), is_new_user=is_new)
+        needs_onboarding = is_new or user.status is UserStatus.PENDING_ONBOARDING
+        return await self._issue(str(user.id), is_new_user=needs_onboarding)
 
     async def _issue(self, subject: str, *, is_new_user: bool = False) -> TokenPair:
         access = create_access_token(subject, self.settings)

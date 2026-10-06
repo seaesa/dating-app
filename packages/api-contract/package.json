@@ -20,6 +20,7 @@
     "clean": "rm -rf node_modules .turbo"
   },
   "dependencies": {
+    "@repo/core": "workspace:*",
     "@tanstack/react-query": "^5.66.0",
     "axios": "^1.13.0",
     "zod": "^4.1.0"

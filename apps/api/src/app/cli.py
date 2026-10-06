@@ -39,9 +39,26 @@ def main(argv: list[str] | None = None) -> int:
     export = sub.add_parser("export-openapi")
     export.add_argument("destination", type=pathlib.Path)
 
+    sub.add_parser("verification-worker")
+
     args = parser.parse_args(argv)
     if args.command == "export-openapi":
         export_openapi(args.destination)
+    elif args.command == "verification-worker":
+        return run_verification_worker()
+    return 0
+
+
+def run_verification_worker() -> int:
+    """Start the face verification worker; refuses while the feature is off."""
+    from app.core.config import get_settings
+    from app.modules.verification.worker import main as worker_main
+
+    settings = get_settings()
+    if not settings.verification_enabled:
+        print("VERIFICATION_ENABLED is false; the verification worker is not started.")
+        return 1
+    worker_main(settings)
     return 0
 
 

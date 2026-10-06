@@ -6,7 +6,12 @@ from beanie import Document, Indexed, PydanticObjectId
 from pydantic import Field
 
 from app.core.db import DOCUMENT_MODELS
-from app.modules.users.schemas import PrivateIdentity, PublicProfile, UserStatus
+from app.modules.users.schemas import (
+    MatchingProfile,
+    PrivateIdentity,
+    PublicProfile,
+    UserStatus,
+)
 
 
 class User(Document):
@@ -23,6 +28,9 @@ class User(Document):
     status: UserStatus = UserStatus.PENDING_ONBOARDING
     public: PublicProfile
     private: PrivateIdentity = Field(default_factory=PrivateIdentity)
+    matching: MatchingProfile = Field(default_factory=MatchingProfile)
+    # Matching ranks recently active people higher; written by get_current_user.
+    last_active_at: datetime | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 

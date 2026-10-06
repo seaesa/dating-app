@@ -1,3 +1,11 @@
+export {
+  ChipSelect,
+  type ChipOption,
+  type ChipSelectProps,
+} from "./components/chip-select";
+export { NumberStepper, type NumberStepperProps } from "./components/number-stepper";
+export { StatusBanner, type StatusBannerProps } from "./components/status-banner";
+export { StepProgress, type StepProgressProps } from "./components/step-progress";
 export { ImageUploader, type ImageUploaderProps } from "./components/image-uploader";
 export { OtpInput, type OtpInputProps } from "./components/otp-input";
 export { ProfileCard, type ProfileCardProps } from "./components/profile-card";

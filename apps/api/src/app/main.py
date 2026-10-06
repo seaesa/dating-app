@@ -35,6 +35,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         docs_url=None if resolved.is_production else "/docs",
         lifespan=lifespan,
         responses=ERROR_RESPONSES,
+        separate_input_output_schemas=False,
     )
 
     app.state.settings = resolved

@@ -1,17 +1,18 @@
 # AGENTS.md
 
 Terdin Date — a dating app where real identities stay hidden until both people
-choose to reveal them. pnpm + Turborepo monorepo: FastAPI API, Next.js web, Expo
-mobile, sharing React Native components.
+choose to reveal them. pnpm + Turborepo monorepo: FastAPI API, Expo mobile (the
+app end users use), Next.js web (the admin dashboard), sharing React Native
+components.
 
 Before changing code under a directory, read the nearest `AGENTS.md`:
 
-| Changing                           | Read                                             |
-| ---------------------------------- | ------------------------------------------------ |
-| `apps/api/**` — endpoints, logic   | [apps/api/AGENTS.md](./apps/api/AGENTS.md)       |
-| `apps/web/**` — pages, layouts     | [apps/web/AGENTS.md](./apps/web/AGENTS.md)       |
-| `apps/mobile/**` — screens, native | [apps/mobile/AGENTS.md](./apps/mobile/AGENTS.md) |
-| `packages/ui/**` — components      | [packages/ui/AGENTS.md](./packages/ui/AGENTS.md) |
+| Changing                         | Read                                             |
+| -------------------------------- | ------------------------------------------------ |
+| `apps/api/**` — endpoints, logic | [apps/api/AGENTS.md](./apps/api/AGENTS.md)       |
+| `apps/web/**` — admin dashboard  | [apps/web/AGENTS.md](./apps/web/AGENTS.md)       |
+| `apps/mobile/**` — end-user app  | [apps/mobile/AGENTS.md](./apps/mobile/AGENTS.md) |
+| `packages/ui/**` — components    | [packages/ui/AGENTS.md](./packages/ui/AGENTS.md) |
 
 ## Rule zero: the private identity
 
@@ -102,7 +103,6 @@ goes into a package, not the route.
 - Never edit `packages/api-contract/src/generated/` — `pnpm contract` overwrites it.
 - Secrets: nothing secret behind `NEXT_PUBLIC_` or `EXPO_PUBLIC_`; both are
   inlined into client bundles.
-- No tests. Do not add test files, test runners or test dependencies.
 
 ## Performance
 
@@ -154,7 +154,7 @@ These bias toward caution over speed; for trivial tasks, use judgment.
 - Every changed line should trace directly to the request.
 
 **4. Goal-driven execution.** Define success criteria, loop until verified.
-There are no tests here, so verify by running things:
+Verify by running things:
 
 - "Add an endpoint" → `pnpm contract` produces the types, and a `curl` against
   `pnpm dev:api` returns the expected shape.

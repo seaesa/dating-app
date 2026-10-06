@@ -1,5 +1,9 @@
 {
+  "name": "terdin-date",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "turbo run dev",
     "dev:api": "turbo run dev --filter=api",
@@ -28,10 +32,6 @@
     "prettier": "^3.9.9",
     "turbo": "^2.11.5"
   },
-  "engines": {
-    "node": ">=20.9.0"
-  },
-  "name": "terdin-date",
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
