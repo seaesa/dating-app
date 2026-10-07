@@ -3,13 +3,12 @@ import { View } from "react-native";
 
 import { updateMyProfile, updateMySensitive } from "@repo/api-contract";
 import type { ProfileAttributes, SensitiveAttributes } from "@repo/api-contract";
-import { Text } from "@repo/ui";
+import { SelectPicker, Text } from "@repo/ui";
 
 import { useOnboarding } from "./context";
 import { StepLayout } from "./step-layout";
 
 import { AttributeField } from "@/components/attribute-field";
-import { TextField } from "@/components/text-field";
 
 /** A catalog key and where its answer is stored. */
 export type ProfileStepField =
@@ -79,11 +78,10 @@ export function ProfileStep({
           return (
             <View key="hometown" className="gap-2.5">
               <Text className="text-sm font-bold text-foreground">🏡 Quê quán</Text>
-              <TextField
+              <SelectPicker
                 value={attributes.hometown ?? ""}
-                onChangeText={(hometown) => set({ hometown })}
-                placeholder="Ví dụ: Nghệ An"
-                maxLength={64}
+                onChange={(hometown) => set({ hometown })}
+                placeholder="Chọn quê quán của bạn"
               />
             </View>
           );

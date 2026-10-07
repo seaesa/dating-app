@@ -6,13 +6,19 @@ import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
 import { Text } from "./ui/text";
 
+export interface ProfileCardInterest {
+  key: string;
+  label: string;
+  icon?: string | null;
+}
+
 export interface ProfileCardProps {
   nickname: string;
   age: number;
   city: string;
   gender?: "male" | "female" | "other" | null;
   bio?: string | null;
-  interests?: string[];
+  interests?: Array<string | ProfileCardInterest>;
   avatarUrl?: string | null;
 }
 
@@ -20,6 +26,69 @@ const GENDER_CONFIG = {
   male: { label: "Nam", symbol: "♂" },
   female: { label: "Nữ", symbol: "♀" },
   other: { label: "Khác", symbol: "⚥" },
+};
+
+const DEFAULT_INTEREST_LABELS: Record<string, { label: string; icon?: string }> = {
+  cafe: { label: "Cà phê", icon: "☕" },
+  milk_tea: { label: "Trà sữa", icon: "🧋" },
+  street_food: { label: "Ẩm thực đường phố", icon: "🍢" },
+  cooking: { label: "Nấu ăn", icon: "🍳" },
+  baking: { label: "Làm bánh", icon: "🧁" },
+  bbq: { label: "Đồ nướng", icon: "🥩" },
+  spicy: { label: "Ăn cay", icon: "🌶️" },
+  wine: { label: "Rượu vang", icon: "🍷" },
+  craft_beer: { label: "Bia thủ công", icon: "🍺" },
+  brunch: { label: "Brunch", icon: "🥞" },
+  backpacking: { label: "Du lịch bụi", icon: "🎒" },
+  beach: { label: "Biển", icon: "🏖️" },
+  trekking: { label: "Trekking", icon: "🥾" },
+  camping: { label: "Cắm trại", icon: "⛺" },
+  road_trip: { label: "Phượt", icon: "🏍️" },
+  city_break: { label: "Khám phá thành phố", icon: "🏙️" },
+  photography: { label: "Nhiếp ảnh", icon: "📷" },
+  resort: { label: "Nghỉ dưỡng", icon: "🏝️" },
+  abroad: { label: "Du lịch nước ngoài", icon: "🌍" },
+  local_culture: { label: "Văn hóa địa phương", icon: "🏯" },
+  pop: { label: "Nhạc pop", icon: "🎤" },
+  indie: { label: "Indie", icon: "🎧" },
+  rock: { label: "Rock", icon: "🎸" },
+  edm: { label: "EDM", icon: "🎛️" },
+  kpop: { label: "K-pop", icon: "💜" },
+  guitar: { label: "Guitar", icon: "🎸" },
+  singing: { label: "Ca hát", icon: "🎙️" },
+  painting: { label: "Vẽ", icon: "🎨" },
+  museum: { label: "Bảo tàng & triển lãm", icon: "🖼️" },
+  theatre: { label: "Sân khấu", icon: "🎭" },
+  gym: { label: "Gym", icon: "🏋️" },
+  yoga: { label: "Yoga", icon: "🧘" },
+  running: { label: "Chạy bộ", icon: "🏃" },
+  swimming: { label: "Bơi lội", icon: "🏊" },
+  cycling: { label: "Đạp xe", icon: "🚴" },
+  badminton: { label: "Cầu lông", icon: "🏸" },
+  football: { label: "Bóng đá", icon: "⚽" },
+  tennis: { label: "Tennis", icon: "🎾" },
+  golf: { label: "Golf", icon: "⛳" },
+  martial_arts: { label: "Võ thuật", icon: "🥋" },
+  movies: { label: "Phim ảnh", icon: "🎬" },
+  books: { label: "Đọc sách", icon: "📚" },
+  gaming: { label: "Chơi game", icon: "🎮" },
+  anime: { label: "Anime", icon: "🍥" },
+  comics: { label: "Truyện tranh", icon: "📖" },
+  karaoke: { label: "Karaoke", icon: "🎤" },
+  board_games: { label: "Board game", icon: "🎲" },
+  podcast: { label: "Podcast", icon: "🎧" },
+  standup: { label: "Hài độc thoại", icon: "😂" },
+  series: { label: "Phim bộ", icon: "📺" },
+  pet_lover: { label: "Yêu thú cưng", icon: "🐾" },
+  gardening: { label: "Làm vườn", icon: "🌱" },
+  fashion: { label: "Thời trang", icon: "👗" },
+  diy: { label: "Thủ công", icon: "🧵" },
+  volunteering: { label: "Tình nguyện", icon: "🤝" },
+  investing: { label: "Đầu tư", icon: "📈" },
+  learn_language: { label: "Học ngoại ngữ", icon: "🗣️" },
+  tech: { label: "Công nghệ", icon: "💻" },
+  startup: { label: "Khởi nghiệp", icon: "🚀" },
+  meditation: { label: "Thiền", icon: "🕯️" },
 };
 
 /**
@@ -108,17 +177,28 @@ export function ProfileCard({
               Sở thích
             </Text>
             <View className="flex-row flex-wrap gap-1.5">
-              {interests.map((interest) => (
-                <Badge
-                  key={interest}
-                  variant="secondary"
-                  className="rounded-xl border border-border/60 bg-secondary px-3 py-1"
-                >
-                  <Text className="text-xs font-medium text-secondary-foreground">
-                    {interest}
-                  </Text>
-                </Badge>
-              ))}
+              {interests.map((interest) => {
+                const isObj = typeof interest === "object" && interest !== null;
+                const key = isObj ? interest.key : interest;
+                const fallback = DEFAULT_INTEREST_LABELS[key];
+                const label = isObj
+                  ? interest.label
+                  : (fallback?.label ?? key.replace(/_/g, " "));
+                const icon = isObj ? (interest.icon ?? fallback?.icon) : fallback?.icon;
+
+                return (
+                  <Badge
+                    key={key}
+                    variant="secondary"
+                    className="flex-row items-center gap-1.5 rounded-xl border border-border/60 bg-secondary px-3 py-1"
+                  >
+                    {icon ? <Text className="text-xs">{icon}</Text> : null}
+                    <Text className="text-xs font-medium text-secondary-foreground">
+                      {label}
+                    </Text>
+                  </Badge>
+                );
+              })}
             </View>
           </View>
         ) : null}

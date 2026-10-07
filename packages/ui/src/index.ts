@@ -8,7 +8,11 @@ export { StatusBanner, type StatusBannerProps } from "./components/status-banner
 export { StepProgress, type StepProgressProps } from "./components/step-progress";
 export { ImageUploader, type ImageUploaderProps } from "./components/image-uploader";
 export { OtpInput, type OtpInputProps } from "./components/otp-input";
-export { ProfileCard, type ProfileCardProps } from "./components/profile-card";
+export {
+  ProfileCard,
+  type ProfileCardInterest,
+  type ProfileCardProps,
+} from "./components/profile-card";
 export { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
 export { Badge, badgeTextVariants, badgeVariants } from "./components/ui/badge";
 export { Button, buttonTextVariants, buttonVariants } from "./components/ui/button";
@@ -32,6 +36,8 @@ export {
   type SegmentOption,
 } from "./components/ui/segmented-control";
 export {
+  PROVINCES_DATA,
+  type ProvinceItem,
   SelectPicker,
   type SelectPickerProps,
   VIETNAM_CITIES,
