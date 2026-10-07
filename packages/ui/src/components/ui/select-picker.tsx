@@ -1,37 +1,38 @@
 import * as React from "react";
 import { Modal, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
 
+import rawProvinces from "../../data/provinces.json";
 import { cn } from "../../lib/utils";
 
 import { Text } from "./text";
 
-export const VIETNAM_CITIES = [
-  "TP. Hồ Chí Minh",
-  "Hà Nội",
-  "Đà Nẵng",
-  "Hải Phòng",
-  "Cần Thơ",
-  "Bình Dương",
-  "Đồng Nai",
-  "Bà Rịa - Vũng Tàu",
-  "Khánh Hòa (Nha Trang)",
-  "Lâm Đồng (Đà Lạt)",
-  "Thừa Thiên Huế",
-  "Quảng Ninh",
-  "Bắc Ninh",
-  "Hải Dương",
-  "Nam Định",
-  "Nghệ An",
-  "Thanh Hóa",
-  "Quảng Nam",
-  "Bình Định (Quy Nhơn)",
-  "Kiên Giang (Phú Quốc)",
-  "An Giang",
-  "Đắk Lắk (Buôn Ma Thuột)",
-  "Gia Lai (Pleiku)",
-  "Thái Nguyên",
-  "Vĩnh Phúc",
-];
+export interface ProvinceItem {
+  name: string;
+  code: number;
+  division_type: string;
+  codename: string;
+  phone_code: number;
+}
+
+export const PROVINCES_DATA: ProvinceItem[] = rawProvinces;
+
+/**
+ * Danh sách 63 tỉnh/thành phố chuẩn theo API provinces.open-api.vn
+ * Được trích xuất từ file dữ liệu data/provinces.json
+ */
+export const VIETNAM_CITIES: string[] = (() => {
+  const clean = (name: string) => {
+    let n = name.replace(/^Tỉnh\s+/, "").replace(/^Thành phố\s+/, "");
+    if (n === "Hồ Chí Minh") n = "TP. Hồ Chí Minh";
+    return n;
+  };
+  const majorCities = ["TP. Hồ Chí Minh", "Hà Nội", "Đà Nẵng", "Hải Phòng", "Cần Thơ"];
+  const allNames = Array.from(new Set(rawProvinces.map((p) => clean(p.name))));
+  const rest = allNames
+    .filter((n) => !majorCities.includes(n))
+    .sort((a, b) => a.localeCompare(b, "vi"));
+  return [...majorCities, ...rest];
+})();
 
 export interface SelectPickerProps {
   value: string;

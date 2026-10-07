@@ -48,6 +48,7 @@ export default function EditProfileScreen() {
     "female",
   );
   const [city, setCity] = React.useState("");
+  const [hometown, setHometown] = React.useState("");
 
   const [avatarUri, setAvatarUri] = React.useState<string | null>(null);
   const [avatarMediaId, setAvatarMediaId] = React.useState<string | null | undefined>(
@@ -63,6 +64,7 @@ export default function EditProfileScreen() {
       hasInitialized.current = true;
       setNickname(meData.profile.displayName);
       setCity(meData.profile.city || "");
+      setHometown(meData.profile.attributes?.hometown || "");
       if (meData.identity?.photoUrls[0]) {
         setAvatarUri(meData.identity.photoUrls[0]);
       }
@@ -77,6 +79,7 @@ export default function EditProfileScreen() {
     mutationFn: async (body: {
       displayName: string;
       city: string;
+      hometown?: string;
       gender: "male" | "female" | "other" | null;
       photoMediaIds?: string[];
     }) => {
@@ -86,6 +89,10 @@ export default function EditProfileScreen() {
         displayName: body.displayName,
         city: body.city,
         gender: body.gender,
+        attributes: {
+          ...meData?.profile.attributes,
+          hometown: body.hometown?.trim() || null,
+        },
       });
     },
     onSuccess: async () => {
@@ -219,7 +226,13 @@ export default function EditProfileScreen() {
     }
 
     setError(null);
-    update.mutate({ displayName: nickname.trim(), city, gender, photoMediaIds });
+    update.mutate({
+      displayName: nickname.trim(),
+      city,
+      hometown,
+      gender,
+      photoMediaIds,
+    });
   }
 
   return (
@@ -303,7 +316,9 @@ export default function EditProfileScreen() {
 
             <View className="gap-1.5">
               <Label nativeID="city">
-                <Text className="text-sm font-bold text-foreground">Khu vực</Text>
+                <Text className="text-sm font-bold text-foreground">
+                  Khu vực sinh sống
+                </Text>
               </Label>
               <SelectPicker
                 value={city}
@@ -312,6 +327,20 @@ export default function EditProfileScreen() {
                   if (error) setError(null);
                 }}
                 placeholder="Chọn thành phố của bạn"
+              />
+            </View>
+
+            <View className="gap-1.5">
+              <Label nativeID="hometown">
+                <Text className="text-sm font-bold text-foreground">Quê quán</Text>
+              </Label>
+              <SelectPicker
+                value={hometown}
+                onChange={(val) => {
+                  setHometown(val);
+                  if (error) setError(null);
+                }}
+                placeholder="Chọn quê quán của bạn"
               />
             </View>
           </View>

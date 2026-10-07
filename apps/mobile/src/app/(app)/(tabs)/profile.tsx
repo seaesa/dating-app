@@ -4,16 +4,41 @@ import * as React from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { meQuery } from "@repo/api-contract";
+import { meQuery, profileOptionsQuery } from "@repo/api-contract";
 import { useAuthStore } from "@repo/store";
 import { Button, ProfileCard, Skeleton, Text } from "@repo/ui";
 
 export default function ProfileScreen() {
   const signOut = useAuthStore((s) => s.signOut);
   const { data, isPending, isError } = useQuery(meQuery());
+  const { data: optionsData } = useQuery(profileOptionsQuery());
 
   const profile = data?.profile;
   const photoUrl = data?.identity?.photoUrls[0] ?? null;
+
+  const interestMap = React.useMemo(() => {
+    const map = new Map<string, { label: string; icon?: string | null }>();
+    if (optionsData?.interestGroups) {
+      for (const group of optionsData.interestGroups) {
+        for (const opt of group.options) {
+          map.set(opt.value, { label: opt.label, icon: opt.icon });
+        }
+      }
+    }
+    return map;
+  }, [optionsData]);
+
+  const formattedInterests = React.useMemo(() => {
+    if (!profile?.interests) return [];
+    return profile.interests.map((key) => {
+      const match = interestMap.get(key);
+      return {
+        key,
+        label: match?.label ?? key,
+        icon: match?.icon ?? null,
+      };
+    });
+  }, [profile?.interests, interestMap]);
   const completionPercent = React.useMemo(() => {
     if (!profile) return 0;
     let score = 0;
@@ -72,7 +97,7 @@ export default function ProfileScreen() {
                 city={data.profile.city}
                 gender={data.profile.gender}
                 bio={data.profile.bio}
-                interests={data.profile.interests}
+                interests={formattedInterests}
                 avatarUrl={photoUrl}
               />
 
