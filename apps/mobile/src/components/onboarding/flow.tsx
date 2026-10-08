@@ -1,5 +1,4 @@
 import { useQueryClient } from "@tanstack/react-query";
-import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import * as React from "react";
 
@@ -23,6 +22,7 @@ import { PhotosStep } from "./steps/photos-step";
 import { ShowMeStep } from "./steps/show-me-step";
 
 import { askForLocation } from "@/location-access";
+import { askForNotifications } from "@/notification-access";
 
 const STEPS: Record<OnboardingStep, React.ComponentType> = {
   basics: BasicsStep,
@@ -61,7 +61,7 @@ export function OnboardingFlow({ initialMe, options }: OnboardingFlowProps) {
       // them in; features that need the location ask again there. The fix
       // itself is stored by useLocationRefresh, so a slow GPS never holds this.
       await askForLocation();
-      await Notifications.requestPermissionsAsync().catch(() => undefined);
+      await askForNotifications();
       const done = await completeMyOnboarding();
       // Clear the local flag before the cache says "active": the other way
       // round, (onboarding) and (app) redirect to each other in a loop.

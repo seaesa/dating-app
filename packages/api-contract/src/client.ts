@@ -29,6 +29,9 @@ export const http = axios.create({
     process.env.EXPO_PUBLIC_API_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
     "http://localhost:8000",
+  paramsSerializer: {
+    indexes: null,
+  },
 });
 
 let interceptors: { request: number; response: number } | null = null;

@@ -59,6 +59,7 @@ def project_user(
         bio=target.public.bio,
         attributes=target.public.attributes,
         interests=target.public.interests,
+        prompts=target.public.prompts,
         verified=verification.status is VerificationStatus.VERIFIED,
     )
 

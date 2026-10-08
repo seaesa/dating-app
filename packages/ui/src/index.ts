@@ -9,6 +9,7 @@ export { StepProgress, type StepProgressProps } from "./components/step-progress
 export { ImageUploader, type ImageUploaderProps } from "./components/image-uploader";
 export { OtpInput, type OtpInputProps } from "./components/otp-input";
 export {
+  DEFAULT_INTEREST_LABELS,
   ProfileCard,
   type ProfileCardInterest,
   type ProfileCardProps,
@@ -42,6 +43,12 @@ export {
   type SelectPickerProps,
   VIETNAM_CITIES,
 } from "./components/ui/select-picker";
+export {
+  RangeSlider,
+  type RangeSliderProps,
+  type SliderLabel,
+} from "./components/ui/range-slider";
+export { Slider, type SliderProps } from "./components/ui/slider";
 export { Separator } from "./components/ui/separator";
 export { Skeleton } from "./components/ui/skeleton";
 export { Text, TextClassContext } from "./components/ui/text";

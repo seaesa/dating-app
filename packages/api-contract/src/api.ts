@@ -3,6 +3,12 @@ import { queryOptions } from "@tanstack/react-query";
 import { http } from "./client";
 import type {
   ChallengeRead,
+  DiscoveryCountRead,
+  DiscoveryFeedRead,
+  GetDiscoveryCountData,
+  GetDiscoveryFeedData,
+  InteractionCreate,
+  InteractionResultRead,
   MatchCriteria,
   Message,
   OtpRequestBody,
@@ -85,3 +91,26 @@ export const createVerificationChallenge = () =>
 
 export const submitVerification = (body: SubmitBody) =>
   http.post<VerificationRead>("/v1/verification/submit", body).then((r) => r.data);
+
+// Discovery & Matching
+
+export const getDiscoveryFeed = (params?: GetDiscoveryFeedData["query"]) =>
+  http.get<DiscoveryFeedRead>("/v1/discovery", { params }).then((r) => r.data);
+
+export const getDiscoveryCount = (params?: GetDiscoveryCountData["query"]) =>
+  http.get<DiscoveryCountRead>("/v1/discovery/count", { params }).then((r) => r.data);
+
+export const createInteraction = (body: InteractionCreate) =>
+  http.post<InteractionResultRead>("/v1/interactions", body).then((r) => r.data);
+
+export const discoveryFeedQuery = (params?: GetDiscoveryFeedData["query"]) =>
+  queryOptions({
+    queryKey: ["discovery", "feed", params ?? {}],
+    queryFn: () => getDiscoveryFeed(params),
+  });
+
+export const discoveryCountQuery = (params?: GetDiscoveryCountData["query"]) =>
+  queryOptions({
+    queryKey: ["discovery", "count", params ?? {}],
+    queryFn: () => getDiscoveryCount(params),
+  });

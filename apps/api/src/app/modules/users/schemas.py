@@ -112,6 +112,14 @@ def check_interests(value: list[str] | None) -> list[str] | None:
     return value
 
 
+class ProfilePrompt(BaseSchema):
+    """Icebreaker question and answer."""
+
+    prompt_id: Annotated[str, Field(min_length=1, max_length=64)]
+    question: Annotated[str, Field(min_length=1, max_length=200)]
+    answer: Annotated[str, Field(min_length=1, max_length=500)]
+
+
 class PublicProfile(BaseModel):
     """The persona every viewer may see: never a name or a photo."""
 
@@ -129,6 +137,9 @@ class PublicProfile(BaseModel):
     bio: Annotated[str, Field(max_length=500)] = ""
     attributes: ProfileAttributes = Field(default_factory=ProfileAttributes)
     interests: Annotated[list[str], Field(max_length=MAX_INTERESTS)] = []
+    prompts: Annotated[list[ProfilePrompt], Field(max_length=5)] = Field(
+        default_factory=list
+    )
 
     @field_validator("interests")
     @classmethod
@@ -203,6 +214,7 @@ class PublicProfileRead(BaseSchema):
     bio: str
     attributes: ProfileAttributes
     interests: list[str]
+    prompts: list[ProfilePrompt] = Field(default_factory=list)
     verified: bool
 
 
@@ -269,6 +281,7 @@ class PublicProfileUpdate(BaseSchema):
     bio: Annotated[str, Field(max_length=500)] | None = None
     attributes: ProfileAttributes | None = None
     interests: Annotated[list[str], Field(max_length=MAX_INTERESTS)] | None = None
+    prompts: Annotated[list[ProfilePrompt], Field(max_length=5)] | None = None
 
     @field_validator("interests")
     @classmethod

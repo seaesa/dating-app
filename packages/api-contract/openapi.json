@@ -171,6 +171,89 @@
         "title": "ChoiceCriterion",
         "type": "object"
       },
+      "DiscoveryCandidateRead": {
+        "additionalProperties": false,
+        "description": "A single candidate returned in discovery feed.",
+        "properties": {
+          "distanceKm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distancekm"
+          },
+          "isNew": {
+            "default": false,
+            "title": "Isnew",
+            "type": "boolean"
+          },
+          "matchScore": {
+            "title": "Matchscore",
+            "type": "number"
+          },
+          "scoreBreakdown": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MatchScoreBreakdown"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserRead"
+          }
+        },
+        "required": [
+          "user",
+          "matchScore"
+        ],
+        "title": "DiscoveryCandidateRead",
+        "type": "object"
+      },
+      "DiscoveryCountRead": {
+        "additionalProperties": false,
+        "description": "Count of eligible candidates matching filter criteria.",
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "title": "DiscoveryCountRead",
+        "type": "object"
+      },
+      "DiscoveryFeedRead": {
+        "additionalProperties": false,
+        "description": "Discovery feed response.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DiscoveryCandidateRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "totalCount": {
+            "title": "Totalcount",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "totalCount"
+        ],
+        "title": "DiscoveryFeedRead",
+        "type": "object"
+      },
       "GeoPoint": {
         "additionalProperties": false,
         "description": "GeoJSON point.\n\nLongitude first \u2014 MongoDB's 2dsphere index requires that order, and\nreversing it silently places everyone in the wrong hemisphere.",
@@ -195,6 +278,57 @@
           "coordinates"
         ],
         "title": "GeoPoint",
+        "type": "object"
+      },
+      "InteractionAction": {
+        "enum": [
+          "greet",
+          "like",
+          "pass",
+          "star",
+          "block",
+          "report"
+        ],
+        "title": "InteractionAction",
+        "type": "string"
+      },
+      "InteractionCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/InteractionAction"
+          },
+          "targetId": {
+            "$ref": "#/components/schemas/PydanticObjectId"
+          }
+        },
+        "required": [
+          "targetId",
+          "action"
+        ],
+        "title": "InteractionCreate",
+        "type": "object"
+      },
+      "InteractionResultRead": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/InteractionAction"
+          },
+          "matched": {
+            "default": false,
+            "title": "Matched",
+            "type": "boolean"
+          },
+          "targetId": {
+            "$ref": "#/components/schemas/PydanticObjectId"
+          }
+        },
+        "required": [
+          "action",
+          "targetId"
+        ],
+        "title": "InteractionResultRead",
         "type": "object"
       },
       "InterestGroupRead": {
@@ -303,6 +437,58 @@
           "ageMax"
         ],
         "title": "MatchCriteria",
+        "type": "object"
+      },
+      "MatchScoreBreakdown": {
+        "additionalProperties": false,
+        "description": "Detailed breakdown of a candidate's compatibility score (0-100).",
+        "properties": {
+          "activityScore": {
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Activityscore",
+            "type": "number"
+          },
+          "distanceScore": {
+            "maximum": 15.0,
+            "minimum": 0.0,
+            "title": "Distancescore",
+            "type": "number"
+          },
+          "intentScore": {
+            "maximum": 25.0,
+            "minimum": 0.0,
+            "title": "Intentscore",
+            "type": "number"
+          },
+          "interestsScore": {
+            "maximum": 25.0,
+            "minimum": 0.0,
+            "title": "Interestsscore",
+            "type": "number"
+          },
+          "lifestyleScore": {
+            "maximum": 25.0,
+            "minimum": 0.0,
+            "title": "Lifestylescore",
+            "type": "number"
+          },
+          "totalScore": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Totalscore",
+            "type": "number"
+          }
+        },
+        "required": [
+          "totalScore",
+          "intentScore",
+          "lifestyleScore",
+          "interestsScore",
+          "distanceScore",
+          "activityScore"
+        ],
+        "title": "MatchScoreBreakdown",
         "type": "object"
       },
       "MediaKind": {
@@ -813,6 +999,37 @@
         "title": "ProfileOptionsRead",
         "type": "object"
       },
+      "ProfilePrompt": {
+        "additionalProperties": false,
+        "description": "Icebreaker question and answer.",
+        "properties": {
+          "answer": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Answer",
+            "type": "string"
+          },
+          "promptId": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Promptid",
+            "type": "string"
+          },
+          "question": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "promptId",
+          "question",
+          "answer"
+        ],
+        "title": "ProfilePrompt",
+        "type": "object"
+      },
       "PublicProfileRead": {
         "additionalProperties": false,
         "properties": {
@@ -856,6 +1073,13 @@
               "type": "string"
             },
             "title": "Interests",
+            "type": "array"
+          },
+          "prompts": {
+            "items": {
+              "$ref": "#/components/schemas/ProfilePrompt"
+            },
+            "title": "Prompts",
             "type": "array"
           },
           "verified": {
@@ -955,6 +1179,21 @@
               }
             ],
             "title": "Interests"
+          },
+          "prompts": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ProfilePrompt"
+                },
+                "maxItems": 5,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompts"
           }
         },
         "title": "PublicProfileUpdate",
@@ -1855,6 +2094,505 @@
         "summary": "Get Profile Options",
         "tags": [
           "catalog"
+        ]
+      }
+    },
+    "/v1/discovery": {
+      "get": {
+        "description": "Fetch ranked candidate recommendations with 100-pt scoring and exploration.",
+        "operationId": "getDiscoveryFeed",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "genders",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "male",
+                      "female",
+                      "other"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Genders"
+            }
+          },
+          {
+            "in": "query",
+            "name": "age_min",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 99,
+                  "minimum": 18,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Age Min"
+            }
+          },
+          {
+            "in": "query",
+            "name": "age_max",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 99,
+                  "minimum": 18,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Age Max"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_distance_km",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 300,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Distance Km"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cities",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cities"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscoveryFeedRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation Failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Get Discovery Feed",
+        "tags": [
+          "discovery"
+        ]
+      }
+    },
+    "/v1/discovery/count": {
+      "get": {
+        "description": "Count eligible candidates matching filter parameters for live filter preview.",
+        "operationId": "getDiscoveryCount",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "genders",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "male",
+                      "female",
+                      "other"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Genders"
+            }
+          },
+          {
+            "in": "query",
+            "name": "age_min",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 99,
+                  "minimum": 18,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Age Min"
+            }
+          },
+          {
+            "in": "query",
+            "name": "age_max",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 99,
+                  "minimum": 18,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Age Max"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_distance_km",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 300,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Distance Km"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cities",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cities"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscoveryCountRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation Failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Get Discovery Count",
+        "tags": [
+          "discovery"
+        ]
+      }
+    },
+    "/v1/interactions": {
+      "post": {
+        "description": "Record an interaction (greet, like, pass, star, block, report).",
+        "operationId": "createInteraction",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InteractionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InteractionResultRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation Failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Create Interaction",
+        "tags": [
+          "interactions"
         ]
       }
     },
