@@ -53,6 +53,13 @@ class User(Document):
             "public.city",
             [("private.location", pymongo.GEOSPHERE)],
             [("status", pymongo.ASCENDING), ("_id", pymongo.DESCENDING)],
+            [
+                ("status", pymongo.ASCENDING),
+                ("public.gender", pymongo.ASCENDING),
+                ("public.birth_year", pymongo.ASCENDING),
+            ],
+            [("matching.criteria.genders", pymongo.ASCENDING)],
+            [("last_active_at", pymongo.DESCENDING)],
         ]
 
 

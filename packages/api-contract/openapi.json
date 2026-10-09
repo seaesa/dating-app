@@ -186,6 +186,11 @@
             ],
             "title": "Distancekm"
           },
+          "isBoosted": {
+            "default": false,
+            "title": "Isboosted",
+            "type": "boolean"
+          },
           "isNew": {
             "default": false,
             "title": "Isnew",
@@ -241,6 +246,17 @@
             },
             "title": "Items",
             "type": "array"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
           },
           "totalCount": {
             "title": "Totalcount",
@@ -2112,6 +2128,24 @@
               "minimum": 1,
               "title": "Limit",
               "type": "integer"
+            }
+          },
+          {
+            "description": "Cursor token for pagination",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Cursor token for pagination",
+              "title": "Cursor"
             }
           },
           {

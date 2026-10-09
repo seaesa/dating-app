@@ -5,9 +5,15 @@ import pytest
 from app.modules.interactions.models import UserInteraction
 from app.modules.interactions.schemas import InteractionAction
 from app.modules.matching.service import MatchingService
-from app.modules.users.criteria import MatchCriteria
+from app.modules.users.criteria import ChoiceCriterion, MatchCriteria
 from app.modules.users.models import User
-from app.modules.users.schemas import GeoPoint, MatchingProfile, PublicProfile, UserStatus
+from app.modules.users.schemas import (
+    GeoPoint,
+    MatchingProfile,
+    ProfileAttributes,
+    PublicProfile,
+    UserStatus,
+)
 
 
 @pytest.mark.asyncio
@@ -211,3 +217,119 @@ async def test_city_fallback_without_gps():
         "User Y cùng TP.HCM phải được match fallback theo thành phố!"
     )
     assert user_z.oid not in cand_ids, "User Z ở Đà Nẵng khác thành phố phải bị loại!"
+
+
+@pytest.mark.asyncio
+async def test_mutual_dealbreakers_two_way_enforcement() -> None:
+    current_year = datetime.now(UTC).year
+    service = MatchingService()
+
+    # User 1: Non-smoker who REQUIRES partner to be non-smoker ("never")
+    user_1 = User(
+        phone="+84900000031",
+        status=UserStatus.ACTIVE,
+        public=PublicProfile(
+            display_name="User 1 (Strict Non-Smoker)",
+            gender="male",
+            birth_year=current_year - 25,
+            city="Hà Nội",
+            attributes=ProfileAttributes(smoking="never", wants_children="yes"),
+        ),
+        matching=MatchingProfile(
+            criteria=MatchCriteria(
+                genders=["female"],
+                age_min=20,
+                age_max=30,
+                attributes={
+                    "smoking": ChoiceCriterion(values=["never"], level="required")
+                },
+            )
+        ),
+    )
+
+    # Candidate 2: Smokes often -> Should be rejected by User 1
+    cand_smoker = User(
+        phone="+84900000032",
+        status=UserStatus.ACTIVE,
+        public=PublicProfile(
+            display_name="Candidate Smoker",
+            gender="female",
+            birth_year=current_year - 24,
+            city="Hà Nội",
+            attributes=ProfileAttributes(smoking="often", wants_children="yes"),
+        ),
+    )
+
+    # Candidate 3: Smoking is None -> Should be rejected by User 1's strict dealbreaker
+    cand_unspecified = User(
+        phone="+84900000033",
+        status=UserStatus.ACTIVE,
+        public=PublicProfile(
+            display_name="Candidate Unspecified",
+            gender="female",
+            birth_year=current_year - 24,
+            city="Hà Nội",
+            attributes=ProfileAttributes(smoking=None, wants_children="yes"),
+        ),
+    )
+
+    # Candidate 4: Non-smoker, but REQUIRES partner to NOT want children ("no")
+    # User 1 wants children ("yes"), so Candidate 4's dealbreaker rejects User 1!
+    cand_reverse_dealbreaker = User(
+        phone="+84900000034",
+        status=UserStatus.ACTIVE,
+        public=PublicProfile(
+            display_name="Candidate No-Kids",
+            gender="female",
+            birth_year=current_year - 24,
+            city="Hà Nội",
+            attributes=ProfileAttributes(smoking="never", wants_children="no"),
+        ),
+        matching=MatchingProfile(
+            criteria=MatchCriteria(
+                genders=["male"],
+                age_min=20,
+                age_max=30,
+                attributes={
+                    "wants_children": ChoiceCriterion(values=["no"], level="required")
+                },
+            )
+        ),
+    )
+
+    # Candidate 5: Non-smoker and wants children -> Perfect mutual fit
+    cand_compatible = User(
+        phone="+84900000035",
+        status=UserStatus.ACTIVE,
+        public=PublicProfile(
+            display_name="Candidate Perfect Match",
+            gender="female",
+            birth_year=current_year - 24,
+            city="Hà Nội",
+            attributes=ProfileAttributes(smoking="never", wants_children="yes"),
+        ),
+        matching=MatchingProfile(
+            criteria=MatchCriteria(
+                genders=["male"],
+                age_min=20,
+                age_max=30,
+                attributes={
+                    "smoking": ChoiceCriterion(values=["never"], level="required")
+                },
+            )
+        ),
+    )
+
+    # Direct 2-way check_dealbreakers verification
+    assert service.check_dealbreakers(user_1, cand_smoker) is False, (
+        "User 1's dealbreaker must reject smoking candidate"
+    )
+    assert service.check_dealbreakers(user_1, cand_unspecified) is False, (
+        "Strict dealbreaker must reject candidate with unspecified attribute"
+    )
+    assert service.check_dealbreakers(user_1, cand_reverse_dealbreaker) is False, (
+        "2-way symmetry: Candidate's dealbreaker (no kids) must reject User 1 (wants kids)"
+    )
+    assert service.check_dealbreakers(user_1, cand_compatible) is True, (
+        "Both parties satisfy mutual dealbreakers"
+    )
