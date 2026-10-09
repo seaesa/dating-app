@@ -166,8 +166,13 @@ export function FilterModal({
           style={{
             height: sheetHeight,
             paddingBottom: Math.max(insets.bottom, 16),
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 16,
+            elevation: 16,
           }}
-          className="w-full rounded-t-3xl border-t border-border/40 bg-background shadow-2xl"
+          className="w-full rounded-t-3xl border-t border-border/40 bg-background"
         >
           {/* Sheet Handle */}
           <View className="items-center pt-3">
@@ -296,7 +301,14 @@ export function FilterModal({
             <Button
               size="lg"
               onPress={handleApply}
-              className="h-14 w-full flex-row items-center justify-center rounded-2xl bg-primary shadow-md shadow-primary/30"
+              style={{
+                shadowColor: "#FF6F61",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 4,
+              }}
+              className="h-14 w-full flex-row items-center justify-center rounded-2xl bg-primary"
             >
               <View className="flex-row items-center justify-center gap-2">
                 <Text className="text-base font-black text-primary-foreground">

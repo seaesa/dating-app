@@ -40,11 +40,22 @@ export function SegmentedControl<T extends string>({
             key={option.value}
             disabled={disabled}
             onPress={() => onChange(option.value)}
+            style={
+              isSolid && isSelected
+                ? {
+                    shadowColor: "#FF6F61",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 4,
+                    elevation: 3,
+                  }
+                : undefined
+            }
             className={cn(
               "flex-1 flex-row items-center justify-center gap-2 rounded-2xl px-2 py-3.5 border",
               isSolid
                 ? isSelected
-                  ? "border-primary bg-primary shadow-sm shadow-primary/30"
+                  ? "border-primary bg-primary"
                   : "border-border bg-card active:bg-secondary"
                 : isSelected
                   ? "border-2 border-primary bg-primary-muted"
