@@ -23,8 +23,8 @@ configureApiClient({
     setTimeout(() => {
       try {
         router.replace("/(auth)/phone");
-      } catch (err) {
-        console.warn("Deferred navigation on auth failure:", err);
+      } catch {
+        // Ignored: Declarative redirect in RootNavigator handles unauthenticated state
       }
     }, 100);
   },

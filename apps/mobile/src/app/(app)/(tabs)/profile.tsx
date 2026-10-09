@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import * as React from "react";
 import { Pressable, ScrollView, View } from "react-native";
@@ -15,6 +16,20 @@ export default function ProfileScreen() {
 
   const profile = data?.profile;
   const photoUrl = data?.identity?.photoUrls[0] ?? null;
+
+  // Extract all photos for the photo gallery
+  const photoList = React.useMemo(() => {
+    if (data?.account?.photos && data.account.photos.length > 0) {
+      return data.account.photos.map((p) => ({ key: p.mediaId, uri: p.url }));
+    }
+    if (data?.identity?.photoUrls && data.identity.photoUrls.length > 0) {
+      return data.identity.photoUrls.map((url, idx) => ({
+        key: `url-${idx}`,
+        uri: url,
+      }));
+    }
+    return [];
+  }, [data?.account?.photos, data?.identity?.photoUrls]);
 
   const interestMap = React.useMemo(() => {
     const map = new Map<string, { label: string; icon?: string | null }>();
@@ -39,17 +54,159 @@ export default function ProfileScreen() {
       };
     });
   }, [profile?.interests, interestMap]);
+
+  // Lifestyle and profile attributes badges
+  const lifestyleBadges = React.useMemo(() => {
+    if (!profile?.attributes) return [];
+    const attrs = profile.attributes;
+    const result: Array<{
+      key: string;
+      icon: string;
+      label: string;
+      title: string;
+    }> = [];
+
+    // Intent
+    if (attrs.intent) {
+      const attr = optionsData?.attributes?.find((a) => a.key === "intent");
+      const opt = attr?.options.find((o) => o.value === attrs.intent);
+      result.push({
+        key: "intent",
+        icon: opt?.icon || "🎯",
+        label: opt?.label ?? attrs.intent,
+        title: "Mục đích",
+      });
+    }
+
+    // Height
+    if (attrs.heightCm) {
+      result.push({
+        key: "height",
+        icon: "📏",
+        label: `${attrs.heightCm} cm`,
+        title: "Chiều cao",
+      });
+    }
+
+    // Education
+    if (attrs.education) {
+      const attr = optionsData?.attributes?.find((a) => a.key === "education");
+      const opt = attr?.options.find((o) => o.value === attrs.education);
+      result.push({
+        key: "education",
+        icon: opt?.icon || "🎓",
+        label: opt?.label ?? attrs.education,
+        title: "Học vấn",
+      });
+    }
+
+    // Industry
+    if (attrs.industry) {
+      const attr = optionsData?.attributes?.find((a) => a.key === "industry");
+      const opt = attr?.options.find((o) => o.value === attrs.industry);
+      result.push({
+        key: "industry",
+        icon: opt?.icon || "💼",
+        label: opt?.label ?? attrs.industry,
+        title: "Nghề nghiệp",
+      });
+    }
+
+    // Hometown
+    if (attrs.hometown) {
+      result.push({
+        key: "hometown",
+        icon: "🏡",
+        label: attrs.hometown,
+        title: "Quê quán",
+      });
+    }
+
+    // Exercise
+    if (attrs.exercise) {
+      const attr = optionsData?.attributes?.find((a) => a.key === "exercise");
+      const opt = attr?.options.find((o) => o.value === attrs.exercise);
+      result.push({
+        key: "exercise",
+        icon: opt?.icon || "🏃",
+        label: opt?.label ?? attrs.exercise,
+        title: "Thể thao",
+      });
+    }
+
+    // Drinking
+    if (attrs.drinking) {
+      const attr = optionsData?.attributes?.find((a) => a.key === "drinking");
+      const opt = attr?.options.find((o) => o.value === attrs.drinking);
+      result.push({
+        key: "drinking",
+        icon: opt?.icon || "🍷",
+        label: opt?.label ?? attrs.drinking,
+        title: "Rượu bia",
+      });
+    }
+
+    // Smoking
+    if (attrs.smoking) {
+      const attr = optionsData?.attributes?.find((a) => a.key === "smoking");
+      const opt = attr?.options.find((o) => o.value === attrs.smoking);
+      result.push({
+        key: "smoking",
+        icon: opt?.icon || "🚬",
+        label: opt?.label ?? attrs.smoking,
+        title: "Hút thuốc",
+      });
+    }
+
+    // Pets
+    if (attrs.pets) {
+      const attr = optionsData?.attributes?.find((a) => a.key === "pets");
+      const opt = attr?.options.find((o) => o.value === attrs.pets);
+      result.push({
+        key: "pets",
+        icon: opt?.icon || "🐾",
+        label: opt?.label ?? attrs.pets,
+        title: "Thú cưng",
+      });
+    }
+
+    return result;
+  }, [profile?.attributes, optionsData]);
+
+  // Profile completion percent calculation
   const completionPercent = React.useMemo(() => {
     if (!profile) return 0;
     let score = 0;
-    if (profile.displayName) score += 20;
-    if (profile.age) score += 20;
-    if (profile.city) score += 20;
-    if (profile.gender) score += 15;
-    if (photoUrl) score += 15;
-    if (profile.bio) score += 10;
+    // Basic details: 40% (10% each)
+    if (profile.displayName) score += 10;
+    if (profile.age) score += 10;
+    if (profile.city) score += 10;
+    if (profile.gender) score += 10;
+
+    // Photos: 20% (10% for >= 1 photo, +10% for >= 3 photos)
+    const photoCount = photoList.length;
+    if (photoCount >= 1) score += 10;
+    if (photoCount >= 3) score += 10;
+
+    // Bio: 15%
+    if (profile.bio?.trim()) score += 15;
+
+    // Education, industry, intent: 15% (5% each)
+    if (profile.attributes?.education) score += 5;
+    if (profile.attributes?.industry) score += 5;
+    if (profile.attributes?.intent) score += 5;
+
+    // Lifestyle habit: 10%
+    const hasHabit = Boolean(
+      profile.attributes?.smoking ||
+      profile.attributes?.drinking ||
+      profile.attributes?.exercise ||
+      profile.attributes?.pets,
+    );
+    if (hasHabit) score += 10;
+
     return Math.min(100, score);
-  }, [profile, photoUrl]);
+  }, [profile, photoList.length]);
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
@@ -68,7 +225,7 @@ export default function ProfileScreen() {
 
       <ScrollView
         className="flex-1 px-5 pt-4"
-        contentContainerStyle={{ paddingBottom: 36 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
         <View className="gap-5">
@@ -90,7 +247,7 @@ export default function ProfileScreen() {
 
           {data ? (
             <>
-              {/* Profile Overview Card (Hero) with Gender */}
+              {/* Profile Overview Card (Hero) */}
               <ProfileCard
                 nickname={data.profile.displayName}
                 age={data.profile.age}
@@ -111,6 +268,130 @@ export default function ProfileScreen() {
                   ✏️ Chỉnh sửa hồ sơ
                 </Text>
               </Button>
+
+              {/* Photo Gallery (Up to 6 photos preview) */}
+              <View className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm shadow-black/5">
+                <View className="flex-row items-center justify-between pb-3">
+                  <View className="flex-row items-center gap-2">
+                    <Text className="text-base">📸</Text>
+                    <Text className="text-sm font-bold text-foreground">
+                      Bộ sưu tập ảnh ({photoList.length}/6)
+                    </Text>
+                  </View>
+                  <Pressable
+                    onPress={() => router.push("/(app)/edit-profile")}
+                    hitSlop={8}
+                    className="flex-row items-center gap-1 active:opacity-70"
+                  >
+                    <Text className="text-xs font-bold text-primary">Quản lý ảnh</Text>
+                    <Text className="text-xs text-primary">→</Text>
+                  </Pressable>
+                </View>
+
+                {photoList.length > 0 ? (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ gap: 10 }}
+                  >
+                    {photoList.map((photo, index) => (
+                      <View
+                        key={photo.key || `photo-${index}`}
+                        className="relative h-28 w-20 overflow-hidden rounded-xl border border-border/70 bg-secondary"
+                      >
+                        <Image
+                          source={{ uri: photo.uri }}
+                          style={{ width: "100%", height: "100%" }}
+                          contentFit="cover"
+                        />
+                        {index === 0 ? (
+                          <View className="absolute bottom-1 left-1 rounded-md bg-primary/90 px-1.5 py-0.5">
+                            <Text className="text-[9px] font-bold text-primary-foreground">
+                              Ảnh chính
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    ))}
+                    {photoList.length < 6 ? (
+                      <Pressable
+                        onPress={() => router.push("/(app)/edit-profile")}
+                        className="h-28 w-20 items-center justify-center rounded-xl border border-dashed border-border bg-secondary/30 active:bg-secondary/50"
+                      >
+                        <Text className="text-xl font-bold text-primary">+</Text>
+                        <Text className="pt-0.5 text-[10px] font-semibold text-primary">
+                          Thêm ảnh
+                        </Text>
+                      </Pressable>
+                    ) : null}
+                  </ScrollView>
+                ) : (
+                  <Pressable
+                    onPress={() => router.push("/(app)/edit-profile")}
+                    className="h-24 w-full items-center justify-center rounded-xl border border-dashed border-border bg-secondary/30 active:bg-secondary/50"
+                  >
+                    <Text className="text-sm font-bold text-primary">
+                      + Tải ảnh chân dung
+                    </Text>
+                    <Text className="pt-1 text-xs text-muted-foreground">
+                      Thêm tối đa 6 bức ảnh để hồ sơ nổi bật hơn
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+
+              {/* Section: Thông tin cá nhân & Lối sống */}
+              <View className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm shadow-black/5">
+                <View className="flex-row items-center justify-between pb-3">
+                  <View className="flex-row items-center gap-2">
+                    <Text className="text-base">🌿</Text>
+                    <Text className="text-sm font-bold text-foreground">
+                      Thông tin cá nhân & Lối sống
+                    </Text>
+                  </View>
+                  <Pressable
+                    onPress={() => router.push("/(app)/edit-profile")}
+                    hitSlop={8}
+                    className="flex-row items-center gap-1 active:opacity-70"
+                  >
+                    <Text className="text-xs font-bold text-primary">Cập nhật</Text>
+                    <Text className="text-xs text-primary">→</Text>
+                  </Pressable>
+                </View>
+
+                {lifestyleBadges.length > 0 ? (
+                  <View className="flex-row flex-wrap gap-2 pt-1">
+                    {lifestyleBadges.map((item) => (
+                      <View
+                        key={item.key}
+                        className="flex-row items-center gap-2 rounded-xl border border-border/70 bg-secondary/50 px-3 py-2"
+                      >
+                        <Text className="text-base">{item.icon}</Text>
+                        <View>
+                          <Text className="text-[10px] font-semibold text-muted-foreground">
+                            {item.title}
+                          </Text>
+                          <Text className="text-xs font-bold text-foreground">
+                            {item.label}
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <Pressable
+                    onPress={() => router.push("/(app)/edit-profile")}
+                    className="items-center justify-center rounded-xl border border-dashed border-border bg-secondary/30 p-4 active:bg-secondary/50"
+                  >
+                    <Text className="text-sm font-bold text-primary">
+                      + Thêm học vấn, nghề nghiệp & lối sống
+                    </Text>
+                    <Text className="pt-1 text-center text-xs text-muted-foreground">
+                      Giúp bạn tăng độ tin cậy và tìm được người có cùng lối sống
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
 
               {/* Profile Completion Tracker */}
               <View className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm shadow-black/5">
@@ -137,7 +418,7 @@ export default function ProfileScreen() {
                 <Text className="pt-2.5 text-xs leading-4 text-muted-foreground">
                   {completionPercent >= 100
                     ? "✨ Hồ sơ của bạn đã hoàn hảo để tìm kiếm đối tượng tương thích!"
-                    : "💡 Cập nhật đầy đủ ảnh chân dung và lời giới thiệu để tăng 2x cơ hội kết đôi tương thích."}
+                    : "💡 Cập nhật đầy đủ ảnh chân dung, nghề nghiệp và lối sống để tăng 2x cơ hội kết đôi tương thích."}
                 </Text>
               </View>
 
@@ -170,7 +451,7 @@ export default function ProfileScreen() {
 
               {/* Private Identity (Rule Zero - Danh tính bí mật) */}
               <View className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm shadow-black/5">
-                <View className="flex-row items-center justify-between pb-3 border-b border-border/40">
+                <View className="flex-row items-center justify-between border-b border-border/40 pb-3">
                   <View className="flex-row items-center gap-1.5">
                     <Text className="text-base">🔒</Text>
                     <Text className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -184,7 +465,7 @@ export default function ProfileScreen() {
                   </View>
                 </View>
 
-                <View className="pt-3 gap-2.5">
+                <View className="gap-2.5 pt-3">
                   <View className="flex-row items-center justify-between">
                     <Text className="text-xs text-muted-foreground">Tên thật:</Text>
                     <Text className="text-sm font-bold text-foreground">
@@ -216,9 +497,9 @@ export default function ProfileScreen() {
               </View>
 
               {/* Settings / Preferences Shortcuts */}
-              <View className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-sm shadow-black/5">
+              <View className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm shadow-black/5">
                 <Pressable
-                  className="flex-row items-center justify-between p-4 border-b border-border/40 active:bg-secondary/60"
+                  className="flex-row items-center justify-between border-b border-border/40 p-4 active:bg-secondary/60"
                   onPress={() => router.push("/(app)/edit-profile")}
                 >
                   <View className="flex-row items-center gap-3">
@@ -231,7 +512,7 @@ export default function ProfileScreen() {
                 </Pressable>
 
                 <Pressable
-                  className="flex-row items-center justify-between p-4 border-b border-border/40 active:bg-secondary/60"
+                  className="flex-row items-center justify-between border-b border-border/40 p-4 active:bg-secondary/60"
                   onPress={() => {}}
                 >
                   <View className="flex-row items-center gap-3">
