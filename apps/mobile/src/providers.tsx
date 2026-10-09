@@ -20,7 +20,13 @@ configureApiClient({
     // The refresh failed and is not retryable, so the cache holds data for a
     // session that no longer exists.
     queryClient.clear();
-    router.replace("/(auth)/phone");
+    setTimeout(() => {
+      try {
+        router.replace("/(auth)/phone");
+      } catch (err) {
+        console.warn("Deferred navigation on auth failure:", err);
+      }
+    }, 100);
   },
 });
 

@@ -28,7 +28,7 @@ const GENDER_CONFIG = {
   other: { label: "Khác", symbol: "⚥" },
 };
 
-const DEFAULT_INTEREST_LABELS: Record<string, { label: string; icon?: string }> = {
+export const DEFAULT_INTEREST_LABELS: Record<string, { label: string; icon?: string }> = {
   cafe: { label: "Cà phê", icon: "☕" },
   milk_tea: { label: "Trà sữa", icon: "🧋" },
   street_food: { label: "Ẩm thực đường phố", icon: "🍢" },

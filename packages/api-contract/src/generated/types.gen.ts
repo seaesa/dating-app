@@ -91,6 +91,56 @@ export type ChoiceCriterion = {
 };
 
 /**
+ * DiscoveryCandidateRead
+ *
+ * A single candidate returned in discovery feed.
+ */
+export type DiscoveryCandidateRead = {
+  /**
+   * Distancekm
+   */
+  distanceKm?: number | null;
+  /**
+   * Isnew
+   */
+  isNew?: boolean;
+  /**
+   * Matchscore
+   */
+  matchScore: number;
+  scoreBreakdown?: MatchScoreBreakdown | null;
+  user: UserRead;
+};
+
+/**
+ * DiscoveryCountRead
+ *
+ * Count of eligible candidates matching filter criteria.
+ */
+export type DiscoveryCountRead = {
+  /**
+   * Count
+   */
+  count: number;
+};
+
+/**
+ * DiscoveryFeedRead
+ *
+ * Discovery feed response.
+ */
+export type DiscoveryFeedRead = {
+  /**
+   * Items
+   */
+  items: Array<DiscoveryCandidateRead>;
+  /**
+   * Totalcount
+   */
+  totalCount: number;
+};
+
+/**
  * GeoPoint
  *
  * GeoJSON point.
@@ -107,6 +157,31 @@ export type GeoPoint = {
    * Type
    */
   type?: "Point";
+};
+
+/**
+ * InteractionAction
+ */
+export type InteractionAction = "greet" | "like" | "pass" | "star" | "block" | "report";
+
+/**
+ * InteractionCreate
+ */
+export type InteractionCreate = {
+  action: InteractionAction;
+  targetId: PydanticObjectId;
+};
+
+/**
+ * InteractionResultRead
+ */
+export type InteractionResultRead = {
+  action: InteractionAction;
+  /**
+   * Matched
+   */
+  matched?: boolean;
+  targetId: PydanticObjectId;
 };
 
 /**
@@ -160,6 +235,38 @@ export type MatchCriteria = {
    * Maxdistancekm
    */
   maxDistanceKm?: number | null;
+};
+
+/**
+ * MatchScoreBreakdown
+ *
+ * Detailed breakdown of a candidate's compatibility score (0-100).
+ */
+export type MatchScoreBreakdown = {
+  /**
+   * Activityscore
+   */
+  activityScore: number;
+  /**
+   * Distancescore
+   */
+  distanceScore: number;
+  /**
+   * Intentscore
+   */
+  intentScore: number;
+  /**
+   * Interestsscore
+   */
+  interestsScore: number;
+  /**
+   * Lifestylescore
+   */
+  lifestyleScore: number;
+  /**
+   * Totalscore
+   */
+  totalScore: number;
 };
 
 /**
@@ -425,6 +532,26 @@ export type ProfileOptionsRead = {
 };
 
 /**
+ * ProfilePrompt
+ *
+ * Icebreaker question and answer.
+ */
+export type ProfilePrompt = {
+  /**
+   * Answer
+   */
+  answer: string;
+  /**
+   * Promptid
+   */
+  promptId: string;
+  /**
+   * Question
+   */
+  question: string;
+};
+
+/**
  * PublicProfileRead
  */
 export type PublicProfileRead = {
@@ -453,6 +580,10 @@ export type PublicProfileRead = {
    * Interests
    */
   interests: Array<string>;
+  /**
+   * Prompts
+   */
+  prompts?: Array<ProfilePrompt>;
   /**
    * Verified
    */
@@ -484,6 +615,10 @@ export type PublicProfileUpdate = {
    * Interests
    */
   interests?: Array<string> | null;
+  /**
+   * Prompts
+   */
+  prompts?: Array<ProfilePrompt> | null;
 };
 
 export type PydanticObjectId = string;
@@ -937,6 +1072,192 @@ export type GetProfileOptionsResponses = {
 
 export type GetProfileOptionsResponse =
   GetProfileOptionsResponses[keyof GetProfileOptionsResponses];
+
+export type GetDiscoveryFeedData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Limit
+     */
+    limit?: number;
+    /**
+     * Genders
+     */
+    genders?: Array<"male" | "female" | "other"> | null;
+    /**
+     * Age Min
+     */
+    age_min?: number | null;
+    /**
+     * Age Max
+     */
+    age_max?: number | null;
+    /**
+     * Max Distance Km
+     */
+    max_distance_km?: number | null;
+    /**
+     * Cities
+     */
+    cities?: Array<string> | null;
+  };
+  url: "/v1/discovery";
+};
+
+export type GetDiscoveryFeedErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetDiscoveryFeedError = GetDiscoveryFeedErrors[keyof GetDiscoveryFeedErrors];
+
+export type GetDiscoveryFeedResponses = {
+  /**
+   * Successful Response
+   */
+  200: DiscoveryFeedRead;
+};
+
+export type GetDiscoveryFeedResponse =
+  GetDiscoveryFeedResponses[keyof GetDiscoveryFeedResponses];
+
+export type GetDiscoveryCountData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Genders
+     */
+    genders?: Array<"male" | "female" | "other"> | null;
+    /**
+     * Age Min
+     */
+    age_min?: number | null;
+    /**
+     * Age Max
+     */
+    age_max?: number | null;
+    /**
+     * Max Distance Km
+     */
+    max_distance_km?: number | null;
+    /**
+     * Cities
+     */
+    cities?: Array<string> | null;
+  };
+  url: "/v1/discovery/count";
+};
+
+export type GetDiscoveryCountErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetDiscoveryCountError =
+  GetDiscoveryCountErrors[keyof GetDiscoveryCountErrors];
+
+export type GetDiscoveryCountResponses = {
+  /**
+   * Successful Response
+   */
+  200: DiscoveryCountRead;
+};
+
+export type GetDiscoveryCountResponse =
+  GetDiscoveryCountResponses[keyof GetDiscoveryCountResponses];
+
+export type CreateInteractionData = {
+  body: InteractionCreate;
+  path?: never;
+  query?: never;
+  url: "/v1/interactions";
+};
+
+export type CreateInteractionErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type CreateInteractionError =
+  CreateInteractionErrors[keyof CreateInteractionErrors];
+
+export type CreateInteractionResponses = {
+  /**
+   * Successful Response
+   */
+  200: InteractionResultRead;
+};
+
+export type CreateInteractionResponse =
+  CreateInteractionResponses[keyof CreateInteractionResponses];
 
 export type CreateUploadUrlData = {
   body: UploadUrlBody;

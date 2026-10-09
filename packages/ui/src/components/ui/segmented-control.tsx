@@ -18,6 +18,7 @@ export interface SegmentedControlProps<T extends string> {
   onChange: (value: T) => void;
   className?: string;
   disabled?: boolean;
+  variant?: "default" | "solid";
 }
 
 export function SegmentedControl<T extends string>({
@@ -26,21 +27,28 @@ export function SegmentedControl<T extends string>({
   onChange,
   className,
   disabled = false,
+  variant = "default",
 }: SegmentedControlProps<T>) {
   return (
     <View className={cn("w-full flex-row items-center gap-2.5", className)}>
       {options.map((option) => {
         const isSelected = value === option.value;
+        const isSolid = variant === "solid";
+
         return (
           <Pressable
             key={option.value}
             disabled={disabled}
             onPress={() => onChange(option.value)}
             className={cn(
-              "flex-1 flex-row items-center justify-center gap-2 rounded-2xl px-2 py-3.5",
-              isSelected
-                ? "border-2 border-primary bg-primary-muted"
-                : "border border-border bg-secondary/50 active:bg-secondary",
+              "flex-1 flex-row items-center justify-center gap-2 rounded-2xl px-2 py-3.5 border",
+              isSolid
+                ? isSelected
+                  ? "border-primary bg-primary shadow-sm shadow-primary/30"
+                  : "border-border bg-card active:bg-secondary"
+                : isSelected
+                  ? "border-2 border-primary bg-primary-muted"
+                  : "border-border bg-secondary/50 active:bg-secondary",
               disabled && "opacity-50",
             )}
           >
@@ -48,7 +56,13 @@ export function SegmentedControl<T extends string>({
               <Text
                 className={cn(
                   "text-base font-bold",
-                  isSelected ? "text-primary" : "text-muted-foreground",
+                  isSolid
+                    ? isSelected
+                      ? "text-primary-foreground"
+                      : "text-muted-foreground"
+                    : isSelected
+                      ? "text-primary"
+                      : "text-muted-foreground",
                 )}
               >
                 {option.symbol}
@@ -62,8 +76,14 @@ export function SegmentedControl<T extends string>({
             ) : null}
             <Text
               className={cn(
-                "text-base font-semibold",
-                isSelected ? "text-primary" : "text-muted-foreground",
+                "text-sm font-bold",
+                isSolid
+                  ? isSelected
+                    ? "text-primary-foreground"
+                    : "text-foreground"
+                  : isSelected
+                    ? "text-primary font-semibold"
+                    : "text-muted-foreground font-semibold",
               )}
             >
               {option.label}

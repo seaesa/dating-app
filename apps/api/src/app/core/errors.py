@@ -64,6 +64,10 @@ class AppError(Exception):
         super().__init__(self.detail)
 
 
+class BadRequestError(AppError):
+    status, code, title = 400, "bad-request", "Bad Request"
+
+
 class NotFoundError(AppError):
     status, code, title = 404, "not-found", "Not Found"
 

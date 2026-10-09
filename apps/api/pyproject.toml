@@ -28,6 +28,8 @@ face = [
 [dependency-groups]
 dev = [
     "mypy>=1.18.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
     "ruff>=0.16.9",
 ]
 
@@ -61,6 +63,12 @@ select = [
 ]
 ignore = [
     "B008",  # function call in default: FastAPI's Depends() idiom
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "S101",  # assert allowed in tests
+    "E501",  # line length allowed in tests
 ]
 
 [tool.mypy]

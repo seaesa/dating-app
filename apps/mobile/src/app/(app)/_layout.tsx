@@ -23,6 +23,12 @@ export default function AppLayout() {
           animation: "slide_from_right",
         }}
       />
+      <Stack.Screen
+        name="profile-detail"
+        options={{
+          presentation: "modal",
+        }}
+      />
     </Stack>
   );
 }
