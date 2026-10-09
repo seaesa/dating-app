@@ -52,6 +52,20 @@ def score_intent(intent_a: str | None, intent_b: str | None) -> float:
     return _INTENT_MATRIX.get((norm_a, norm_b), 10.0)
 
 
+# Complementary / related industries mapping for bonus points
+_RELATED_INDUSTRIES: Final[dict[str, set[str]]] = {
+    "it": {"engineering", "design", "business"},
+    "engineering": {"it", "design"},
+    "design": {"it", "marketing"},
+    "business": {"finance", "marketing", "it"},
+    "finance": {"business"},
+    "marketing": {"business", "design", "hospitality"},
+    "education": {"health", "public"},
+    "health": {"education"},
+    "hospitality": {"marketing", "business"},
+}
+
+
 def score_lifestyle(
     attrs_a: ProfileAttributes,
     attrs_b: ProfileAttributes,
@@ -60,12 +74,16 @@ def score_lifestyle(
 ) -> float:
     """Calculate lifestyle and values compatibility score (0 - 25 points).
 
-    Evaluates 5 sub-dimensions (5 points each):
-    1. Smoking (5 pts)
-    2. Drinking (5 pts)
-    3. Pets (5 pts)
-    4. Religion / Values (5 pts)
-    5. Kids intent (5 pts)
+    Evaluates sub-dimensions:
+    1. Smoking (max 5 pts)
+    2. Drinking (max 5 pts)
+    3. Pets (max 5 pts)
+    4. Religion / Values (max 5 pts)
+    5. Kids intent (max 5 pts)
+    6. Education (max 2.5 pts)
+    7. Industry (max 2.5 pts)
+
+    Total score is normalized and clamped to 25.0 points.
     """
     total = 0.0
 
@@ -141,58 +159,95 @@ def score_lifestyle(
     else:
         total += 3.0
 
+    # 6. Education (2.5 pts)
+    edu_a = attrs_a.education
+    edu_b = attrs_b.education
+    if edu_a is None or edu_b is None:
+        total += 1.5
+    elif edu_a == edu_b:
+        total += 2.5
+    elif edu_a in {"bachelor", "master", "doctorate"} and edu_b in {
+        "bachelor",
+        "master",
+        "doctorate",
+    }:
+        total += 2.0
+    else:
+        total += 1.0
+
+    # 7. Industry (2.5 pts)
+    ind_a = attrs_a.industry
+    ind_b = attrs_b.industry
+    if ind_a is None or ind_b is None:
+        total += 1.5
+    elif ind_a == ind_b:
+        total += 2.5
+    elif ind_b in _RELATED_INDUSTRIES.get(
+        ind_a, set()
+    ) or ind_a in _RELATED_INDUSTRIES.get(ind_b, set()):
+        total += 2.0
+    else:
+        total += 1.0
+
     return min(25.0, round(total, 2))
 
 
 def score_interests(
     interests_a: list[str] | None, interests_b: list[str] | None
 ) -> float:
-    """Calculate shared interests score using Jaccard Similarity (0 - 25 points).
+    """Calculate shared interests score using Overlap Coefficient (0 - 25 points).
 
-    J(A, B) = |A and B| / |A or B|
-    Score = J(A, B) * 25.0
+    Overlap(A, B) = |A and B| / min(|A|, |B|).
+    Score combines overlap ratio (max 15 pts) and count scaling (max 10 pts).
+    Identical non-empty sets receive full 25.0 points.
     """
     set_a = set(interests_a or [])
     set_b = set(interests_b or [])
 
-    if not set_a and not set_b:
+    if not set_a or not set_b:
         return 0.0
 
-    union_len = len(set_a | set_b)
-    if union_len == 0:
+    if set_a == set_b:
+        return 25.0
+
+    min_len = min(len(set_a), len(set_b))
+    if min_len == 0:
         return 0.0
 
-    intersection_len = len(set_a & set_b)
-    jaccard = intersection_len / union_len
-    return round(jaccard * 25.0, 2)
+    common_count = len(set_a & set_b)
+    if common_count == 0:
+        return 0.0
+
+    overlap_ratio = common_count / min_len
+    overlap_score = overlap_ratio * 15.0
+    count_score = (min(common_count, 3) / 3.0) * 10.0
+
+    total = overlap_score + count_score
+    return min(25.0, round(total, 2))
 
 
 def score_distance(
     distance_km: float | None,
     max_distance_km: float = 50.0,
 ) -> float:
-    """Calculate proximity score based on discrete distance tiers (0 - 15 points).
+    """Calculate proximity score based on continuous linear decay (0 - 15 points).
 
-    Tiers:
-    - d <= 3 km: 15.0 pts
-    - 3 < d <= 8 km: 10.0 pts
-    - 8 < d <= 15 km: 6.0 pts
-    - 15 < d <= 30 km: 3.0 pts
-    - d > 30 km: 1.0 pt
-    - None (City fallback): 5.0 pts
+    Formula:
+    - distance_km is None -> 5.0 pts (fallback for users in same city without GPS)
+    - distance_km <= 0 -> 15.0 pts
+    - distance_km > 0 -> max(1.0, round(15.0 * (1.0 - distance_km / safe_max), 2))
+      (bounded at min 1.0 pt for any candidate within search radius)
     """
     if distance_km is None:
         return 5.0
 
-    if distance_km <= 3.0:
+    if distance_km <= 0.0:
         return 15.0
-    if distance_km <= 8.0:
-        return 10.0
-    if distance_km <= 15.0:
-        return 6.0
-    if distance_km <= 30.0:
-        return 3.0
-    return 1.0
+
+    safe_max = max(1.0, max_distance_km)
+    ratio = distance_km / safe_max
+    decay_score = 15.0 * (1.0 - ratio)
+    return min(15.0, max(1.0, round(decay_score, 2)))
 
 
 def score_activity(

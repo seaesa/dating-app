@@ -172,3 +172,179 @@ async def test_interactions_and_mutual_match(app, auth_headers):
         # 4. Verify interaction stored in database
         count = await UserInteraction.find({"actor_id": user_a.oid}).count()
         assert count == 1
+
+
+@pytest.mark.asyncio
+async def test_discovery_reciprocal_boost(app, auth_headers):
+    current_year = datetime.now(UTC).year
+
+    # User A
+    user_a = User(
+        phone="+84955555551",
+        status=UserStatus.ACTIVE,
+        public=PublicProfile(
+            display_name="User A",
+            gender="male",
+            birth_year=current_year - 26,
+            city="Hà Nội",
+        ),
+        matching=MatchingProfile(
+            criteria=MatchCriteria(
+                genders=["female"],
+                age_min=20,
+                age_max=30,
+            )
+        ),
+    )
+    await user_a.insert()
+
+    # User B (Likes User A -> should be boosted)
+    user_b = User(
+        phone="+84955555552",
+        status=UserStatus.ACTIVE,
+        public=PublicProfile(
+            display_name="User B (Admirer)",
+            gender="female",
+            birth_year=current_year - 24,
+            city="Hà Nội",
+        ),
+        matching=MatchingProfile(
+            criteria=MatchCriteria(
+                genders=["male"],
+                age_min=20,
+                age_max=30,
+            )
+        ),
+    )
+    await user_b.insert()
+
+    # User C (Did not interact)
+    user_c = User(
+        phone="+84955555553",
+        status=UserStatus.ACTIVE,
+        public=PublicProfile(
+            display_name="User C (Neutral)",
+            gender="female",
+            birth_year=current_year - 24,
+            city="Hà Nội",
+        ),
+        matching=MatchingProfile(
+            criteria=MatchCriteria(
+                genders=["male"],
+                age_min=20,
+                age_max=30,
+            )
+        ),
+    )
+    await user_c.insert()
+
+    # Insert inbound interaction from User B to User A
+    interaction = UserInteraction(
+        actor_id=user_b.oid,
+        target_id=user_a.oid,
+        action="like",
+    )
+    await interaction.insert()
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        resp = await client.get("/v1/discovery", headers=auth_headers(user_a))
+        assert resp.status_code == 200
+        data = resp.json()
+
+        items = data["items"]
+        assert len(items) == 2
+
+        # User B should be boosted and ranked first
+        item_b = next(
+            it
+            for it in items
+            if it["user"]["profile"]["displayName"] == "User B (Admirer)"
+        )
+        item_c = next(
+            it
+            for it in items
+            if it["user"]["profile"]["displayName"] == "User C (Neutral)"
+        )
+
+        assert item_b["isBoosted"] is True
+        assert item_c["isBoosted"] is False
+        assert item_b["matchScore"] > item_c["matchScore"]
+
+
+@pytest.mark.asyncio
+async def test_discovery_cursor_pagination(app, auth_headers):
+    current_year = datetime.now(UTC).year
+
+    # User A
+    user_a = User(
+        phone="+84966666661",
+        status=UserStatus.ACTIVE,
+        public=PublicProfile(
+            display_name="User A",
+            gender="male",
+            birth_year=current_year - 26,
+            city="Hà Nội",
+        ),
+        matching=MatchingProfile(
+            criteria=MatchCriteria(
+                genders=["female"],
+                age_min=20,
+                age_max=30,
+            )
+        ),
+    )
+    await user_a.insert()
+
+    # 3 female users matching User A's criteria
+    candidates = []
+    for i in range(3):
+        cand = User(
+            phone=f"+8496666666{i + 2}",
+            status=UserStatus.ACTIVE,
+            public=PublicProfile(
+                display_name=f"Candidate {i + 1}",
+                gender="female",
+                birth_year=current_year - 24,
+                city="Hà Nội",
+            ),
+            matching=MatchingProfile(
+                criteria=MatchCriteria(
+                    genders=["male"],
+                    age_min=20,
+                    age_max=30,
+                )
+            ),
+        )
+        await cand.insert()
+        candidates.append(cand)
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        # Page 1: limit 2
+        resp1 = await client.get("/v1/discovery?limit=2", headers=auth_headers(user_a))
+        assert resp1.status_code == 200
+        data1 = resp1.json()
+
+        assert len(data1["items"]) == 2
+        assert data1["nextCursor"] is not None
+
+        page1_ids = {item["user"]["profile"]["displayName"] for item in data1["items"]}
+
+        # Page 2: query with nextCursor
+        resp2 = await client.get(
+            f"/v1/discovery?limit=2&cursor={data1['nextCursor']}",
+            headers=auth_headers(user_a),
+        )
+        assert resp2.status_code == 200
+        data2 = resp2.json()
+
+        assert len(data2["items"]) == 1
+        assert data2["nextCursor"] is None
+
+        page2_ids = {item["user"]["profile"]["displayName"] for item in data2["items"]}
+
+        # Check no overlap between page 1 and page 2
+        assert page1_ids.isdisjoint(page2_ids)

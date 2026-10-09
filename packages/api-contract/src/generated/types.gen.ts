@@ -101,6 +101,10 @@ export type DiscoveryCandidateRead = {
    */
   distanceKm?: number | null;
   /**
+   * Isboosted
+   */
+  isBoosted?: boolean;
+  /**
    * Isnew
    */
   isNew?: boolean;
@@ -134,6 +138,10 @@ export type DiscoveryFeedRead = {
    * Items
    */
   items: Array<DiscoveryCandidateRead>;
+  /**
+   * Nextcursor
+   */
+  nextCursor?: string | null;
   /**
    * Totalcount
    */
@@ -1081,6 +1089,12 @@ export type GetDiscoveryFeedData = {
      * Limit
      */
     limit?: number;
+    /**
+     * Cursor
+     *
+     * Cursor token for pagination
+     */
+    cursor?: string | null;
     /**
      * Genders
      */

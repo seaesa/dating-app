@@ -15,22 +15,55 @@ class MatchingRepository:
     """Repository for querying candidates satisfying mutual hard filters."""
 
     async def get_excluded_user_ids(
-        self, user_id: PydanticObjectId
+        self, user_id: PydanticObjectId, limit: int = 5000
     ) -> set[PydanticObjectId]:
         """IDs of users who cannot be shown to this user."""
-        interactions = await UserInteraction.find(
-            {
-                "$or": [
-                    {"actor_id": user_id},
-                    {"target_id": user_id, "action": InteractionAction.BLOCK},
-                ]
-            }
-        ).to_list()
+        collection = UserInteraction.get_pymongo_collection()
+        cursor = (
+            collection.find(
+                {
+                    "$or": [
+                        {"actor_id": user_id},
+                        {"target_id": user_id, "action": InteractionAction.BLOCK},
+                    ]
+                },
+                {"_id": 0, "actor_id": 1, "target_id": 1},
+            )
+            .sort("created_at", -1)
+            .limit(limit)
+        )
+        interactions = await cursor.to_list(length=limit)
         excluded: set[PydanticObjectId] = {
-            i.target_id if i.actor_id == user_id else i.actor_id for i in interactions
+            doc["target_id"] if doc["actor_id"] == user_id else doc["actor_id"]
+            for doc in interactions
         }
         excluded.add(user_id)
         return excluded
+
+    async def get_inbound_admirer_ids(
+        self, user_id: PydanticObjectId, limit: int = 1000
+    ) -> set[PydanticObjectId]:
+        """IDs of users who interacted positively (GREET, LIKE, STAR) with this user."""
+        collection = UserInteraction.get_pymongo_collection()
+        cursor = (
+            collection.find(
+                {
+                    "target_id": user_id,
+                    "action": {
+                        "$in": [
+                            InteractionAction.GREET,
+                            InteractionAction.LIKE,
+                            InteractionAction.STAR,
+                        ]
+                    },
+                },
+                {"_id": 0, "actor_id": 1},
+            )
+            .sort("created_at", -1)
+            .limit(limit)
+        )
+        interactions = await cursor.to_list(length=limit)
+        return {doc["actor_id"] for doc in interactions}
 
     async def find_eligible_candidates(
         self,
@@ -98,6 +131,8 @@ class MatchingRepository:
 
         if user_has_location and user.private.location:
             max_dist_meters = (filters.max_distance_km or 50) * 1000
+            # Expand pool to avoid geographic starvation of high-compatibility users
+            geo_pool_limit = min(max(limit * 4, 100), 500)
             pipeline: list[dict[str, Any]] = [
                 {
                     "$geoNear": {
@@ -131,7 +166,7 @@ class MatchingRepository:
                         ]
                     }
                 },
-                {"$limit": limit},
+                {"$limit": geo_pool_limit},
             ]
 
             raw_docs = await User.aggregate(pipeline).to_list()

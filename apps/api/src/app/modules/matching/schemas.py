@@ -36,6 +36,7 @@ class ScoredCandidate:
     distance_km: float | None
     scores: MatchScoreBreakdown
     is_new: bool = False
+    is_boosted: bool = False
 
 
 class CandidateFilters(BaseSchema):
@@ -56,6 +57,7 @@ class DiscoveryCandidateRead(BaseSchema):
     match_score: float
     score_breakdown: MatchScoreBreakdown | None = None
     is_new: bool = False
+    is_boosted: bool = False
 
 
 class DiscoveryFeedRead(BaseSchema):
@@ -63,6 +65,7 @@ class DiscoveryFeedRead(BaseSchema):
 
     items: list[DiscoveryCandidateRead]
     total_count: int
+    next_cursor: str | None = None
 
 
 class DiscoveryCountRead(BaseSchema):

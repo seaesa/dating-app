@@ -1,3 +1,4 @@
+import base64
 from typing import Annotated
 
 from fastapi import APIRouter, Query
@@ -14,6 +15,25 @@ from app.modules.users.types import Gender
 from app.modules.users.visibility import RevealScope, project_user
 
 router = APIRouter(prefix="/discovery", tags=["discovery"])
+
+
+def _decode_cursor(cursor: str | None) -> int:
+    """Decode opaque base64 cursor to offset. Fallback to 0 if invalid."""
+    if not cursor:
+        return 0
+    try:
+        raw = base64.urlsafe_b64decode(cursor.encode("ascii")).decode("utf-8")
+        if raw.startswith("offset:"):
+            return max(0, int(raw.split(":", 1)[1]))
+    except (ValueError, UnicodeDecodeError):
+        return 0
+    return 0
+
+
+def _encode_cursor(offset: int) -> str:
+    """Encode offset into opaque base64 cursor."""
+    raw = f"offset:{offset}"
+    return base64.urlsafe_b64encode(raw.encode("utf-8")).decode("ascii")
 
 
 def _build_override_filters(
@@ -47,6 +67,10 @@ def _build_override_filters(
 async def get_discovery_feed(
     user: CurrentUser,
     limit: Annotated[int, Query(ge=1, le=50)] = 20,
+    cursor: Annotated[
+        str | None,
+        Query(description="Cursor token for pagination"),
+    ] = None,
     genders: Annotated[list[Gender] | None, Query()] = None,
     age_min: Annotated[int | None, Query(ge=18, le=99)] = None,
     age_max: Annotated[int | None, Query(ge=18, le=99)] = None,
@@ -56,12 +80,17 @@ async def get_discovery_feed(
     """Fetch ranked candidate recommendations with 100-pt scoring and exploration."""
     filters = _build_override_filters(genders, age_min, age_max, max_distance_km, cities)
     service = MatchingService()
+    offset = _decode_cursor(cursor)
     ranked_candidates = await service.get_ranked_recommendations(
-        user, filters=filters, limit=limit
+        user, filters=filters, limit=limit + 1, offset=offset
     )
 
+    has_more = len(ranked_candidates) > limit
+    page_candidates = ranked_candidates[:limit] if has_more else ranked_candidates
+    next_cursor = _encode_cursor(offset + limit) if has_more else None
+
     items: list[DiscoveryCandidateRead] = []
-    for cand in ranked_candidates:
+    for cand in page_candidates:
         # Rule Zero: Strictly project through PUBLIC scope
         projected_user = project_user(cand.user, RevealScope.PUBLIC)
         items.append(
@@ -71,10 +100,15 @@ async def get_discovery_feed(
                 match_score=cand.scores.total_score,
                 score_breakdown=cand.scores,
                 is_new=cand.is_new,
+                is_boosted=cand.is_boosted,
             )
         )
 
-    return DiscoveryFeedRead(items=items, total_count=len(items))
+    return DiscoveryFeedRead(
+        items=items,
+        total_count=len(items),
+        next_cursor=next_cursor,
+    )
 
 
 @router.get("/count", response_model=DiscoveryCountRead, operation_id="getDiscoveryCount")

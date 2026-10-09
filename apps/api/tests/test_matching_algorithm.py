@@ -62,21 +62,22 @@ def test_matching_algorithm_case_study_specification() -> None:
         pets="cat",
     )
     s_lifestyle = score_lifestyle(attrs_a, attrs_b)
-    assert s_lifestyle == 15.0
+    assert s_lifestyle == 18.0
 
     # 3. Interests score:
-    # Common: cafe, backpacking (2 tags)
-    # Total union: cafe, backpacking, movies, running, tech, cooking, books (7 tags)
-    # Jaccard = 2 / 7 = 0.2857 * 25 = 7.14
+    # Common: cafe, backpacking (2 tags), min_len: 4
+    # Overlap ratio: 2/4 = 0.5 -> 7.5
+    # Count scaling: (2/3) * 10 = 6.67
+    # Total: 7.5 + 6.67 = 14.17
     interests_a = ["cafe", "backpacking", "movies", "running", "tech"]
     interests_b = ["cafe", "backpacking", "cooking", "books"]
     s_interests = score_interests(interests_a, interests_b)
-    assert round(s_interests, 2) == 7.14
+    assert round(s_interests, 2) == 14.17
 
     # 4. Distance score:
-    # 4km belongs to Tier 3-8km -> 10 / 15
-    s_distance = score_distance(4.0)
-    assert s_distance == 10.0
+    # 4km with max_distance_km=10 -> 15.0 * (1.0 - 4/10) = 9.0 / 15
+    s_distance = score_distance(4.0, max_distance_km=10.0)
+    assert s_distance == 9.0
 
     # 5. Activity score:
     # Candidate B online 3h ago (<24h -> 4.0đ)
@@ -126,11 +127,11 @@ def test_matching_algorithm_case_study_specification() -> None:
 
     breakdown = calculate_match_score(user_a, user_b, distance_km=4.0, now=now)
 
-    assert round(breakdown.total_score, 2) == 55.14
+    assert round(breakdown.total_score, 2) == 64.17
     assert breakdown.intent_score == 15.0
-    assert breakdown.lifestyle_score == 15.0
-    assert round(breakdown.interests_score, 2) == 7.14
-    assert breakdown.distance_score == 10.0
+    assert breakdown.lifestyle_score == 18.0
+    assert round(breakdown.interests_score, 2) == 14.17
+    assert breakdown.distance_score == 9.0
     assert breakdown.activity_score == 8.0
 
 
@@ -151,5 +152,6 @@ def test_dealbreaker_lifestyle_penalties() -> None:
     )
 
     score = score_lifestyle(attrs_a, attrs_b)
-    # Smoking: 0, Drinking: 0, Kids: 0, Pets (unset): 3, Religion (unset): 1 -> 4.0
-    assert score == 4.0
+    # Smoking: 0, Drinking: 0, Kids: 0, Pets (unset): 3, Religion (unset): 1
+    # Education (unset): 1.5, Industry (unset): 1.5 -> 7.0
+    assert score == 7.0

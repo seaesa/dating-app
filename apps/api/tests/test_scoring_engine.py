@@ -47,9 +47,31 @@ def test_score_lifestyle_case_study() -> None:
         drinking="never",
         pets="cat",
     )
-    # Smoking: 5.0, Drinking: 3.0, Pets: 5.0, Religion (None): 1.0, Kids (None): 1.0 -> 15.0
+    # Smoking: 5.0, Drinking: 3.0, Pets: 5.0, Religion (None): 1.0, Kids (None): 1.0
+    # Education (None): 1.5, Industry (None): 1.5 -> Total: 18.0
     score = score_lifestyle(attrs_a, attrs_b)
-    assert score == 15.0
+    assert score == 18.0
+
+    # Test with education and industry matching
+    attrs_a_matched = ProfileAttributes(
+        smoking="never",
+        drinking="social",
+        pets="cat",
+        education="bachelor",
+        industry="it",
+    )
+    attrs_b_matched = ProfileAttributes(
+        smoking="never",
+        drinking="never",
+        pets="cat",
+        education="bachelor",
+        industry="engineering",
+    )
+    # Smoking: 5.0, Drinking: 3.0, Pets: 5.0, Religion: 1.0, Kids: 1.0
+    # Education (bachelor == bachelor): 2.5
+    # Industry (it & engineering complementary): 2.0
+    # Total = 19.5
+    assert score_lifestyle(attrs_a_matched, attrs_b_matched) == 19.5
 
 
 def test_score_lifestyle_conflicts() -> None:
@@ -73,19 +95,24 @@ def test_score_lifestyle_conflicts() -> None:
     # Pets (none vs dog): 2.0
     # Religion (buddhism vs catholic): 2.0
     # Kids (no vs yes): 0.0
-    # Total = 4.0
+    # Education (unset): 1.5
+    # Industry (unset): 1.5
+    # Total = 7.0
     score = score_lifestyle(attrs_a, attrs_b, sensitive_a, sensitive_b)
-    assert score == 4.0
+    assert score == 7.0
 
 
-def test_score_interests_jaccard() -> None:
-    # Exact case study from documentation with catalog valid values
+def test_score_interests_overlap() -> None:
+    # Case study with Overlap Coefficient + Count Scaling
     interests_a = ["cafe", "backpacking", "movies", "running", "tech"]
     interests_b = ["cafe", "backpacking", "cooking", "books"]
 
-    # Intersection: 2, Union: 7 => 2/7 * 25 = 7.1428... -> 7.14
+    # Common: 2 ("cafe", "backpacking"), Min len: 4
+    # Overlap ratio: 2/4 = 0.5 -> 0.5 * 15 = 7.5
+    # Count scaling: (2 / 3) * 10 = 6.666... -> 6.67
+    # Total: 7.5 + 6.67 = 14.17
     score = score_interests(interests_a, interests_b)
-    assert score == 7.14
+    assert score == 14.17
 
     # Empty interests
     assert score_interests(None, None) == 0.0
@@ -95,13 +122,24 @@ def test_score_interests_jaccard() -> None:
     assert score_interests(["cafe", "gym"], ["cafe", "gym"]) == 25.0
 
 
-def test_score_distance_tiers() -> None:
-    assert score_distance(2.5) == 15.0
-    assert score_distance(4.0) == 10.0
-    assert score_distance(12.0) == 6.0
-    assert score_distance(22.0) == 3.0
-    assert score_distance(45.0) == 1.0
+def test_score_distance_continuous() -> None:
+    assert score_distance(0.0) == 15.0
+    assert score_distance(2.5) == 14.25
+    assert score_distance(4.0) == 13.80
+    assert score_distance(12.0) == 11.40
+    assert score_distance(22.0) == 8.40
+    assert score_distance(45.0) == 1.50
+    assert score_distance(50.0) == 1.0
+    assert score_distance(60.0) == 1.0
     assert score_distance(None) == 5.0
+
+    # Monotonicity check: score decreases as distance increases
+    assert (
+        score_distance(1.0)
+        > score_distance(5.0)
+        > score_distance(20.0)
+        > score_distance(40.0)
+    )
 
 
 @pytest.mark.asyncio
@@ -132,7 +170,7 @@ async def test_score_activity_recency_and_completeness() -> None:
 
 
 @pytest.mark.asyncio
-async def test_case_study_total_score_55_14() -> None:
+async def test_case_study_total_score_continuous_distance() -> None:
     fixed_now = datetime(2026, 10, 8, 12, 0, 0, tzinfo=UTC)
 
     user_a = User(
@@ -186,11 +224,11 @@ async def test_case_study_total_score_55_14() -> None:
     scores = calculate_match_score(user_a, candidate_b, distance_km=4.0, now=fixed_now)
 
     assert scores.intent_score == 15.0
-    assert scores.lifestyle_score == 15.0
-    assert scores.interests_score == 7.14
-    assert scores.distance_score == 10.0
+    assert scores.lifestyle_score == 18.0
+    assert scores.interests_score == 14.17
+    assert scores.distance_score == 13.80
     assert scores.activity_score == 8.0
-    assert scores.total_score == 55.14
+    assert scores.total_score == 68.97
 
 
 @pytest.mark.asyncio
