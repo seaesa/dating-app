@@ -9,7 +9,5 @@ export default function Index() {
   // The root only routes. Every target guards itself, so this cannot strand a
   // user in the wrong stack if the store changes underneath it.
   if (!refreshToken) return <Redirect href="/(auth)/welcome" />;
-  return (
-    <Redirect href={onboardingPending ? "/(onboarding)" : "/(app)/(tabs)/profile"} />
-  );
+  return <Redirect href={onboardingPending ? "/(onboarding)" : "/(app)/(tabs)"} />;
 }

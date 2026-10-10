@@ -2,7 +2,7 @@ import httpx
 
 from app.core.config import Settings
 from app.core.logging import get_logger
-from app.modules.auth.sms.provider import SmsProvider
+from app.modules.auth.sms.provider import OTP_MESSAGE, SmsProvider
 
 log = get_logger(__name__)
 
@@ -21,7 +21,7 @@ class TwilioSmsProvider:
             f"{settings.twilio_account_sid}/Messages.json"
         )
 
-    async def send(self, phone: str, message: str) -> None:
+    async def send_code(self, phone: str, code: str) -> None:
         async with httpx.AsyncClient(timeout=10) as client:
             response = await client.post(
                 self._url,
@@ -32,7 +32,7 @@ class TwilioSmsProvider:
                 data={
                     "To": phone,
                     "From": self._settings.twilio_from_number,
-                    "Body": message,
+                    "Body": OTP_MESSAGE.format(app=self._settings.app_name, code=code),
                 },
             )
         if response.is_error:
@@ -45,4 +45,4 @@ def build_sms_provider(settings: Settings) -> SmsProvider:
 
     if settings.sms_provider == "twilio":
         return TwilioSmsProvider(settings)
-    return ConsoleSmsProvider()
+    return ConsoleSmsProvider(settings)

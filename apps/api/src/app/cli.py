@@ -40,12 +40,22 @@ def main(argv: list[str] | None = None) -> int:
     export.add_argument("destination", type=pathlib.Path)
 
     sub.add_parser("verification-worker")
+    sub.add_parser("push-worker")
+
+    seed = sub.add_parser("seed-chat")
+    seed.add_argument("--a", required=True, help="first phone, E.164")
+    seed.add_argument("--b", required=True, help="second phone, E.164")
+    seed.add_argument("--messages", type=int, default=6)
 
     args = parser.parse_args(argv)
     if args.command == "export-openapi":
         export_openapi(args.destination)
     elif args.command == "verification-worker":
         return run_verification_worker()
+    elif args.command == "push-worker":
+        return run_push_worker()
+    elif args.command == "seed-chat":
+        return run_seed(args.a, args.b, args.messages)
     return 0
 
 
@@ -59,6 +69,30 @@ def run_verification_worker() -> int:
         print("VERIFICATION_ENABLED is false; the verification worker is not started.")
         return 1
     worker_main(settings)
+    return 0
+
+
+def run_push_worker() -> int:
+    """Start the push worker."""
+    from app.core.config import get_settings
+    from app.modules.notifications.worker import main as worker_main
+
+    worker_main(get_settings())
+    return 0
+
+
+def run_seed(phone_a: str, phone_b: str, messages: int) -> int:
+    """Two connected users with a short conversation, for local testing."""
+    import asyncio
+
+    from app.core.config import get_settings
+    from app.seed import run_seed_chat
+
+    settings = get_settings()
+    if settings.is_production:
+        print("seed-chat refuses to run in production.")
+        return 1
+    asyncio.run(run_seed_chat(settings, phone_a, phone_b, messages))
     return 0
 
 

@@ -25,6 +25,9 @@ src/
 - **Both platforms.** No `document`, `window` or DOM events. Web-only classes go
   through `Platform.select({ web: "..." })`; a real split uses
   `name.native.tsx` / `name.web.tsx` with an identical API.
+- **Icons through `Icon`.** `<Icon as={Lock} className="text-primary" />`; the
+  caller imports the Lucide icon (`lucide-react-native/icons/lock`), so this
+  package ships no icon set. Never an emoji or a symbol character as an icon.
 - **Tokens only.** `bg-primary`, `text-muted-foreground`, `border-border`. Never
   a literal colour; a missing token goes in `packages/tailwind-config/theme.css`.
 - **`className` last through `cn()`**, so callers can override defaults:

@@ -11,6 +11,7 @@ import {
   type ProfilePrompt,
   type UserRead,
 } from "@repo/api-contract";
+import { APP_NAME } from "@repo/core";
 import { Avatar, AvatarFallback, Badge, DEFAULT_INTEREST_LABELS, Text } from "@repo/ui";
 
 export interface ProfileDetailData {
@@ -131,7 +132,7 @@ export function ProfileDetailContent({
   async function handleShare() {
     try {
       await Share.share({
-        message: `Khám phá hồ sơ ẩn danh của ${data.displayName} trên Terdin Date!`,
+        message: `Khám phá hồ sơ ẩn danh của ${data.displayName} trên ${APP_NAME}!`,
       });
     } catch {
       // Ignore share errors

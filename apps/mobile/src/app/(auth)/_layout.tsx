@@ -11,9 +11,7 @@ export default function AuthLayout() {
   // strings. Both targets read the same persisted flag, so this redirect cannot
   // race the one in otp.tsx.
   if (refreshToken) {
-    return (
-      <Redirect href={onboardingPending ? "/(onboarding)" : "/(app)/(tabs)/profile"} />
-    );
+    return <Redirect href={onboardingPending ? "/(onboarding)" : "/(app)/(tabs)"} />;
   }
 
   return (

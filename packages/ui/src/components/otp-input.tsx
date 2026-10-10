@@ -42,6 +42,18 @@ export function OtpInput({
     }
   }, [value, length, onComplete]);
 
+  // The input is read-only while a code is checked, which drops the keyboard.
+  // Give focus back when it reopens, or a wrong code means tapping to retype.
+  const wasDisabled = React.useRef(disabled);
+  React.useEffect(() => {
+    const reopened = wasDisabled.current && !disabled;
+    wasDisabled.current = disabled;
+    if (!reopened) return;
+    // Next frame: native has to apply `editable` before it accepts focus.
+    const frame = requestAnimationFrame(() => inputRef.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [disabled]);
+
   const digits = React.useMemo(
     () => Array.from({ length }, (_, i) => value[i] ?? ""),
     [value, length],

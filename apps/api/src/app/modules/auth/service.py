@@ -17,7 +17,11 @@ from app.core.security import (
     create_refresh_token,
     decode_token,
 )
-from app.modules.auth.exceptions import OtpExpiredError, OtpInvalidError
+from app.modules.auth.exceptions import (
+    OtpExpiredError,
+    OtpInvalidError,
+    OtpLockedError,
+)
 from app.modules.auth.schemas import TokenPair
 from app.modules.auth.sms.provider import SmsProvider
 from app.modules.users.repository import UserRepository
@@ -51,7 +55,8 @@ class AuthService:
             )
         return phone
 
-    async def request_otp(self, raw_phone: str) -> int:
+    async def request_otp(self, raw_phone: str) -> str:
+        """Send a fresh code and return it (the router decides who may see it)."""
         phone = self._normalize(raw_phone)
 
         await sliding_window(f"rl:otp:phone:{phone}", limit=3, window=600)
@@ -68,9 +73,9 @@ class AuthService:
         )
         await redis.delete(OTP_ATTEMPTS_KEY.format(phone=phone))
 
-        await self.sms.send(phone, f"Terdin code: {code}. Valid for 5 minutes.")
+        await self.sms.send_code(phone, code)
         log.info("otp.sent", phone=phone)
-        return self.settings.otp_ttl
+        return code
 
     async def verify_otp(self, raw_phone: str, code: str) -> TokenPair:
         phone = self._normalize(raw_phone)
@@ -84,7 +89,7 @@ class AuthService:
         await redis.expire(OTP_ATTEMPTS_KEY.format(phone=phone), self.settings.otp_ttl)
         if attempts > self.settings.otp_max_attempts:
             await redis.delete(OTP_KEY.format(phone=phone))
-            raise OtpInvalidError(detail="Too many attempts. Request a new code.")
+            raise OtpLockedError(detail="Too many attempts. Request a new code.")
 
         try:
             hasher.verify(stored, code)

@@ -16,6 +16,7 @@ import {
   discoveryFeedQuery,
   type DiscoveryCandidateRead,
 } from "@repo/api-contract";
+import { APP_NAME } from "@repo/core";
 import { Button, Text } from "@repo/ui";
 
 import type { DiscoveryFilterState } from "../../../components/discovery/filter-modal";
@@ -255,7 +256,9 @@ export default function HomeFeedScreen() {
       <View className="h-14 w-full flex-row items-center justify-between border-b border-border/30 px-5">
         <View className="flex-row items-center gap-2">
           <Text className="text-2xl text-primary">❤️</Text>
-          <Text className="text-2xl font-black tracking-tight text-foreground">Amor</Text>
+          <Text className="text-2xl font-black tracking-tight text-foreground">
+            {APP_NAME}
+          </Text>
         </View>
 
         <View className="flex-row items-center gap-3">

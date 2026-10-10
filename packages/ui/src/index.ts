@@ -29,6 +29,7 @@ export {
   DatePickerInput,
   type DatePickerInputProps,
 } from "./components/ui/date-picker-input";
+export { Icon, type IconProps } from "./components/ui/icon";
 export { Input } from "./components/ui/input";
 export { Label } from "./components/ui/label";
 export {

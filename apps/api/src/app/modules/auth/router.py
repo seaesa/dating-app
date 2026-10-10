@@ -34,8 +34,11 @@ async def request_otp(
     client_host = request.client.host if request.client else "unknown"
     await sliding_window(f"rl:otp:ip:{client_host}", limit=10, window=3600)
 
-    expires_in = await _service(settings).request_otp(body.phone)
-    return OtpRequestResponse(expires_in=expires_in)
+    code = await _service(settings).request_otp(body.phone)
+    return OtpRequestResponse(
+        expires_in=settings.otp_ttl,
+        demo_code=code if settings.sms_provider == "console" else None,
+    )
 
 
 @router.post("/otp/verify", response_model=TokenPair, operation_id="verifyOtp")

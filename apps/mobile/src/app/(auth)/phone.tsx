@@ -1,12 +1,14 @@
 import { useMutation } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
+import ArrowLeft from "lucide-react-native/icons/arrow-left";
 import * as React from "react";
-import { KeyboardAvoidingView, Platform, Pressable, View } from "react-native";
+import { KeyboardAvoidingView, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { requestOtp } from "@repo/api-contract";
-import { Button, Input, Text } from "@repo/ui";
+import { Button, Icon, Input, Text } from "@repo/ui";
 
+import { requestCodeError } from "@/auth-errors";
 import { preparePhone } from "@/phone-form";
 
 export default function PhoneScreen() {
@@ -17,10 +19,17 @@ export default function PhoneScreen() {
 
   const request = useMutation({
     mutationFn: requestOtp,
-    onSuccess: (_data, variables) => {
-      router.push({ pathname: "/(auth)/otp", params: { phone: variables.phone } });
+    onSuccess: (data, variables) => {
+      router.push({
+        pathname: "/(auth)/otp",
+        params: {
+          phone: variables.phone,
+          mode: login ? "login" : "signup",
+          ...(data.demoCode ? { demoCode: data.demoCode } : {}),
+        },
+      });
     },
-    onError: () => setError("Không gửi được mã. Thử lại sau ít phút."),
+    onError: (failure) => setError(requestCodeError(failure)),
   });
 
   function submit() {
@@ -35,10 +44,8 @@ export default function PhoneScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1 px-6"
-      >
+      {/* "padding" on Android too: edge-to-edge no longer resizes the window. */}
+      <KeyboardAvoidingView behavior="padding" className="flex-1 px-6">
         <Pressable
           accessibilityLabel="Quay lại"
           onPress={() =>
@@ -46,7 +53,7 @@ export default function PhoneScreen() {
           }
           className="-ml-2 mt-2 h-10 w-10 items-center justify-center rounded-full active:bg-secondary"
         >
-          <Text className="text-xl font-bold text-foreground">←</Text>
+          <Icon as={ArrowLeft} size={22} />
         </Pressable>
 
         <View className="flex-1 gap-7 pt-6">
@@ -57,7 +64,7 @@ export default function PhoneScreen() {
             <Text className="text-base leading-6 text-muted-foreground">
               {login
                 ? "Nhập số điện thoại bạn đã đăng ký, chúng tôi sẽ gửi mã đăng nhập."
-                : "Chúng tôi gửi mã xác nhận qua tin nhắn. Số điện thoại không bao giờ hiện cho người khác."}
+                : "Chúng tôi gửi mã xác nhận qua tin nhắn."}
             </Text>
           </View>
 
@@ -78,7 +85,7 @@ export default function PhoneScreen() {
                 }}
                 onSubmitEditing={submit}
                 editable={!request.isPending}
-                className="h-full flex-1 border-0 bg-transparent px-0 py-0 text-base font-medium shadow-none"
+                className="h-full flex-1 border-0 bg-transparent px-0 py-0 text-base font-medium shadow-none ios:leading-[0px]"
               />
             </View>
             {error ? <Text className="text-sm text-destructive">{error}</Text> : null}

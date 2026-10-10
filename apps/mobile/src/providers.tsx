@@ -12,6 +12,8 @@ import {
   useAuthStore,
 } from "@repo/store";
 
+import { unregisterPushToken } from "@/push";
+
 const queryClient = createQueryClient();
 
 configureApiClient({
@@ -37,7 +39,11 @@ onSessionChange(() => queryClient.clear());
 
 // So a deliberate sign-out revokes the jti instead of leaving it redeemable for
 // the rest of its lifetime. Best effort: the store ignores a failure here.
-registerSessionRevoke((refreshToken) => logout(refreshToken));
+registerSessionRevoke(async (refreshToken) => {
+  // Before revoking: the DELETE still needs a live session.
+  await unregisterPushToken().catch(() => undefined);
+  return logout(refreshToken);
+});
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const hydrate = useAuthStore((s) => s.hydrate);

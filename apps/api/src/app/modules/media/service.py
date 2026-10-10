@@ -132,6 +132,30 @@ class MediaService:
         )
         return list(zip(ordered, urls, strict=True))
 
+    async def signed_for_owners(
+        self, pairs: list[tuple[PydanticObjectId, PydanticObjectId]]
+    ) -> dict[PydanticObjectId, str]:
+        """Sign assets of several owners in one query and one presign batch.
+
+        Each pair is (media_id, expected owner); an asset whose real owner
+        differs is skipped, exactly as `_may_sign` does for a single owner.
+        """
+        if not pairs:
+            return {}
+        owners = dict(pairs)
+        assets = await MediaAsset.find(
+            {"_id": {"$in": list(owners)}, "status": MediaStatus.READY.value}
+        ).to_list()
+        allowed = [
+            asset
+            for asset in assets
+            if self._may_sign(asset, owners[asset.oid], allow_private=True)
+        ]
+        urls = await self.storage.presign_get_many(
+            [(asset.key, self._ttl_for(asset.kind)) for asset in allowed]
+        )
+        return {asset.oid: url for asset, url in zip(allowed, urls, strict=True)}
+
     async def urls_for(
         self, media_ids: list[PydanticObjectId], *, owner_id: PydanticObjectId
     ) -> list[str]:

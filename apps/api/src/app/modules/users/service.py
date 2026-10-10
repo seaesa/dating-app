@@ -17,7 +17,13 @@ from app.modules.users.schemas import (
     UserStatus,
     VerificationStatus,
 )
-from app.modules.users.visibility import RevealScope, project_user, resolve_scope
+from app.modules.users.visibility import (
+    NO_GRANTS,
+    Grants,
+    RevealScope,
+    project_user,
+    resolve_scope,
+)
 
 # Photos a profile needs before it can go live; one photo is too easy to fake.
 # Mirrored by MIN_PHOTOS in @repo/api-contract.
@@ -65,21 +71,25 @@ class UserService:
         self.settings = settings
         self.repository = repository or UserRepository()
 
-    async def _project(self, target: User, scope: RevealScope) -> UserRead:
+    async def _project(
+        self, target: User, scope: RevealScope, grants: Grants = NO_GRANTS
+    ) -> UserRead:
         """Resolve media URLs at the same point the scope is decided.
 
-        A private photo is presigned only for SELF or REVEALED — the same gate
-        the private fields pass through, rather than a second one that could
-        drift out of step with it.
+        A private photo is presigned only for SELF or a pair with photos granted
+        — the same gate the private fields pass through, rather than a second one
+        that could drift out of step with it.
         """
         from app.modules.media.service import MediaService
 
-        reveals_private = scope is not RevealScope.PUBLIC
+        signs_photos = scope is RevealScope.SELF or (
+            scope is RevealScope.REVEALED and grants.photos
+        )
         photos = (
             await MediaService(self.settings).signed_for(
                 target.private.photo_media_ids, owner_id=target.oid
             )
-            if reveals_private
+            if signs_photos
             else []
         )
         attempts_left = target.private.verification.attempts_left(
@@ -89,6 +99,7 @@ class UserService:
         return project_user(
             target,
             scope,
+            grants=grants,
             photos=photos,
             attempts_left=attempts_left,
             verification_available=self.settings.verification_enabled,
@@ -100,8 +111,38 @@ class UserService:
         target = await self.repository.get(user_id)
         if target is None:
             raise NotFoundError(detail="No such user.")
-        scope = await resolve_scope(target, viewer)
-        return await self._project(target, scope)
+        visibility = await resolve_scope(target, viewer)
+        return await self._project(target, visibility.scope, visibility.grants)
+
+    async def project_peers(
+        self, peers: list[tuple[User, Grants]]
+    ) -> dict[PydanticObjectId, UserRead]:
+        """Project many chat peers at once, signing only first photos, in one batch."""
+        from app.modules.media.service import MediaService
+
+        firsts = {
+            user.oid: user.private.photo_media_ids[0]
+            for user, grants in peers
+            if grants.photos and user.private.photo_media_ids
+        }
+        urls = (
+            await MediaService(self.settings).signed_for_owners(
+                [(media_id, owner) for owner, media_id in firsts.items()]
+            )
+            if firsts
+            else {}
+        )
+        projected: dict[PydanticObjectId, UserRead] = {}
+        for user, grants in peers:
+            media_id = firsts.get(user.oid)
+            photos = (
+                [(media_id, urls[media_id])]
+                if media_id is not None and media_id in urls
+                else []
+            )
+            scope = RevealScope.REVEALED if grants.any else RevealScope.PUBLIC
+            projected[user.oid] = project_user(user, scope, grants=grants, photos=photos)
+        return projected
 
     async def get_me(self, user: User) -> UserRead:
         return await self._project(user, RevealScope.SELF)

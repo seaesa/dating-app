@@ -1,13 +1,17 @@
 import type { ExpoConfig } from "expo/config";
 
+// Same variable and default as APP_NAME in @repo/core, which the Expo config
+// loader cannot import (workspace packages ship TypeScript source).
+const APP_NAME = process.env.EXPO_PUBLIC_APP_NAME || "Terdin";
+
 type Variant = "development" | "preview" | "production";
 
 const variant = (process.env.APP_VARIANT ?? "development") as Variant;
 
 const NAME: Record<Variant, string> = {
-  development: "Terdin (Dev)",
-  preview: "Terdin (Preview)",
-  production: "Terdin",
+  development: `${APP_NAME} (Dev)`,
+  preview: `${APP_NAME} (Preview)`,
+  production: APP_NAME,
 };
 
 // Distinct identifiers so all three builds install side by side on one device.
@@ -34,12 +38,14 @@ const config: ExpoConfig = {
     bundleIdentifier: bundleId,
     supportsTablet: true,
     infoPlist: {
-      NSPhotoLibraryUsageDescription:
-        "Terdin cần truy cập thư viện để bạn chọn ảnh hồ sơ.",
+      NSPhotoLibraryUsageDescription: `${APP_NAME} cần truy cập thư viện để bạn chọn ảnh hồ sơ.`,
     },
   },
   android: {
     package: bundleId,
+    // Android push goes through FCM, which needs google-services.json from the
+    // Firebase console. Unset, the app still builds but gets no push token.
+    googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#ffffff",
@@ -60,8 +66,7 @@ const config: ExpoConfig = {
     [
       "expo-location",
       {
-        locationWhenInUsePermission:
-          "Terdin dùng vị trí để gợi ý người ở gần bạn. Không ai thấy vị trí chính xác của bạn.",
+        locationWhenInUsePermission: `${APP_NAME} dùng vị trí để gợi ý người ở gần bạn. Không ai thấy vị trí chính xác của bạn.`,
         // Only "while using": no background or "always" location is requested.
         locationAlwaysAndWhenInUsePermission: false,
         locationAlwaysPermission: false,
@@ -70,8 +75,7 @@ const config: ExpoConfig = {
     [
       "expo-camera",
       {
-        cameraPermission:
-          "Terdin dùng camera để xác thực khuôn mặt của bạn. Ảnh được xóa ngay sau khi xử lý.",
+        cameraPermission: `${APP_NAME} dùng camera để xác thực khuôn mặt của bạn. Ảnh được xóa ngay sau khi xử lý.`,
         recordAudioAndroid: false,
       },
     ],
@@ -89,6 +93,12 @@ const config: ExpoConfig = {
     // SDK 58+ does this by default, so remove this entry when upgrading.
     ["expo-build-properties", { ios: { enableSceneSupport: true } }],
   ],
+  extra: {
+    eas: {
+      projectId: "17f7f1b4-ba70-4577-9782-0b9bacf8790c",
+    },
+  },
+  owner: "hairipi",
   experiments: { typedRoutes: true },
 };
 

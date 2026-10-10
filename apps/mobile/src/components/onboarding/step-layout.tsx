@@ -1,11 +1,5 @@
 import * as React from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button, StepProgress, Text } from "@repo/ui";
@@ -58,38 +52,36 @@ export function StepLayout({
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
-      >
-        <View className="gap-3 px-6 pt-2">
-          <View className="h-10 flex-row items-center justify-between">
-            {back ? (
-              <Pressable
-                accessibilityLabel="Quay lại"
-                onPress={back}
-                className="-ml-2 h-10 w-10 items-center justify-center rounded-full active:bg-secondary"
-              >
-                <Text className="text-xl font-bold text-foreground">←</Text>
-              </Pressable>
-            ) : (
-              <View />
-            )}
-            {skipLabel && onSkip ? (
-              <Pressable disabled={busy} onPress={() => void run(onSkip)}>
-                <Text className="text-sm font-bold text-muted-foreground">
-                  {skipLabel}
-                </Text>
-              </Pressable>
-            ) : null}
-          </View>
-          <StepProgress step={index + 1} total={total} />
+      <View className="gap-3 px-6 pt-2">
+        <View className="h-10 flex-row items-center justify-between">
+          {back ? (
+            <Pressable
+              accessibilityLabel="Quay lại"
+              onPress={back}
+              className="-ml-2 h-10 w-10 items-center justify-center rounded-full active:bg-secondary"
+            >
+              <Text className="text-xl font-bold text-foreground">←</Text>
+            </Pressable>
+          ) : (
+            <View />
+          )}
+          {skipLabel && onSkip ? (
+            <Pressable disabled={busy} onPress={() => void run(onSkip)}>
+              <Text className="text-sm font-bold text-muted-foreground">{skipLabel}</Text>
+            </Pressable>
+          ) : null}
         </View>
+        <StepProgress step={index + 1} total={total} />
+      </View>
 
+      {/* Only the form avoids the keyboard; the button stays put underneath it.
+          Scrolling or tapping outside a field closes the keyboard. */}
+      <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
           className="flex-1 px-6"
           contentContainerStyle={{ gap: 20, paddingTop: 16, paddingBottom: 24 }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
           <View className="gap-2">
@@ -105,20 +97,20 @@ export function StepLayout({
           {children}
           {message ? <Text className="text-sm text-destructive">{message}</Text> : null}
         </ScrollView>
-
-        <View className="px-6 pb-4 pt-2">
-          <Button
-            size="xl"
-            disabled={!canContinue || busy}
-            onPress={() => void run(onContinue)}
-            className="h-14 w-full rounded-full bg-primary"
-          >
-            <Text className="text-base font-bold text-primary-foreground">
-              {busy ? "Đang lưu..." : continueLabel}
-            </Text>
-          </Button>
-        </View>
       </KeyboardAvoidingView>
+
+      <View className="px-6 pb-4 pt-2">
+        <Button
+          size="xl"
+          disabled={!canContinue || busy}
+          onPress={() => void run(onContinue)}
+          className="h-14 w-full rounded-full bg-primary"
+        >
+          <Text className="text-base font-bold text-primary-foreground">
+            {busy ? "Đang lưu..." : continueLabel}
+          </Text>
+        </Button>
+      </View>
     </SafeAreaView>
   );
 }
