@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "309718453438",
+    "project_id": "dating-app-9c8c7",
+    "storage_bucket": "dating-app-9c8c7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:309718453438:android:a0c73468bf0ed0940222ef",
+        "android_client_info": {
+          "package_name": "com.terdin.date.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtuSCVXUNWMuYp8EvkvbR6xJrkRo-kKw8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

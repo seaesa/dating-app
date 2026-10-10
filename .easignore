@@ -11,9 +11,10 @@ dist
 build
 coverage
 
-# Continuous Native Generation regenerates these during the build.
-ios
-android
+# Continuous Native Generation regenerates these during the build. Anchored:
+# a bare "android" would also drop the local modules' native code.
+/apps/mobile/ios
+/apps/mobile/android
 
 # Nothing the bundler reads.
 apps/api
