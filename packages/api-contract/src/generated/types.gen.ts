@@ -91,6 +91,68 @@ export type ChoiceCriterion = {
 };
 
 /**
+ * CloseBody
+ */
+export type CloseBody = {
+  reason: CloseReason;
+};
+
+/**
+ * CloseReason
+ */
+export type CloseReason = "unmatch" | "block";
+
+/**
+ * ConnectionPage
+ */
+export type ConnectionPage = {
+  /**
+   * Items
+   */
+  items: Array<ConnectionSummaryRead>;
+  /**
+   * Nextcursor
+   */
+  nextCursor?: string | null;
+};
+
+/**
+ * ConnectionRead
+ */
+export type ConnectionRead = {
+  id: PydanticObjectId;
+  peer: UserRead;
+  peerLastReadId?: PydanticObjectId | null;
+  reveals: RevealsRead;
+  /**
+   * Unreadcount
+   */
+  unreadCount: number;
+};
+
+/**
+ * ConnectionSummaryRead
+ */
+export type ConnectionSummaryRead = {
+  id: PydanticObjectId;
+  /**
+   * Lastactivityat
+   */
+  lastActivityAt: string;
+  lastMessage?: LastMessageRead | null;
+  peer: UserRead;
+  reveals: RevealsRead;
+  /**
+   * Unreadcount
+   */
+  unreadCount: number;
+  /**
+   * Yourturn
+   */
+  yourTurn: boolean;
+};
+
+/**
  * DiscoveryCandidateRead
  *
  * A single candidate returned in discovery feed.
@@ -211,6 +273,33 @@ export type InterestGroupRead = {
 };
 
 /**
+ * LastMessageRead
+ */
+export type LastMessageRead = {
+  actorId: PydanticObjectId;
+  /**
+   * Createdat
+   */
+  createdAt: string;
+  event?: SystemEvent | null;
+  id: PydanticObjectId;
+  kind: MessageKind;
+  /**
+   * Preview
+   */
+  preview: string;
+  revealKind?: RevealKind | null;
+  senderId?: PydanticObjectId | null;
+};
+
+/**
+ * MarkReadBody
+ */
+export type MarkReadBody = {
+  lastReadId: PydanticObjectId;
+};
+
+/**
  * MatchCriteria
  */
 export type MatchCriteria = {
@@ -293,6 +382,50 @@ export type Message = {
 };
 
 /**
+ * MessageKind
+ */
+export type MessageKind = "text" | "system";
+
+/**
+ * MessagePage
+ */
+export type MessagePage = {
+  /**
+   * Items
+   */
+  items: Array<MessageRead>;
+  /**
+   * Nextcursor
+   */
+  nextCursor?: string | null;
+};
+
+/**
+ * MessageRead
+ */
+export type MessageRead = {
+  actorId: PydanticObjectId;
+  /**
+   * Body
+   */
+  body?: string | null;
+  /**
+   * Clientid
+   */
+  clientId?: string | null;
+  connectionId: PydanticObjectId;
+  /**
+   * Createdat
+   */
+  createdAt: string;
+  event?: SystemEvent | null;
+  id: PydanticObjectId;
+  kind: MessageKind;
+  revealKind?: RevealKind | null;
+  senderId?: PydanticObjectId | null;
+};
+
+/**
  * OptionRead
  */
 export type OptionRead = {
@@ -324,6 +457,10 @@ export type OtpRequestBody = {
  * OtpRequestResponse
  */
 export type OtpRequestResponse = {
+  /**
+   * Democode
+   */
+  demoCode?: string | null;
   /**
    * Expiresin
    */
@@ -629,6 +766,22 @@ export type PublicProfileUpdate = {
   prompts?: Array<ProfilePrompt> | null;
 };
 
+/**
+ * PushDeviceBody
+ */
+export type PushDeviceBody = {
+  platform: PushPlatform;
+  /**
+   * Token
+   */
+  token: string;
+};
+
+/**
+ * PushPlatform
+ */
+export type PushPlatform = "ios" | "android";
+
 export type PydanticObjectId = string;
 
 /**
@@ -657,6 +810,46 @@ export type RefreshBody = {
    * Refreshtoken
    */
   refreshToken: string;
+};
+
+/**
+ * RevealKind
+ */
+export type RevealKind = "photos" | "phone";
+
+/**
+ * RevealRead
+ */
+export type RevealRead = {
+  requestedBy?: PydanticObjectId | null;
+  state: RevealState;
+};
+
+/**
+ * RevealState
+ */
+export type RevealState = "none" | "requested" | "granted";
+
+/**
+ * RevealsRead
+ */
+export type RevealsRead = {
+  phone: RevealRead;
+  photos: RevealRead;
+};
+
+/**
+ * SendMessageBody
+ */
+export type SendMessageBody = {
+  /**
+   * Body
+   */
+  body: string;
+  /**
+   * Clientid
+   */
+  clientId: string;
 };
 
 /**
@@ -690,6 +883,12 @@ export type SubmitBody = {
 };
 
 /**
+ * SystemEvent
+ */
+export type SystemEvent =
+  "connected" | "reveal_requested" | "reveal_granted" | "reveal_declined";
+
+/**
  * TokenPair
  */
 export type TokenPair = {
@@ -713,6 +912,16 @@ export type TokenPair = {
    * Tokentype
    */
   tokenType?: string;
+};
+
+/**
+ * UnreadCountRead
+ */
+export type UnreadCountRead = {
+  /**
+   * Count
+   */
+  count: number;
 };
 
 /**
@@ -1081,6 +1290,498 @@ export type GetProfileOptionsResponses = {
 export type GetProfileOptionsResponse =
   GetProfileOptionsResponses[keyof GetProfileOptionsResponses];
 
+export type ListConnectionsData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Cursor
+     */
+    cursor?: string | null;
+    /**
+     * Limit
+     */
+    limit?: number;
+  };
+  url: "/v1/connections";
+};
+
+export type ListConnectionsErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type ListConnectionsError = ListConnectionsErrors[keyof ListConnectionsErrors];
+
+export type ListConnectionsResponses = {
+  /**
+   * Successful Response
+   */
+  200: ConnectionPage;
+};
+
+export type ListConnectionsResponse =
+  ListConnectionsResponses[keyof ListConnectionsResponses];
+
+export type GetUnreadCountData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v1/connections/unread-count";
+};
+
+export type GetUnreadCountErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetUnreadCountError = GetUnreadCountErrors[keyof GetUnreadCountErrors];
+
+export type GetUnreadCountResponses = {
+  /**
+   * Successful Response
+   */
+  200: UnreadCountRead;
+};
+
+export type GetUnreadCountResponse =
+  GetUnreadCountResponses[keyof GetUnreadCountResponses];
+
+export type GetConnectionData = {
+  body?: never;
+  path: {
+    connectionId: PydanticObjectId;
+  };
+  query?: never;
+  url: "/v1/connections/{connectionId}";
+};
+
+export type GetConnectionErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetConnectionError = GetConnectionErrors[keyof GetConnectionErrors];
+
+export type GetConnectionResponses = {
+  /**
+   * Successful Response
+   */
+  200: ConnectionRead;
+};
+
+export type GetConnectionResponse = GetConnectionResponses[keyof GetConnectionResponses];
+
+export type CloseConnectionData = {
+  body: CloseBody;
+  path: {
+    connectionId: PydanticObjectId;
+  };
+  query?: never;
+  url: "/v1/connections/{connectionId}/close";
+};
+
+export type CloseConnectionErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type CloseConnectionError = CloseConnectionErrors[keyof CloseConnectionErrors];
+
+export type CloseConnectionResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type CloseConnectionResponse =
+  CloseConnectionResponses[keyof CloseConnectionResponses];
+
+export type ListMessagesData = {
+  body?: never;
+  path: {
+    connectionId: PydanticObjectId;
+  };
+  query?: {
+    /**
+     * Cursor
+     */
+    cursor?: string | null;
+    /**
+     * Limit
+     */
+    limit?: number;
+  };
+  url: "/v1/connections/{connectionId}/messages";
+};
+
+export type ListMessagesErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type ListMessagesError = ListMessagesErrors[keyof ListMessagesErrors];
+
+export type ListMessagesResponses = {
+  /**
+   * Successful Response
+   */
+  200: MessagePage;
+};
+
+export type ListMessagesResponse = ListMessagesResponses[keyof ListMessagesResponses];
+
+export type SendMessageData = {
+  body: SendMessageBody;
+  path: {
+    connectionId: PydanticObjectId;
+  };
+  query?: never;
+  url: "/v1/connections/{connectionId}/messages";
+};
+
+export type SendMessageErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type SendMessageError = SendMessageErrors[keyof SendMessageErrors];
+
+export type SendMessageResponses = {
+  /**
+   * Successful Response
+   */
+  200: MessageRead;
+};
+
+export type SendMessageResponse = SendMessageResponses[keyof SendMessageResponses];
+
+export type MarkConnectionReadData = {
+  body: MarkReadBody;
+  path: {
+    connectionId: PydanticObjectId;
+  };
+  query?: never;
+  url: "/v1/connections/{connectionId}/read";
+};
+
+export type MarkConnectionReadErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type MarkConnectionReadError =
+  MarkConnectionReadErrors[keyof MarkConnectionReadErrors];
+
+export type MarkConnectionReadResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type MarkConnectionReadResponse =
+  MarkConnectionReadResponses[keyof MarkConnectionReadResponses];
+
+export type RequestRevealData = {
+  body?: never;
+  path: {
+    connectionId: PydanticObjectId;
+    kind: RevealKind;
+  };
+  query?: never;
+  url: "/v1/connections/{connectionId}/reveals/{kind}";
+};
+
+export type RequestRevealErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type RequestRevealError = RequestRevealErrors[keyof RequestRevealErrors];
+
+export type RequestRevealResponses = {
+  /**
+   * Successful Response
+   */
+  200: ConnectionRead;
+};
+
+export type RequestRevealResponse = RequestRevealResponses[keyof RequestRevealResponses];
+
+export type AcceptRevealData = {
+  body?: never;
+  path: {
+    connectionId: PydanticObjectId;
+    kind: RevealKind;
+  };
+  query?: never;
+  url: "/v1/connections/{connectionId}/reveals/{kind}/accept";
+};
+
+export type AcceptRevealErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type AcceptRevealError = AcceptRevealErrors[keyof AcceptRevealErrors];
+
+export type AcceptRevealResponses = {
+  /**
+   * Successful Response
+   */
+  200: ConnectionRead;
+};
+
+export type AcceptRevealResponse = AcceptRevealResponses[keyof AcceptRevealResponses];
+
+export type DeclineRevealData = {
+  body?: never;
+  path: {
+    connectionId: PydanticObjectId;
+    kind: RevealKind;
+  };
+  query?: never;
+  url: "/v1/connections/{connectionId}/reveals/{kind}/decline";
+};
+
+export type DeclineRevealErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type DeclineRevealError = DeclineRevealErrors[keyof DeclineRevealErrors];
+
+export type DeclineRevealResponses = {
+  /**
+   * Successful Response
+   */
+  200: ConnectionRead;
+};
+
+export type DeclineRevealResponse = DeclineRevealResponses[keyof DeclineRevealResponses];
+
 export type GetDiscoveryFeedData = {
   body?: never;
   path?: never;
@@ -1272,6 +1973,105 @@ export type CreateInteractionResponses = {
 
 export type CreateInteractionResponse =
   CreateInteractionResponses[keyof CreateInteractionResponses];
+
+export type RegisterPushDeviceData = {
+  body: PushDeviceBody;
+  path?: never;
+  query?: never;
+  url: "/v1/me/push-devices";
+};
+
+export type RegisterPushDeviceErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type RegisterPushDeviceError =
+  RegisterPushDeviceErrors[keyof RegisterPushDeviceErrors];
+
+export type RegisterPushDeviceResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type RegisterPushDeviceResponse =
+  RegisterPushDeviceResponses[keyof RegisterPushDeviceResponses];
+
+export type UnregisterPushDeviceData = {
+  body?: never;
+  path: {
+    /**
+     * Token
+     */
+    token: string;
+  };
+  query?: never;
+  url: "/v1/me/push-devices/{token}";
+};
+
+export type UnregisterPushDeviceErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type UnregisterPushDeviceError =
+  UnregisterPushDeviceErrors[keyof UnregisterPushDeviceErrors];
+
+export type UnregisterPushDeviceResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type UnregisterPushDeviceResponse =
+  UnregisterPushDeviceResponses[keyof UnregisterPushDeviceResponses];
 
 export type CreateUploadUrlData = {
   body: UploadUrlBody;

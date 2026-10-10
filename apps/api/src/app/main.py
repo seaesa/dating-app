@@ -25,11 +25,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         await init_database(resolved)
         await init_redis(resolved)
         yield
+        from app.modules.realtime.hub import hub
+
+        await hub.close()
         await close_redis()
         await close_database()
 
     app = FastAPI(
-        title="Terdin Date API",
+        title=f"{resolved.app_name} API",
         version="0.1.0",
         openapi_url="/openapi.json",
         docs_url=None if resolved.is_production else "/docs",

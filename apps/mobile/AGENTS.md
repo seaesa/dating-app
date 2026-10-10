@@ -65,6 +65,15 @@ export default function AppLayout() {
   `packages/store/src/storage.native.ts` touches it.
 - Remote images: `expo-image`. Unbounded lists: `FlashList`. Install either with
   `expo install` when first needed.
+- Icons: Lucide through `Icon` from `@repo/ui`, one icon per import —
+  `import Lock from "lucide-react-native/icons/lock"`, never the package root
+  (Metro does not tree-shake it). No emoji or symbol characters as UI icons.
+  Emoji that belong to content (interests, attributes) come from the catalog
+  API, which caps them at Emoji 12 for older Android phones.
+- Realtime: one socket per signed-in user (`src/realtime`). It only transports;
+  a feature handles its own event types with `useRealtimeEvent(type, handler)`
+  from `src/realtime/bus.ts`. Never open a second socket or add a feature's
+  handling to another feature's code.
 - Platform-specific code: `file.ios.tsx` / `file.android.tsx`, or
   `Platform.select`, with the same exported API.
 

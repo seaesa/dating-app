@@ -16,7 +16,7 @@
   --popover: 0 0% 100%;
   --popover-foreground: 240 10% 4%;
 
-  /* Amor / Terdin brand coral (#FF6F61). Changing this line changes both platforms. */
+  /* Brand coral (#FF6F61). Changing this line changes both platforms. */
   --primary: 5 100% 69%;
   --primary-foreground: 0 0% 100%;
   --primary-muted: 5 100% 96%;

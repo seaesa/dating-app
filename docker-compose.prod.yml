@@ -32,6 +32,7 @@ services:
       MONGODB_DB: ${MONGODB_DB:-terdin_date}
       REDIS_URL: ${REDIS_URL:?set REDIS_URL}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      APP_NAME: ${APP_NAME:?set APP_NAME}
       SMS_PROVIDER: ${SMS_PROVIDER:-twilio}
       TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
       TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
@@ -45,6 +46,35 @@ services:
       LOG_JSON: "true"
     # Only binding under --profile selfhosted; with managed stores these
     # services are not started and `required: false` skips the wait.
+    depends_on:
+      mongo:
+        condition: service_healthy
+        required: false
+      redis:
+        condition: service_healthy
+        required: false
+
+  push-worker:
+    image: ghcr.io/${GITHUB_OWNER:-terdin}/terdin-date-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    command: ["python", "-m", "app.cli", "push-worker"]
+    # The production Settings validator refuses local S3 keys and the console
+    # SMS provider, so the worker needs the API's real values even unused.
+    environment:
+      ENVIRONMENT: production
+      MONGODB_URL: ${MONGODB_URL:?set MONGODB_URL}
+      MONGODB_DB: ${MONGODB_DB:-terdin_date}
+      REDIS_URL: ${REDIS_URL:?set REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      APP_NAME: ${APP_NAME:?set APP_NAME}
+      SMS_PROVIDER: ${SMS_PROVIDER:-twilio}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:?set S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?set S3_SECRET_KEY}
+      EXPO_ACCESS_TOKEN: ${EXPO_ACCESS_TOKEN:-}
+      LOG_JSON: "true"
+    # The image's healthcheck curls the API port, which the worker does not open.
+    healthcheck:
+      disable: true
     depends_on:
       mongo:
         condition: service_healthy

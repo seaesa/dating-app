@@ -98,3 +98,5 @@ skills-lock.json
 GEMINI.md
 CODEOWNERS
 docs/superpowers
+# Firebase service account key: a secret, never commit.
+serviceAccountKey.json

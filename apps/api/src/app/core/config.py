@@ -17,6 +17,8 @@ class Settings(BaseSettings):
 
     # Database
     mongodb_url: str
+    # Shown to users (SMS, push, API docs). Set APP_NAME to rebrand.
+    app_name: str = "Terdin"
     mongodb_db: str = "terdin_date"
     mongodb_timeout_ms: int = 5000
     redis_url: str
@@ -67,6 +69,11 @@ class Settings(BaseSettings):
     # unsigned locally and only discovering the difference in staging.
     s3_public_presign_ttl: int = 60 * 60 * 24
     media_max_bytes: int = 10 * 1024 * 1024
+
+    # Push. The access token is optional: Expo accepts unauthenticated sends
+    # unless "enhanced security" is switched on for the project.
+    expo_push_url: str = "https://exp.host/--/api/v2/push/send"
+    expo_access_token: str = ""
 
     # HTTP
     # NoDecode because pydantic-settings JSON-decodes complex types from a

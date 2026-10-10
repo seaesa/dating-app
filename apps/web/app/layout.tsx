@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 
+import { APP_NAME } from "@repo/core";
 import { THEME_COLORS } from "@repo/tailwind-config/colors";
 
 import "./global.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: { default: "Terdin", template: "%s · Terdin" },
+  title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
   description: "Meet people without giving away who you are, until you both choose to.",
 };
 

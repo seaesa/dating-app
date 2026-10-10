@@ -1,9 +1,14 @@
 import { router } from "expo-router";
+import Handshake from "lucide-react-native/icons/handshake";
+import Heart from "lucide-react-native/icons/heart";
+import MessageCircleHeart from "lucide-react-native/icons/message-circle-heart";
+import VenetianMask from "lucide-react-native/icons/venetian-mask";
 import * as React from "react";
 import { ScrollView, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Button, Text } from "@repo/ui";
+import { APP_NAME } from "@repo/core";
+import { Button, Icon, Text } from "@repo/ui";
 
 import { openPrivacy, openTerms } from "@/legal";
 
@@ -11,19 +16,19 @@ import { openPrivacy, openTerms } from "@/legal";
 // name and real photos, and why nobody will see them.
 const SLIDES = [
   {
-    icon: "🎭",
+    icon: VenetianMask,
     title: "Hẹn hò, nhưng riêng tư",
-    body: "Người khác chỉ thấy tên, tuổi và khu vực của bạn. Ảnh và liên lạc luôn được ẩn.",
+    body: "Để ai đó rung động vì cách bạn trò chuyện, trước cả khi nhìn thấy gương mặt bạn.",
   },
   {
-    icon: "🤝",
+    icon: Handshake,
     title: "Hai bên đồng ý mới mở",
-    body: "Ảnh, Zalo, số điện thoại chỉ mở khi cả hai cùng đồng ý, và mở cho cả hai cùng lúc.",
+    body: "Mỗi bí mật chỉ hé lộ khi cả hai cùng sẵn sàng. Không ai đi trước, không ai bị bỏ lại.",
   },
   {
-    icon: "💞",
+    icon: MessageCircleHeart,
     title: "Gợi ý theo độ hợp nhau",
-    body: "Chúng tôi gợi ý những người hợp với bạn, kèm mức tương thích cho cả hai cùng biết.",
+    body: "Ai đó ngoài kia đang hợp với bạn hơn bạn nghĩ. Có khi chỉ cách một lời chào.",
   },
 ];
 
@@ -36,10 +41,15 @@ export default function WelcomeScreen() {
       <View className="items-center pt-6">
         <View className="flex-row items-center gap-2">
           <View className="h-9 w-9 items-center justify-center rounded-xl bg-primary">
-            <Text className="text-base">❤️</Text>
+            <Icon
+              as={Heart}
+              size={20}
+              className="text-primary-foreground"
+              fill="currentColor"
+            />
           </View>
           <Text className="text-2xl font-black tracking-tight text-foreground">
-            Terdin
+            {APP_NAME}
           </Text>
         </View>
       </View>
@@ -60,7 +70,7 @@ export default function WelcomeScreen() {
             className="items-center justify-center gap-5 px-8"
           >
             <View className="h-32 w-32 items-center justify-center rounded-full bg-primary-muted">
-              <Text className="text-6xl">{slide.icon}</Text>
+              <Icon as={slide.icon} size={56} className="text-primary" />
             </View>
             <Text className="text-center text-3xl font-black tracking-tight text-foreground">
               {slide.title}

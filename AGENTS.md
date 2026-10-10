@@ -22,8 +22,10 @@ outranks every other rule; a change that makes it harder to hold is wrong.
 
 - API: every response containing a user goes through `project_user()` in
   `apps/api/src/app/modules/users/visibility.py`. Never serialize a `User`.
-- Clients: only the owner's own profile screen reads `identity`. Public views
-  render `profile` only.
+- Clients: `identity` and `phone` are rendered on the owner's own screens and,
+  for a peer, only where the API returned them — chat screens show a peer's
+  photos or phone once that pair granted the reveal. Never persist or log them
+  (the in-memory query cache is fine); public views render `profile` only.
 - Clients: the TanStack Query cache is cleared on every sign-in/sign-out
   (`onSessionChange` in `@repo/store`). Keep it that way — `meQuery` has no user
   in its cache key.
@@ -95,6 +97,9 @@ goes into a package, not the route.
   `snake_case.py`.
 - UI copy is Vietnamese. Validation messages live in
   `packages/api-contract/src/forms.ts`.
+- Product name: never write it in code or copy. Use `APP_NAME` from
+  `@repo/core` (clients) or `settings.app_name` (API); it comes from env so the
+  app can be renamed for production.
 - Styling: NativeWind token classes (`bg-primary`, `text-foreground`). Never a
   literal colour (`#fff`, `rgb()`, `hsl()`); add a token to
   `packages/tailwind-config/theme.css` instead.

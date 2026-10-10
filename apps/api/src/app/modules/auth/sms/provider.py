@@ -1,5 +1,7 @@
 from typing import Protocol
 
+OTP_MESSAGE = "{app} code: {code}. Valid for 5 minutes."
+
 
 class SmsProvider(Protocol):
     """Sending an SMS is an interface, not a vendor.
@@ -8,4 +10,4 @@ class SmsProvider(Protocol):
     account and costs nothing.
     """
 
-    async def send(self, phone: str, message: str) -> None: ...
+    async def send_code(self, phone: str, code: str) -> None: ...

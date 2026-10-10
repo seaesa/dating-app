@@ -72,6 +72,30 @@ services:
       retries: 20
       start_period: 10s
 
+  # Sends chat push notifications through Expo. The image bakes in the API
+  # source, so rebuild after changing it: docker compose up -d --build push-worker
+  push-worker:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    command: ["python", "-m", "app.cli", "push-worker"]
+    restart: unless-stopped
+    env_file:
+      - path: apps/api/.env
+        required: false
+    environment:
+      # The compose network, not the host's localhost.
+      MONGODB_URL: mongodb://mongo:27017/?replicaSet=rs0&directConnection=true
+      REDIS_URL: redis://redis:6379/0
+    # The image's healthcheck curls the API port, which the worker does not open.
+    healthcheck:
+      disable: true
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   mongo-data:
   s3-data:

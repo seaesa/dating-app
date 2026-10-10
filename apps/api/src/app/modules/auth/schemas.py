@@ -11,6 +11,9 @@ class OtpRequestBody(BaseSchema):
 
 class OtpRequestResponse(BaseSchema):
     expires_in: int
+    # Only with SMS_PROVIDER=console, which production refuses: lets a demo
+    # build show the code in the app since no SMS is sent.
+    demo_code: str | None = None
 
 
 class OtpVerifyBody(BaseSchema):

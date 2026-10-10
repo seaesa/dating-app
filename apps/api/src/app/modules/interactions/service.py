@@ -50,6 +50,16 @@ class InteractionService:
             existing.created_at = datetime.now(UTC)
             await existing.save()
 
+        if body.action is InteractionAction.BLOCK:
+            # A block must end any open chat too, wherever it is issued from.
+            # Imported here: connections.service imports interactions.models.
+            from app.modules.connections.models import CloseReason
+            from app.modules.connections.service import ConnectionService
+
+            await ConnectionService().close_between(
+                actor.oid, target_oid, CloseReason.BLOCK
+            )
+
         # Check mutual match for positive actions
         matched = False
         if body.action in POSITIVE_ACTIONS:

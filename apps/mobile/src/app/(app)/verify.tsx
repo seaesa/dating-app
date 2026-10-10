@@ -3,6 +3,7 @@ import * as React from "react";
 import { ActivityIndicator, Linking, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { APP_NAME } from "@repo/core";
 import { Button, StatusBanner, Text } from "@repo/ui";
 
 import { FaceCapture } from "@/components/face-capture";
@@ -133,7 +134,7 @@ export default function VerifyScreen() {
 
         {cameraBlocked ? (
           <StatusBanner tone="warning">
-            Terdin cần quyền camera để xác thực.{" "}
+            {APP_NAME} cần quyền camera để xác thực.{" "}
             <Text
               className="text-sm font-bold text-primary"
               onPress={() => void Linking.openSettings()}
@@ -172,7 +173,7 @@ export default function VerifyScreen() {
           </StatusBanner>
         )}
         <Text className="text-center text-xs leading-5 text-muted-foreground">
-          Bằng việc nhấn Bắt đầu, bạn đồng ý cho Terdin xử lý dữ liệu khuôn mặt để xác
+          Bằng việc nhấn Bắt đầu, bạn đồng ý cho {APP_NAME} xử lý dữ liệu khuôn mặt để xác
           thực tài khoản.{" "}
           <Text className="text-xs font-bold text-primary" onPress={openPrivacy}>
             Chính sách bảo mật

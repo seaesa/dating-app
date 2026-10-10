@@ -1,10 +1,16 @@
+import { useQuery } from "@tanstack/react-query";
 import { Tabs } from "expo-router";
 import * as React from "react";
 import { Platform } from "react-native";
 
+import { unreadCountQuery } from "@repo/api-contract";
+
 import { ChatIcon, HomeIcon, MatchesIcon, ProfileIcon } from "@/components/tab-icons";
 
 export default function TabsLayout() {
+  const { data: unread } = useQuery(unreadCountQuery());
+  const badge = unread?.count ? (unread.count > 99 ? "99+" : unread.count) : undefined;
+
   return (
     <Tabs
       screenOptions={{
@@ -49,6 +55,10 @@ export default function TabsLayout() {
         name="chat"
         options={{
           title: "Chat",
+          tabBarBadge: badge,
+          // The badge sits in the 24dp icon box, so Android ellipsizes "99+"
+          // unless it is given its own width.
+          tabBarBadgeStyle: badge === "99+" ? { width: 34 } : undefined,
           tabBarIcon: ({ color }) => <ChatIcon color={color} size={24} />,
         }}
       />

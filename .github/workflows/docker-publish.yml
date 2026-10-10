@@ -84,6 +84,7 @@ jobs:
           # variable still produces a working image.
           build-args: |
             NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || '/api' }}
+            NEXT_PUBLIC_APP_NAME=${{ vars.APP_NAME }}
 
       # Reports rather than blocks: a base-image CVE with no fix available
       # should not stop a deploy. Set exit-code to "1" once the team is ready to

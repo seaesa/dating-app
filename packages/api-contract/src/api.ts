@@ -1,8 +1,11 @@
-import { queryOptions } from "@tanstack/react-query";
+import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 
 import { http } from "./client";
 import type {
   ChallengeRead,
+  CloseBody,
+  ConnectionPage,
+  ConnectionRead,
   DiscoveryCountRead,
   DiscoveryFeedRead,
   GetDiscoveryCountData,
@@ -11,15 +14,21 @@ import type {
   InteractionResultRead,
   MatchCriteria,
   Message,
+  MessagePage,
+  MessageRead,
   OtpRequestBody,
   OtpRequestResponse,
   OtpVerifyBody,
   PrivateIdentityUpdate,
   ProfileOptionsRead,
   PublicProfileUpdate,
+  PushDeviceBody,
+  RevealKind,
+  SendMessageBody,
   SensitiveAttributes,
   SubmitBody,
   TokenPair,
+  UnreadCountRead,
   UploadUrlBody,
   UploadUrlResponse,
   UserRead,
@@ -113,4 +122,88 @@ export const discoveryCountQuery = (params?: GetDiscoveryCountData["query"]) =>
   queryOptions({
     queryKey: ["discovery", "count", params ?? {}],
     queryFn: () => getDiscoveryCount(params),
+  });
+
+// Chat
+
+const connectionPath = (connectionId: string) =>
+  `/v1/connections/${encodeURIComponent(connectionId)}`;
+
+export const listConnections = (cursor?: string) =>
+  http.get<ConnectionPage>("/v1/connections", { params: { cursor } }).then((r) => r.data);
+
+export const getUnreadCount = () =>
+  http.get<UnreadCountRead>("/v1/connections/unread-count").then((r) => r.data);
+
+export const getConnection = (connectionId: string) =>
+  http.get<ConnectionRead>(connectionPath(connectionId)).then((r) => r.data);
+
+export const listMessages = (connectionId: string, cursor?: string) =>
+  http
+    .get<MessagePage>(`${connectionPath(connectionId)}/messages`, {
+      params: { cursor, limit: 30 },
+    })
+    .then((r) => r.data);
+
+export const sendMessage = (connectionId: string, body: SendMessageBody) =>
+  http
+    .post<MessageRead>(`${connectionPath(connectionId)}/messages`, body)
+    .then((r) => r.data);
+
+export const markConnectionRead = (connectionId: string, lastReadId: string) =>
+  http
+    .post<void>(`${connectionPath(connectionId)}/read`, { lastReadId })
+    .then(() => undefined);
+
+export const requestReveal = (connectionId: string, kind: RevealKind) =>
+  http
+    .post<ConnectionRead>(`${connectionPath(connectionId)}/reveals/${kind}`)
+    .then((r) => r.data);
+
+export const acceptReveal = (connectionId: string, kind: RevealKind) =>
+  http
+    .post<ConnectionRead>(`${connectionPath(connectionId)}/reveals/${kind}/accept`)
+    .then((r) => r.data);
+
+export const declineReveal = (connectionId: string, kind: RevealKind) =>
+  http
+    .post<ConnectionRead>(`${connectionPath(connectionId)}/reveals/${kind}/decline`)
+    .then((r) => r.data);
+
+export const closeConnection = (connectionId: string, body: CloseBody) =>
+  http.post<void>(`${connectionPath(connectionId)}/close`, body).then(() => undefined);
+
+export const registerPushDevice = (body: PushDeviceBody) =>
+  http.put<void>("/v1/me/push-devices", body).then(() => undefined);
+
+export const unregisterPushDevice = (token: string) =>
+  http
+    .delete<void>(`/v1/me/push-devices/${encodeURIComponent(token)}`)
+    .then(() => undefined);
+
+// Keys: ["connections", "list" | "unread" | id, ...]. A room's messages live
+// under its id, so invalidating ["connections"] refreshes everything chat.
+export const connectionsQuery = () =>
+  infiniteQueryOptions({
+    queryKey: ["connections", "list"],
+    queryFn: ({ pageParam }) => listConnections(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+  });
+
+export const unreadCountQuery = () =>
+  queryOptions({ queryKey: ["connections", "unread"], queryFn: getUnreadCount });
+
+export const connectionQuery = (connectionId: string) =>
+  queryOptions({
+    queryKey: ["connections", connectionId],
+    queryFn: () => getConnection(connectionId),
+  });
+
+export const messagesQuery = (connectionId: string) =>
+  infiniteQueryOptions({
+    queryKey: ["connections", connectionId, "messages"],
+    queryFn: ({ pageParam }) => listMessages(connectionId, pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
   });

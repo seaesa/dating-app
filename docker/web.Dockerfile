@@ -42,6 +42,8 @@ COPY packages ./packages
 # deploy path for everyone who did not know to set a build argument.
 ARG NEXT_PUBLIC_API_URL=/api
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_APP_NAME=
+ENV NEXT_PUBLIC_APP_NAME=$NEXT_PUBLIC_APP_NAME
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # The package script, not `next build`: it passes --webpack, and Turbopack

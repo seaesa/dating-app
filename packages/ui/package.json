@@ -27,6 +27,7 @@
     "@repo/typescript-config": "workspace:*",
     "@types/react": "~19.2.10",
     "eslint": "^9.0.0",
+    "lucide-react-native": "^1.53.0",
     "nativewind": "^4.2.7",
     "react": "19.2.3",
     "react-native": "0.86.3",

@@ -28,3 +28,15 @@ export function isValidPhone(
 ): boolean {
   return toE164(input, defaultRegion) !== null;
 }
+
+/**
+ * A stored E.164 number the way people in its country write it:
+ * "+84912345678" → "0912 345 678". Unparseable input comes back unchanged.
+ */
+export function formatPhone(
+  e164: string,
+  defaultRegion: CountryCode = DEFAULT_PHONE_REGION,
+): string {
+  const parsed = parsePhoneNumberFromString(e164, defaultRegion);
+  return parsed ? parsed.formatNational() : e164;
+}

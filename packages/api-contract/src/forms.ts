@@ -1,4 +1,4 @@
-import { ageOn, MIN_AGE, toIsoDate } from "@repo/core";
+import { ageOn, APP_NAME, MIN_AGE, toIsoDate } from "@repo/core";
 
 /**
  * Validation for sign-up and profile forms, shared by both apps. Each returns
@@ -20,7 +20,7 @@ export function birthDateError(formatted: string): string | null {
   const iso = toIsoDate(formatted);
   if (!iso) return "Nhập đầy đủ ngày sinh theo dạng DD / MM / YYYY";
   const age = ageOn(iso);
-  if (age < MIN_AGE) return `Bạn cần từ ${MIN_AGE} tuổi trở lên để dùng Terdin`;
+  if (age < MIN_AGE) return `Bạn cần từ ${MIN_AGE} tuổi trở lên để dùng ${APP_NAME}`;
   if (age > MAX_AGE) return "Ngày sinh không hợp lệ";
   return null;
 }
