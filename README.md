@@ -138,8 +138,9 @@ eas build --profile preview      # APK for internal testing
 eas build --profile production   # AAB and IPA for the stores
 ```
 
-CI can run these: the **Mobile build** workflow takes a platform and a profile,
-and a `v*` tag builds for production automatically.
+CI can run these: the **Mobile build** workflow takes a platform and a profile.
+A `v*` tag builds the preview APK on the GitHub runner and publishes it as the
+`android-preview` pre-release (**Android release** workflow).
 
 ## Documentation
 

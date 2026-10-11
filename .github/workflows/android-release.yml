@@ -1,0 +1,86 @@
+name: Android release
+
+# A v* tag builds the preview APK on this runner and publishes it as the
+# rolling "android-preview" pre-release, so the newest APK always has the same
+# download link. Built here with `eas build --local` rather than on EAS: no EAS
+# build quota is spent, and the APK is already on the runner to attach.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  # Creating the release and its tag.
+  contents: write
+
+concurrency:
+  group: android-release
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    name: Preview APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # eas.json sets requireCommit, so the build needs real history.
+          fetch-depth: 0
+
+      - name: Fail early without a token
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN is not set. Create one at expo.dev and add it as a repository secret."
+            exit 1
+          fi
+
+      - uses: ./.github/actions/setup
+
+      # The JDK the EAS Android image uses.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      # Outside the repository: npm refuses to run in it (EBADDEVENGINES)
+      # because package.json pins pnpm through devEngines. That includes the
+      # `npx eas-cli-local-build-plugin` that `eas build --local` would run, so
+      # the plugin is installed here, at the version this eas-cli expects.
+      - name: Install the EAS CLI
+        working-directory: ${{ runner.temp }}
+        run: |
+          npm install --global eas-cli@latest
+          eas_cli="$(npm root --global)/eas-cli"
+          version=$(node -p "require(require.resolve('@expo/eas-build-job/package.json', { paths: ['$eas_cli'] })).version")
+          npm install --global "eas-cli-local-build-plugin@$version"
+          echo "EAS_LOCAL_BUILD_PLUGIN_PATH=$(npm prefix --global)/bin/eas-cli-local-build-plugin" >> "$GITHUB_ENV"
+
+      - name: Build
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          # It runs through npx in the project, which fails as above; the CI
+          # workflow already runs expo-doctor.
+          EAS_BUILD_DISABLE_EXPO_DOCTOR_STEP: "1"
+        run: |
+          eas build --local \
+            --platform android \
+            --profile preview \
+            --non-interactive \
+            --output "$RUNNER_TEMP/app-preview.apk"
+
+      # Recreated rather than edited, so its tag moves to this commit.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF: ${{ github.ref_name }}
+        run: |
+          gh release delete android-preview --cleanup-tag --yes || true
+          gh release create android-preview "$RUNNER_TEMP/app-preview.apk" \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "Android preview" \
+            --notes "Built from \`$REF\` at $GITHUB_SHA. Profile \`preview\`: talks to the API in apps/mobile/eas.json."

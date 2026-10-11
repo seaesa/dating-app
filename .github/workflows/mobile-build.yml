@@ -13,8 +13,8 @@ on:
         type: choice
         options: [development, preview, production]
         default: preview
-  push:
-    tags: ["v*"]
+  # v* tags build the preview APK in android-release.yml instead: a tag here
+  # also queued a production iOS build, which has no Apple credentials.
 
 permissions:
   contents: read
@@ -57,30 +57,14 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: npm install --global eas-cli@latest
 
-      # A tag builds for the store; a manual run builds what was asked for.
-      - name: Resolve the profile
-        id: resolve
-        env:
-          EVENT: ${{ github.event_name }}
-          INPUT_PROFILE: ${{ inputs.profile }}
-          INPUT_PLATFORM: ${{ inputs.platform }}
-        run: |
-          if [ "$EVENT" = "push" ]; then
-            echo "profile=production" >> "$GITHUB_OUTPUT"
-            echo "platform=all" >> "$GITHUB_OUTPUT"
-          else
-            echo "profile=$INPUT_PROFILE" >> "$GITHUB_OUTPUT"
-            echo "platform=$INPUT_PLATFORM" >> "$GITHUB_OUTPUT"
-          fi
-
       # --no-wait returns once the build is queued. Holding a runner for forty
       # minutes to watch a build EAS already tracks wastes Actions minutes.
       - name: Build
         working-directory: apps/mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          PLATFORM: ${{ steps.resolve.outputs.platform }}
-          PROFILE: ${{ steps.resolve.outputs.profile }}
+          PLATFORM: ${{ inputs.platform }}
+          PROFILE: ${{ inputs.profile }}
         run: |
           eas build \
             --platform "$PLATFORM" \
