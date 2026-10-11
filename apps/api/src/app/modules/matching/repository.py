@@ -123,13 +123,18 @@ class MatchingRepository:
 
         base_match["$and"] = and_conditions
 
-        # Branch 1: User has valid GPS coordinates -> Use $geoNear pipeline
-        user_has_location = (
-            user.private.location is not None
-            and len(user.private.location.coordinates) == 2
-        )
+        # Branch 1: User has valid coordinates (GPS or province centroid fallback)
+        effective_coords: list[float] | None = None
+        if user.private.location and len(user.private.location.coordinates) == 2:
+            effective_coords = user.private.location.coordinates
+        elif user.public.city:
+            from app.core.vietnam_provinces import get_province_centroid
 
-        if user_has_location and user.private.location:
+            centroid = get_province_centroid(user.public.city)
+            if centroid:
+                effective_coords = [centroid[0], centroid[1]]
+
+        if effective_coords is not None:
             max_dist_meters = (filters.max_distance_km or 50) * 1000
             # Expand pool to avoid geographic starvation of high-compatibility users
             geo_pool_limit = min(max(limit * 4, 100), 500)
@@ -138,7 +143,7 @@ class MatchingRepository:
                     "$geoNear": {
                         "near": {
                             "type": "Point",
-                            "coordinates": user.private.location.coordinates,
+                            "coordinates": effective_coords,
                         },
                         "distanceField": "distance_meters",
                         "maxDistance": max_dist_meters,

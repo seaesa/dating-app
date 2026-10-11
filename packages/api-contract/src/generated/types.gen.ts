@@ -247,6 +247,7 @@ export type InteractionCreate = {
  */
 export type InteractionResultRead = {
   action: InteractionAction;
+  connectionId?: PydanticObjectId | null;
   /**
    * Matched
    */
@@ -800,6 +801,23 @@ export type RangeCriterion = {
    * Min
    */
   min?: number | null;
+};
+
+/**
+ * ReceivedInteractionRead
+ */
+export type ReceivedInteractionRead = {
+  action: InteractionAction;
+  actor: UserRead;
+  /**
+   * Createdat
+   */
+  createdAt: string;
+  /**
+   * Distancekm
+   */
+  distanceKm?: number | null;
+  interactionId: PydanticObjectId;
 };
 
 /**
@@ -1973,6 +1991,60 @@ export type CreateInteractionResponses = {
 
 export type CreateInteractionResponse =
   CreateInteractionResponses[keyof CreateInteractionResponses];
+
+export type GetReceivedInteractionsData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Limit
+     */
+    limit?: number;
+  };
+  url: "/v1/interactions/received";
+};
+
+export type GetReceivedInteractionsErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetReceivedInteractionsError =
+  GetReceivedInteractionsErrors[keyof GetReceivedInteractionsErrors];
+
+export type GetReceivedInteractionsResponses = {
+  /**
+   * Response Getreceivedinteractions
+   *
+   * Successful Response
+   */
+  200: Array<ReceivedInteractionRead>;
+};
+
+export type GetReceivedInteractionsResponse =
+  GetReceivedInteractionsResponses[keyof GetReceivedInteractionsResponses];
 
 export type RegisterPushDeviceData = {
   body: PushDeviceBody;

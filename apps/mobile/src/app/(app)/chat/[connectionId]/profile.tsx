@@ -62,13 +62,24 @@ export default function PartnerProfileScreen() {
   const [consentKind, setConsentKind] = React.useState<RevealKind | null>(null);
   const [page, setPage] = React.useState(0);
 
+  const goBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace({
+        pathname: "/(app)/chat/[connectionId]",
+        params: { connectionId },
+      });
+    }
+  };
+
   if (room.ended || room.missing) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center gap-4 bg-background px-6">
         <Text className="text-center text-lg font-bold text-foreground">
           Cuộc trò chuyện đã kết thúc
         </Text>
-        <Button onPress={() => router.back()} className="rounded-full px-6">
+        <Button onPress={goBack} className="rounded-full px-6">
           <Text className="font-semibold text-primary-foreground">Quay lại</Text>
         </Button>
       </SafeAreaView>
@@ -109,7 +120,7 @@ export default function PartnerProfileScreen() {
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View className="h-14 flex-row items-center px-2">
         <Pressable
-          onPress={() => router.back()}
+          onPress={goBack}
           accessibilityLabel="Quay lại"
           className="h-11 w-11 items-center justify-center"
         >
@@ -306,11 +317,7 @@ export default function PartnerProfileScreen() {
         </View>
 
         <View className="px-5 pt-8">
-          <Button
-            size="xl"
-            onPress={() => router.back()}
-            className="h-14 rounded-full bg-primary"
-          >
+          <Button size="xl" onPress={goBack} className="h-14 rounded-full bg-primary">
             <Text className="text-base font-bold text-primary-foreground">
               Quay lại trò chuyện
             </Text>

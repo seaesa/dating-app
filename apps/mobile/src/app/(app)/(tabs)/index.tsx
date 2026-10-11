@@ -14,6 +14,7 @@ import {
   createInteraction,
   discoveryCountQuery,
   discoveryFeedQuery,
+  meQuery,
   type DiscoveryCandidateRead,
 } from "@repo/api-contract";
 import { APP_NAME } from "@repo/core";
@@ -27,129 +28,6 @@ import {
   ProfileDetailModal,
 } from "../../../components/discovery/profile-detail-modal";
 
-const FALLBACK_PROFILES: ProfileDetailData[] = [
-  {
-    userId: "6ac7bdbf0f0c3ab4cdfbbb4a",
-    displayName: "Mai Chi",
-    gender: "female",
-    age: 26,
-    city: "Quận 1, TP.HCM",
-    distanceKm: 3,
-    verified: true,
-    bio: "Yêu thích những buổi chiều cà phê một mình và đọc sách. Tìm kiếm một người có thể cùng chia sẻ những câu chuyện không đầu không cuối và cùng nhau khám phá những quán ăn ngon ở Sài Gòn.",
-    interests: ["cafe", "backpacking", "books", "indie", "movies"],
-    attributes: {
-      industry: "Thiết kế đồ họa",
-      education: "ĐH Kiến Trúc TP.HCM",
-      intent: "serious",
-    },
-    prompts: [
-      {
-        promptId: "p1",
-        question: "Món quà hoàn hảo cho ngày chủ nhật?...",
-        answer:
-          "...một ly latte nóng, một cuốn sách hay và một buổi sáng không có chuông báo thức.",
-      },
-    ],
-  },
-  {
-    userId: "6ac7bdbf0f0c3ab4cdfbbb4b",
-    displayName: "Thùy Dương",
-    gender: "female",
-    age: 25,
-    city: "Quận 3, TP.HCM",
-    distanceKm: 2,
-    verified: true,
-    bio: "Yêu hoa, yêu mèo và thích nấu ăn tại nhà. Hướng nội nhưng nói nhiều với người quen.",
-    interests: ["cooking", "pet_lover", "yoga", "baking", "gardening"],
-    attributes: {
-      industry: "Marketing",
-      education: "ĐH Kinh Tế TP.HCM",
-      intent: "serious",
-    },
-  },
-  {
-    userId: "6ac7bdbf0f0c3ab4cdfbbb4c",
-    displayName: "Ngọc Trâm",
-    gender: "female",
-    age: 23,
-    city: "Phú Nhuận, TP.HCM",
-    distanceKm: 4,
-    verified: true,
-    bio: "Thích nghe nhạc Indie, đi xem kịch và sưu tập gốm sứ.",
-    interests: ["indie", "theatre", "cafe", "painting"],
-    attributes: {
-      industry: "Giáo dục",
-      education: "ĐH Sư Phạm TP.HCM",
-      intent: "serious",
-    },
-  },
-  {
-    userId: "6ac7bdbf0f0c3ab4cdfbbb4d",
-    displayName: "Minh Thư",
-    gender: "female",
-    age: 27,
-    city: "Bình Thạnh, TP.HCM",
-    distanceKm: 5,
-    verified: true,
-    bio: "Thích chạy bộ buổi sáng, nghe podcast và cuối tuần đi du lịch dã ngoại.",
-    interests: ["running", "podcast", "cafe", "camping"],
-    attributes: {
-      industry: "Tài chính",
-      education: "ĐH Ngoại Thương",
-      intent: "serious",
-    },
-  },
-  {
-    userId: "6ac7bdcaaaa379c93715d8fa",
-    displayName: "Phương Anh",
-    gender: "female",
-    age: 24,
-    city: "Quận 7, TP.HCM",
-    distanceKm: 6,
-    verified: false,
-    bio: "Yêu thích nhiếp ảnh, thích khám phá các quán cafe mới lạ và mê mèo.",
-    interests: ["photography", "cafe", "pet_lover", "backpacking"],
-    attributes: {
-      industry: "Truyền thông",
-      education: "ĐH KHXH&NV",
-      intent: "casual",
-    },
-  },
-  {
-    userId: "6ac7bdcaaaa379c93715d8fb",
-    displayName: "Đức Huy",
-    gender: "male",
-    age: 27,
-    city: "Hải Châu, Đà Nẵng",
-    distanceKm: 2,
-    verified: true,
-    bio: "Kỹ sư kiến trúc thích chụp ảnh film và đi du lịch bụi. Thích tìm một người bạn trò chuyện chân thành.",
-    interests: ["photography", "cafe", "backpacking", "movies", "indie"],
-    attributes: {
-      industry: "Thiết kế đồ họa",
-      education: "ĐH Bách Khoa",
-      intent: "serious",
-    },
-  },
-  {
-    userId: "6ac7bdcaaaa379c93715d8fc",
-    displayName: "Hoàng Nam",
-    gender: "male",
-    age: 25,
-    city: "Sơn Trà, Đà Nẵng",
-    distanceKm: 3,
-    verified: true,
-    bio: "Lập trình viên mê thể thao, chạy bộ bờ biển và nghe podcast công nghệ.",
-    interests: ["running", "podcast", "cafe", "gaming"],
-    attributes: {
-      industry: "Công nghệ thông tin",
-      education: "ĐH FPT",
-      intent: "casual",
-    },
-  },
-];
-
 export default function HomeFeedScreen() {
   const queryClient = useQueryClient();
   const [greeted, setGreeted] = React.useState<Record<string, boolean>>({});
@@ -160,6 +38,21 @@ export default function HomeFeedScreen() {
   const [activeFilters, setActiveFilters] =
     React.useState<DiscoveryFilterState>(DEFAULT_FILTERS);
   const [searchQuery, setSearchQuery] = React.useState("");
+
+  // Sync default gender filter with user's profile gender
+  const { data: meData } = useQuery(meQuery());
+  React.useEffect(() => {
+    if (meData?.profile?.gender) {
+      const g = meData.profile.gender;
+      if (g === "male") {
+        setActiveFilters((prev) => ({ ...prev, gender: "female" }));
+      } else if (g === "female") {
+        setActiveFilters((prev) => ({ ...prev, gender: "male" }));
+      } else {
+        setActiveFilters((prev) => ({ ...prev, gender: "all" }));
+      }
+    }
+  }, [meData?.profile?.gender]);
 
   // Convert filter state to API parameters
   const queryParams = React.useMemo(() => {
@@ -194,32 +87,15 @@ export default function HomeFeedScreen() {
     },
   });
 
-  // Extract profiles list from API items or fallback
+  // Extract profiles list strictly from real API items
   const allProfiles: ProfileDetailData[] = React.useMemo(() => {
     if (feedData?.items && feedData.items.length > 0) {
       return feedData.items
         .map((candidate: DiscoveryCandidateRead) => extractProfileDetail(candidate))
         .filter((p): p is ProfileDetailData => p !== null);
     }
-
-    // Fallback filter matching active filters
-    return FALLBACK_PROFILES.filter((p) => {
-      if (activeFilters.gender !== "all" && p.gender !== activeFilters.gender) {
-        return false;
-      }
-      if (p.age < activeFilters.ageMin || p.age > activeFilters.ageMax) {
-        return false;
-      }
-      if (
-        p.distanceKm !== undefined &&
-        p.distanceKm !== null &&
-        p.distanceKm > activeFilters.maxDistanceKm
-      ) {
-        return false;
-      }
-      return true;
-    });
-  }, [feedData, activeFilters]);
+    return [];
+  }, [feedData]);
 
   // Client-side search filtering
   const filteredProfiles = React.useMemo(() => {
@@ -439,6 +315,9 @@ export default function HomeFeedScreen() {
 
                       <Text className="text-xs text-muted-foreground">
                         {profile.age} tuổi • 📍 {profile.city}
+                        {profile.distanceKm !== undefined && profile.distanceKm !== null
+                          ? ` • Cách ${profile.distanceKm} km`
+                          : ""}
                       </Text>
                     </View>
                   </View>
