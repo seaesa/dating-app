@@ -121,11 +121,14 @@ the environment of everything else you run in that terminal, and a value
 containing a space does not survive the round trip.
 
 The images are private on first publish, so a first deploy needs
-`docker login ghcr.io` with a token that can read packages.
+`docker login ghcr.io` with a token that can read packages. Without published
+images, build them on the host instead: `... up -d --build`.
 
 Caddy terminates TLS and serves the API under `/api` on the same origin as the
-web app, so production needs no CORS. Point `MONGODB_URL` and `REDIS_URL` at a
-managed database, or run them here with `--profile selfhosted`.
+web app, so production needs no CORS. Point `MONGODB_URL`, `REDIS_URL` and
+`S3_*` at managed services, or run MongoDB, Redis and SeaweedFS here with
+`COMPOSE_PROFILES=selfhosted`. `.env.prod.example` documents both, and the
+ports to move to when another stack on the host already holds 80/443.
 
 **Mobile** builds through EAS:
 

@@ -26,7 +26,7 @@
       "channel": "preview",
       "env": {
         "APP_VARIANT": "preview",
-        "EXPO_PUBLIC_API_URL": "https://staging.terdin.example.com/api"
+        "EXPO_PUBLIC_API_URL": "http://138.2.91.34:8080/api"
       },
       "android": { "buildType": "apk" }
     },

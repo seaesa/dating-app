@@ -23,6 +23,11 @@ const ID_SUFFIX: Record<Variant, string> = {
 
 const bundleId = `com.terdin.date${ID_SUFFIX[variant]}`;
 
+// The staging server has no domain yet, so its API and photos are plain HTTP,
+// which Android (cleartext) and iOS (ATS) refuse by default. Store builds stay
+// HTTPS-only.
+const allowHttp = variant !== "production";
+
 const config: ExpoConfig = {
   name: NAME[variant],
   slug: "terdin-date",
@@ -39,6 +44,7 @@ const config: ExpoConfig = {
     supportsTablet: true,
     infoPlist: {
       NSPhotoLibraryUsageDescription: `${APP_NAME} cần truy cập thư viện để bạn chọn ảnh hồ sơ.`,
+      ...(allowHttp && { NSAppTransportSecurity: { NSAllowsArbitraryLoads: true } }),
     },
   },
   android: {
@@ -91,7 +97,13 @@ const config: ExpoConfig = {
     ],
     // Xcode 27 / iOS 27 SDK requires the UIScene lifecycle. Needs SDK >= 57.0.23;
     // SDK 58+ does this by default, so remove this entry when upgrading.
-    ["expo-build-properties", { ios: { enableSceneSupport: true } }],
+    [
+      "expo-build-properties",
+      {
+        ios: { enableSceneSupport: true },
+        android: { usesCleartextTraffic: allowHttp },
+      },
+    ],
   ],
   extra: {
     eas: {

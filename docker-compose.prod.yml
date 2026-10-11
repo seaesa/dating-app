@@ -4,11 +4,12 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
-    # The only service that publishes a port. Everything else is reachable
-    # solely on the internal network.
+    # The only service that publishes a port (besides the self-hosted S3
+    # below). Everything else is reachable solely on the internal network.
+    # Overridable for a host where another stack already holds 80/443.
     ports:
-      - "80:80"
-      - "443:443"
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
     environment:
       DOMAIN: ${DOMAIN:?set DOMAIN}
     volumes:
@@ -23,9 +24,15 @@ services:
 
   api:
     image: ghcr.io/${GITHUB_OWNER:-terdin}/terdin-date-api:${IMAGE_TAG:-latest}
+    # Used when the image cannot be pulled, or with `up -d --build`.
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
     restart: unless-stopped
     environment:
-      ENVIRONMENT: production
+      # `development` only for a demo without Twilio: OTP codes are then
+      # returned to the client and the production credential checks are off.
+      ENVIRONMENT: ${ENVIRONMENT:-production}
       # `:?` rather than a default: a missing value must stop the deploy, not
       # start the service pointing at nothing.
       MONGODB_URL: ${MONGODB_URL:?set MONGODB_URL}
@@ -53,15 +60,21 @@ services:
       redis:
         condition: service_healthy
         required: false
+      s3:
+        condition: service_healthy
+        required: false
 
   push-worker:
     image: ghcr.io/${GITHUB_OWNER:-terdin}/terdin-date-api:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
     restart: unless-stopped
     command: ["python", "-m", "app.cli", "push-worker"]
     # The production Settings validator refuses local S3 keys and the console
     # SMS provider, so the worker needs the API's real values even unused.
     environment:
-      ENVIRONMENT: production
+      ENVIRONMENT: ${ENVIRONMENT:-production}
       MONGODB_URL: ${MONGODB_URL:?set MONGODB_URL}
       MONGODB_DB: ${MONGODB_DB:-terdin_date}
       REDIS_URL: ${REDIS_URL:?set REDIS_URL}
@@ -85,12 +98,19 @@ services:
 
   web:
     image: ghcr.io/${GITHUB_OWNER:-terdin}/terdin-date-web:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+      # Inlined into client JavaScript, so they only take effect on a build.
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+        NEXT_PUBLIC_APP_NAME: ${APP_NAME:?set APP_NAME}
     restart: unless-stopped
     environment:
       NODE_ENV: production
 
   # Self-hosted data stores, behind a profile. Most deployments point
-  # MONGODB_URL and REDIS_URL at a managed instance and never start these:
+  # MONGODB_URL, REDIS_URL and S3_* at managed services and never start these:
   #   docker compose -f docker-compose.prod.yml up -d
   # To run them here:
   #   docker compose -f docker-compose.prod.yml --profile selfhosted up -d
@@ -127,8 +147,53 @@ services:
       timeout: 3s
       retries: 10
 
+  # The same SeaweedFS gateway as docker-compose.yml. Presigned URLs carry
+  # S3_ENDPOINT's host, so phones reach this port directly: set S3_ENDPOINT to
+  # this host's public address and S3_PORT.
+  s3:
+    image: chrislusf/seaweedfs:4.48
+    profiles: ["selfhosted"]
+    restart: unless-stopped
+    ports:
+      - "${S3_PORT:-8333}:8333"
+    environment:
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:?set S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?set S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET:?set S3_BUCKET}
+    # The identities file is written from the env so the keys live only in
+    # .env.prod. No anonymous identity: every object, public or private, is
+    # served through a presigned URL.
+    #
+    # The API never creates its bucket, so a background step does once the
+    # gateway answers; it fails harmlessly when the bucket already exists.
+    #
+    # -volume.max and the volume size: left to itself SeaweedFS derives the
+    # volume count from free disk / 1GB, which on a small shared disk leaves no
+    # slot for the bucket. Slots are not preallocated.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        printf '{"identities":[{"name":"api","credentials":[{"accessKey":"%s","secretKey":"%s"}],"actions":["Admin","Read","Write","List","Tagging"]}]}' \
+          "$$S3_ACCESS_KEY" "$$S3_SECRET_KEY" > /tmp/s3.json
+        (
+          until curl -s -o /dev/null http://localhost:8333/; do sleep 1; done
+          echo "s3.bucket.create -name $$S3_BUCKET" | weed shell -master=localhost:9333 > /dev/null 2>&1
+        ) &
+        exec weed server -dir=/data -s3 -s3.port=8333 -s3.config=/tmp/s3.json \
+          -volume.max=30 -master.volumeSizeLimitMB=256
+    volumes:
+      - s3-data:/data
+    healthcheck:
+      # Plain curl, not -f: an anonymous request is correctly answered 403.
+      test: ["CMD", "curl", "-s", "-o", "/dev/null", "http://localhost:8333/"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
 volumes:
   caddy-data:
   caddy-config:
   mongo-data:
   redis-data:
+  s3-data:
