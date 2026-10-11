@@ -30,7 +30,21 @@ import { PeerAvatar } from "@/components/chat/peer-avatar";
 import { VerifiedName } from "@/components/chat/verified-name";
 
 const GENDER = { male: "Nam", female: "Nữ", other: "Khác" } as const;
-const ATTRIBUTES = ["intent", "industry", "education"] as const;
+const ATTRIBUTES = [
+  "intent",
+  "industry",
+  "education",
+  "heightCm",
+  "hometown",
+  "exercise",
+  "drinking",
+  "smoking",
+  "pets",
+  "diet",
+  "zodiac",
+  "loveLanguage",
+  "mbti",
+] as const;
 
 const retryLater = () => Alert.alert("Chưa thực hiện được", "Thử lại sau ít phút nhé.");
 
@@ -47,11 +61,6 @@ const ACTION: Record<RevealKind, Record<"none" | "incoming" | "outgoing", string
     outgoing: "Đang chờ đồng ý",
   },
   phone: { none: "Yêu cầu mở SĐT", incoming: "Xem yêu cầu", outgoing: "Đang chờ đồng ý" },
-};
-const ATTRIBUTE_TITLE: Record<(typeof ATTRIBUTES)[number], string> = {
-  intent: "Mục tiêu",
-  industry: "Nghề nghiệp",
-  education: "Học vấn",
 };
 
 export default function PartnerProfileScreen() {
@@ -268,9 +277,7 @@ export default function PartnerProfileScreen() {
               <View key={key} className="flex-row items-center gap-3">
                 <Text className="w-7 text-center text-lg">{entry.icon ?? ""}</Text>
                 <View className="flex-1">
-                  <Text className="text-xs text-muted-foreground">
-                    {ATTRIBUTE_TITLE[key]}
-                  </Text>
+                  <Text className="text-xs text-muted-foreground">{entry.title}</Text>
                   <Text className="text-base font-semibold text-foreground">
                     {entry.label}
                   </Text>
