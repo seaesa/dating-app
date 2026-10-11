@@ -8,6 +8,7 @@ import { router } from "expo-router";
 import * as React from "react";
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   Pressable,
   RefreshControl,
@@ -25,7 +26,33 @@ import {
 } from "@repo/api-contract";
 import { Button, SegmentedControl, Text } from "@repo/ui";
 
+import {
+  ProfileDetailModal,
+  type ProfileDetailData,
+} from "../../../components/discovery/profile-detail-modal";
+
 type MatchesTab = "matches" | "likes";
+
+function mapReceivedInteractionToProfile(
+  item: ReceivedInteractionRead,
+): ProfileDetailData | null {
+  const profile = item.actor.profile;
+  if (!profile) return null;
+
+  return {
+    userId: item.actor.id,
+    displayName: profile.displayName,
+    age: profile.age,
+    gender: profile.gender,
+    city: profile.city || "Việt Nam",
+    distanceKm: item.distanceKm,
+    bio: profile.bio,
+    verified: profile.verified,
+    interests: profile.interests,
+    attributes: profile.attributes,
+    prompts: profile.prompts,
+  };
+}
 
 export default function MatchesScreen() {
   const queryClient = useQueryClient();
@@ -34,6 +61,8 @@ export default function MatchesScreen() {
     name: string;
     connectionId?: string | null;
   } | null>(null);
+  const [selectedActor, setSelectedActor] =
+    React.useState<ReceivedInteractionRead | null>(null);
 
   // Queries
   const connectionsQueryData = useInfiniteQuery(connectionsQuery());
@@ -72,6 +101,25 @@ export default function MatchesScreen() {
       }
     },
   });
+
+  const handlePass = (actorId: string, displayName: string) => {
+    Alert.alert(
+      "Bỏ qua lời chào",
+      `Bạn có chắc chắn muốn bỏ qua ${displayName}? Người này sẽ không còn xuất hiện trong danh sách.`,
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Bỏ qua",
+          style: "destructive",
+          onPress: () =>
+            interactMutation.mutate({
+              targetId: actorId,
+              action: "pass",
+            }),
+        },
+      ],
+    );
+  };
 
   const openChat = (connectionId: string) => {
     router.push({
@@ -260,12 +308,37 @@ export default function MatchesScreen() {
               const isFemale = actor.profile.gender === "female";
               const age = actor.profile.age;
 
+              const badgeConfig =
+                item.action === "star"
+                  ? {
+                      label: "Siêu thích bạn ⭐",
+                      bg: "bg-amber-500/15",
+                      text: "text-amber-500",
+                    }
+                  : item.action === "like"
+                    ? {
+                        label: "Đã thích bạn 💖",
+                        bg: "bg-rose-500/15",
+                        text: "text-rose-500",
+                      }
+                    : {
+                        label: "Đã chào bạn 💌",
+                        bg: "bg-primary/10",
+                        text: "text-primary",
+                      };
+
               return (
                 <View
                   key={item.interactionId}
                   className="rounded-2xl border border-primary/20 bg-card p-4 shadow-sm shadow-black/5 gap-3"
                 >
-                  <View className="flex-row items-center justify-between">
+                  {/* Clickable Card Body to Open Profile Detail */}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Xem thông tin hồ sơ của ${actor.profile.displayName}`}
+                    onPress={() => setSelectedActor(item)}
+                    className="gap-2.5 active:opacity-75"
+                  >
                     <View className="flex-row items-center gap-3">
                       {/* Avatar */}
                       <View
@@ -276,14 +349,14 @@ export default function MatchesScreen() {
                         <Text className="text-xl">{isFemale ? "👩" : "👨"}</Text>
                       </View>
 
-                      <View className="gap-0.5">
-                        <View className="flex-row items-center gap-1.5">
+                      <View className="flex-1 gap-0.5">
+                        <View className="flex-row items-center gap-1.5 flex-wrap">
                           <Text className="text-base font-bold text-foreground">
                             {actor.profile.displayName}
                           </Text>
-                          <View className="rounded-md bg-primary/10 px-1.5 py-0.5">
-                            <Text className="text-[10px] font-bold text-primary">
-                              Đã chào bạn 💌
+                          <View className={`rounded-md ${badgeConfig.bg} px-1.5 py-0.5`}>
+                            <Text className={`text-[10px] font-bold ${badgeConfig.text}`}>
+                              {badgeConfig.label}
                             </Text>
                           </View>
                         </View>
@@ -296,29 +369,24 @@ export default function MatchesScreen() {
                         </Text>
                       </View>
                     </View>
-                  </View>
 
-                  {actor.profile.bio ? (
-                    <Text
-                      className="rounded-xl bg-secondary/40 p-2.5 text-xs text-muted-foreground"
-                      numberOfLines={2}
-                    >
-                      {`"${actor.profile.bio}"`}
-                    </Text>
-                  ) : null}
+                    {actor.profile.bio ? (
+                      <Text
+                        className="rounded-xl bg-secondary/40 p-2.5 text-xs text-muted-foreground"
+                        numberOfLines={2}
+                      >
+                        {`"${actor.profile.bio}"`}
+                      </Text>
+                    ) : null}
+                  </Pressable>
 
                   {/* Action Buttons */}
-                  <View className="flex-row items-center justify-end gap-2 pt-1">
+                  <View className="flex-row items-center justify-end gap-2 pt-1 border-t border-border/20">
                     <Button
                       size="sm"
                       variant="outline"
                       disabled={interactMutation.isPending}
-                      onPress={() =>
-                        interactMutation.mutate({
-                          targetId: actor.id,
-                          action: "pass",
-                        })
-                      }
+                      onPress={() => handlePass(actor.id, actor.profile.displayName)}
                       className="h-9 rounded-full px-4"
                     >
                       <Text className="text-xs font-semibold text-muted-foreground">
@@ -399,6 +467,30 @@ export default function MatchesScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Profile Detail Modal for Admirer */}
+      <ProfileDetailModal
+        visible={selectedActor !== null}
+        onClose={() => setSelectedActor(null)}
+        profileData={
+          selectedActor ? mapReceivedInteractionToProfile(selectedActor) : null
+        }
+        mode="admirer"
+        onMatch={(connectionId) => {
+          if (selectedActor) {
+            setCelebrationData({
+              name: selectedActor.actor.profile.displayName,
+              connectionId,
+            });
+          }
+        }}
+        onActionComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ["interactions", "received"] });
+          queryClient.invalidateQueries({ queryKey: ["connections"] });
+          queryClient.invalidateQueries({ queryKey: ["discovery"] });
+          setSelectedActor(null);
+        }}
+      />
     </SafeAreaView>
   );
 }

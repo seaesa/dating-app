@@ -9,6 +9,8 @@ import { meQuery, profileOptionsQuery } from "@repo/api-contract";
 import { useAuthStore } from "@repo/store";
 import { Button, ProfileCard, Skeleton, Text } from "@repo/ui";
 
+import { attributeEntry } from "@/chat/catalog";
+
 export default function ProfileScreen() {
   const signOut = useAuthStore((s) => s.signOut);
   const { data, isPending, isError } = useQuery(meQuery());
@@ -66,108 +68,39 @@ export default function ProfileScreen() {
       title: string;
     }> = [];
 
-    // Intent
-    if (attrs.intent) {
-      const attr = optionsData?.attributes?.find((a) => a.key === "intent");
-      const opt = attr?.options.find((o) => o.value === attrs.intent);
-      result.push({
-        key: "intent",
-        icon: opt?.icon || "🎯",
-        label: opt?.label ?? attrs.intent,
-        title: "Mục đích",
-      });
-    }
+    const order: Array<keyof typeof attrs> = [
+      "intent",
+      "heightCm",
+      "education",
+      "industry",
+      "hometown",
+      "exercise",
+      "drinking",
+      "smoking",
+      "pets",
+      "diet",
+      "zodiac",
+      "loveLanguage",
+      "mbti",
+      "hasChildren",
+      "wantsChildren",
+    ];
 
-    // Height
-    if (attrs.heightCm) {
-      result.push({
-        key: "height",
-        icon: "📏",
-        label: `${attrs.heightCm} cm`,
-        title: "Chiều cao",
-      });
-    }
-
-    // Education
-    if (attrs.education) {
-      const attr = optionsData?.attributes?.find((a) => a.key === "education");
-      const opt = attr?.options.find((o) => o.value === attrs.education);
-      result.push({
-        key: "education",
-        icon: opt?.icon || "🎓",
-        label: opt?.label ?? attrs.education,
-        title: "Học vấn",
-      });
-    }
-
-    // Industry
-    if (attrs.industry) {
-      const attr = optionsData?.attributes?.find((a) => a.key === "industry");
-      const opt = attr?.options.find((o) => o.value === attrs.industry);
-      result.push({
-        key: "industry",
-        icon: opt?.icon || "💼",
-        label: opt?.label ?? attrs.industry,
-        title: "Nghề nghiệp",
-      });
-    }
-
-    // Hometown
-    if (attrs.hometown) {
-      result.push({
-        key: "hometown",
-        icon: "🏡",
-        label: attrs.hometown,
-        title: "Quê quán",
-      });
-    }
-
-    // Exercise
-    if (attrs.exercise) {
-      const attr = optionsData?.attributes?.find((a) => a.key === "exercise");
-      const opt = attr?.options.find((o) => o.value === attrs.exercise);
-      result.push({
-        key: "exercise",
-        icon: opt?.icon || "🏃",
-        label: opt?.label ?? attrs.exercise,
-        title: "Thể thao",
-      });
-    }
-
-    // Drinking
-    if (attrs.drinking) {
-      const attr = optionsData?.attributes?.find((a) => a.key === "drinking");
-      const opt = attr?.options.find((o) => o.value === attrs.drinking);
-      result.push({
-        key: "drinking",
-        icon: opt?.icon || "🍷",
-        label: opt?.label ?? attrs.drinking,
-        title: "Rượu bia",
-      });
-    }
-
-    // Smoking
-    if (attrs.smoking) {
-      const attr = optionsData?.attributes?.find((a) => a.key === "smoking");
-      const opt = attr?.options.find((o) => o.value === attrs.smoking);
-      result.push({
-        key: "smoking",
-        icon: opt?.icon || "🚬",
-        label: opt?.label ?? attrs.smoking,
-        title: "Hút thuốc",
-      });
-    }
-
-    // Pets
-    if (attrs.pets) {
-      const attr = optionsData?.attributes?.find((a) => a.key === "pets");
-      const opt = attr?.options.find((o) => o.value === attrs.pets);
-      result.push({
-        key: "pets",
-        icon: opt?.icon || "🐾",
-        label: opt?.label ?? attrs.pets,
-        title: "Thú cưng",
-      });
+    for (const key of order) {
+      const val = attrs[key];
+      const entry = attributeEntry(
+        optionsData,
+        key,
+        val as string | number | null | undefined,
+      );
+      if (entry) {
+        result.push({
+          key,
+          icon: entry.icon ?? "✨",
+          label: entry.label,
+          title: entry.title,
+        });
+      }
     }
 
     return result;

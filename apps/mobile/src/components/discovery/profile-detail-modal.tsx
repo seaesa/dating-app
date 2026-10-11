@@ -12,7 +12,9 @@ import {
   type UserRead,
 } from "@repo/api-contract";
 import { APP_NAME } from "@repo/core";
-import { Avatar, AvatarFallback, Badge, DEFAULT_INTEREST_LABELS, Text } from "@repo/ui";
+import { Avatar, AvatarFallback, Badge, Text } from "@repo/ui";
+
+import { attributeEntry, interestEntry, useCatalog } from "@/chat/catalog";
 
 export interface ProfileDetailData {
   userId: string;
@@ -79,35 +81,85 @@ const GENDER_LABELS: Record<string, string> = {
   other: "Khác",
 };
 
-const INTENT_LABELS: Record<string, string> = {
-  serious_relationship: "Tìm kiếm mối quan hệ nghiêm túc",
-  marriage: "Hướng tới hôn nhân",
-  dating: "Hẹn hò tìm hiểu",
-  casual: "Trò chuyện, kết bạn",
-  friendship: "Tìm bạn cùng sở thích",
-};
-
 export interface ProfileDetailContentProps {
   data: ProfileDetailData;
   onClose?: () => void;
   onActionComplete?: (action: InteractionAction) => void;
+  mode?: "discovery" | "admirer";
+  onMatch?: (connectionId?: string | null) => void;
 }
 
 export function ProfileDetailContent({
   data,
   onClose,
   onActionComplete,
+  mode = "discovery",
+  onMatch,
 }: ProfileDetailContentProps) {
   const queryClient = useQueryClient();
+  const catalog = useCatalog();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const lifestyleBadges = React.useMemo(() => {
+    if (!data.attributes) return [];
+    const attrs = data.attributes;
+    const list: Array<{
+      key: string;
+      icon: string;
+      label: string;
+      title: string;
+    }> = [];
+
+    const order: Array<keyof ProfileAttributes> = [
+      "intent",
+      "heightCm",
+      "education",
+      "industry",
+      "hometown",
+      "exercise",
+      "drinking",
+      "smoking",
+      "pets",
+      "diet",
+      "zodiac",
+      "loveLanguage",
+      "mbti",
+      "hasChildren",
+      "wantsChildren",
+    ];
+
+    for (const key of order) {
+      const val = attrs[key];
+      const entry = attributeEntry(
+        catalog,
+        key,
+        val as string | number | null | undefined,
+      );
+      if (entry) {
+        list.push({
+          key,
+          icon: entry.icon ?? "✨",
+          label: entry.label,
+          title: entry.title,
+        });
+      }
+    }
+    return list;
+  }, [data.attributes, catalog]);
 
   const interactionMutation = useMutation({
     mutationFn: createInteraction,
     onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: ["discovery"] });
+      queryClient.invalidateQueries({ queryKey: ["interactions", "received"] });
+      queryClient.invalidateQueries({ queryKey: ["connections"] });
       onActionComplete?.(variables.action);
       if (result.matched) {
-        Alert.alert("Chúc mừng! 🎉", "Hai bạn đã gửi tín hiệu cho nhau!");
+        if (onMatch) {
+          onMatch(result.connectionId);
+        } else {
+          Alert.alert("Chúc mừng! 🎉", "Hai bạn đã gửi tín hiệu cho nhau!");
+        }
       }
       onClose?.();
     },
@@ -121,12 +173,6 @@ export function ProfileDetailContent({
   });
 
   const genderText = data.gender ? (GENDER_LABELS[data.gender] ?? "Khác") : "Nữ";
-  const intentText = data.attributes?.intent
-    ? (INTENT_LABELS[data.attributes.intent] ?? data.attributes.intent)
-    : "Tìm kiếm mối quan hệ nghiêm túc";
-  const educationText = data.attributes?.education ?? "Đại học Kiến Trúc TP.HCM";
-  const occupationText = data.attributes?.industry ?? "Thiết kế đồ họa";
-
   const firstPrompt = data.prompts && data.prompts.length > 0 ? data.prompts[0] : null;
 
   async function handleShare() {
@@ -139,8 +185,29 @@ export function ProfileDetailContent({
     }
   }
 
-  function handleAction(action: "pass" | "like" | "star") {
+  function handleAction(action: "pass" | "like" | "star" | "greet") {
     if (!data.userId || isSubmitting) return;
+
+    if (action === "pass" && mode === "admirer") {
+      Alert.alert(
+        "Bỏ qua lời chào",
+        `Bạn có chắc chắn muốn bỏ qua ${data.displayName}? Người này sẽ không còn xuất hiện trong danh sách.`,
+        [
+          { text: "Hủy", style: "cancel" },
+          {
+            text: "Bỏ qua",
+            style: "destructive",
+            onPress: () => executeAction(action),
+          },
+        ],
+      );
+      return;
+    }
+
+    executeAction(action);
+  }
+
+  function executeAction(action: "pass" | "like" | "star" | "greet") {
     setIsSubmitting(true);
 
     // If userId is not a valid 24-character hex BSON ObjectId (e.g. mock profile)
@@ -148,7 +215,7 @@ export function ProfileDetailContent({
       setTimeout(() => {
         setIsSubmitting(false);
         onActionComplete?.(action);
-        if (action === "like" || action === "star") {
+        if (action === "like" || action === "star" || action === "greet") {
           Alert.alert("Thành công! 🎉", "Đã gửi tín hiệu kết nối!");
         }
         onClose?.();
@@ -281,28 +348,36 @@ export function ProfileDetailContent({
           ) : null}
         </View>
 
-        {/* Basic Info (3 Cards) */}
-        <View className="gap-2.5">
-          {/* Occupation */}
-          <View className="flex-row items-center gap-3 rounded-2xl border border-border/60 bg-secondary/40 p-3.5">
-            <Text className="text-lg">🎨</Text>
-            <Text className="text-sm font-semibold text-foreground">
-              {occupationText}
-            </Text>
-          </View>
+        {/* Section: Thông tin cá nhân & Lối sống */}
+        {lifestyleBadges.length > 0 ? (
+          <View className="rounded-2xl border border-border/80 bg-card p-4 shadow-sm shadow-black/5">
+            <View className="flex-row items-center gap-2 pb-3">
+              <Text className="text-base">🌿</Text>
+              <Text className="text-sm font-bold text-foreground">
+                Thông tin cá nhân & Lối sống
+              </Text>
+            </View>
 
-          {/* Education */}
-          <View className="flex-row items-center gap-3 rounded-2xl border border-border/60 bg-secondary/40 p-3.5">
-            <Text className="text-lg">🎓</Text>
-            <Text className="text-sm font-semibold text-foreground">{educationText}</Text>
+            <View className="flex-row flex-wrap gap-2 pt-1">
+              {lifestyleBadges.map((item) => (
+                <View
+                  key={item.key}
+                  className="flex-row items-center gap-2 rounded-xl border border-border/70 bg-secondary/50 px-3 py-2"
+                >
+                  <Text className="text-base">{item.icon}</Text>
+                  <View>
+                    <Text className="text-[10px] font-semibold text-muted-foreground">
+                      {item.title}
+                    </Text>
+                    <Text className="text-xs font-bold text-foreground">
+                      {item.label}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
           </View>
-
-          {/* Relationship Intent */}
-          <View className="flex-row items-center gap-3 rounded-2xl border border-border/60 bg-secondary/40 p-3.5">
-            <Text className="text-lg">🤍</Text>
-            <Text className="text-sm font-semibold text-foreground">{intentText}</Text>
-          </View>
-        </View>
+        ) : null}
 
         {/* Bio Quote Card */}
         {data.bio ? (
@@ -323,18 +398,17 @@ export function ProfileDetailContent({
             <Text className="text-base font-bold text-foreground">Sở thích</Text>
             <View className="flex-row flex-wrap gap-2">
               {data.interests.map((key) => {
-                const fallback = DEFAULT_INTEREST_LABELS[key];
-                const label = fallback?.label ?? key.replace(/_/g, " ");
-                const icon = fallback?.icon ?? "✨";
-
+                const entry = interestEntry(catalog, key);
                 return (
                   <Badge
                     key={key}
                     variant="secondary"
                     className="flex-row items-center gap-1.5 rounded-xl border border-border/70 bg-card px-3.5 py-2 shadow-xs"
                   >
-                    <Text className="text-xs">{icon}</Text>
-                    <Text className="text-xs font-semibold text-foreground">{label}</Text>
+                    <Text className="text-xs">{entry.icon ?? "✨"}</Text>
+                    <Text className="text-xs font-semibold text-foreground">
+                      {entry.label}
+                    </Text>
                   </Badge>
                 );
               })}
@@ -381,37 +455,64 @@ export function ProfileDetailContent({
         edges={["bottom"]}
         className="absolute bottom-0 left-0 right-0 border-t border-border/40 bg-card/95 px-5 py-3 shadow-lg"
       >
-        <View className="flex-row items-center gap-3.5">
-          {/* Pass Button (✕) */}
-          <Pressable
-            disabled={isSubmitting}
-            onPress={() => handleAction("pass")}
-            className="h-14 w-14 items-center justify-center rounded-full border border-border/80 bg-background shadow-xs active:scale-95"
-          >
-            <Text className="text-xl font-bold text-muted-foreground">✕</Text>
-          </Pressable>
+        {mode === "admirer" ? (
+          <View className="flex-row items-center gap-3">
+            {/* Pass Button */}
+            <Pressable
+              disabled={isSubmitting}
+              onPress={() => handleAction("pass")}
+              className="h-14 flex-1 items-center justify-center rounded-2xl border border-border/80 bg-background shadow-xs active:scale-98"
+            >
+              <Text className="text-base font-semibold text-muted-foreground">
+                ✕ Bỏ qua
+              </Text>
+            </Pressable>
 
-          {/* Connect Button (♡ Gửi yêu cầu kết nối) */}
-          <Pressable
-            disabled={isSubmitting}
-            onPress={() => handleAction("like")}
-            className="h-14 flex-1 flex-row items-center justify-center gap-2 rounded-full bg-primary shadow-md shadow-primary/25 active:opacity-90"
-          >
-            <Text className="text-lg text-primary-foreground">♡</Text>
-            <Text className="text-base font-bold text-primary-foreground">
-              Gửi yêu cầu kết nối
-            </Text>
-          </Pressable>
+            {/* Greet Back Button */}
+            <Pressable
+              disabled={isSubmitting}
+              onPress={() => handleAction("greet")}
+              className="h-14 flex-[1.4] flex-row items-center justify-center gap-2 rounded-2xl bg-primary shadow-md shadow-primary/25 active:opacity-90"
+            >
+              <Text className="text-lg text-primary-foreground">💖</Text>
+              <Text className="text-base font-bold text-primary-foreground">
+                Chào lại
+              </Text>
+            </Pressable>
+          </View>
+        ) : (
+          <View className="flex-row items-center gap-3.5">
+            {/* Pass Button (✕) */}
+            <Pressable
+              disabled={isSubmitting}
+              onPress={() => handleAction("pass")}
+              className="h-14 w-14 items-center justify-center rounded-full border border-border/80 bg-background shadow-xs active:scale-95"
+            >
+              <Text className="text-xl font-bold text-muted-foreground">✕</Text>
+            </Pressable>
 
-          {/* Star / Superlike Button (⭐) */}
-          <Pressable
-            disabled={isSubmitting}
-            onPress={() => handleAction("star")}
-            className="h-14 w-14 items-center justify-center rounded-full border border-amber-300/60 bg-amber-500/10 shadow-xs active:scale-95"
-          >
-            <Text className="text-xl">⭐</Text>
-          </Pressable>
-        </View>
+            {/* Connect Button (♡ Gửi yêu cầu kết nối) */}
+            <Pressable
+              disabled={isSubmitting}
+              onPress={() => handleAction("like")}
+              className="h-14 flex-1 flex-row items-center justify-center gap-2 rounded-full bg-primary shadow-md shadow-primary/25 active:opacity-90"
+            >
+              <Text className="text-lg text-primary-foreground">♡</Text>
+              <Text className="text-base font-bold text-primary-foreground">
+                Gửi yêu cầu kết nối
+              </Text>
+            </Pressable>
+
+            {/* Star / Superlike Button (⭐) */}
+            <Pressable
+              disabled={isSubmitting}
+              onPress={() => handleAction("star")}
+              className="h-14 w-14 items-center justify-center rounded-full border border-amber-300/60 bg-amber-500/10 shadow-xs active:scale-95"
+            >
+              <Text className="text-xl">⭐</Text>
+            </Pressable>
+          </View>
+        )}
       </SafeAreaView>
     </View>
   );
@@ -423,6 +524,8 @@ export interface ProfileDetailModalProps {
   candidate?: DiscoveryCandidateRead | UserRead | null;
   profileData?: ProfileDetailData | null;
   onActionComplete?: (action: InteractionAction) => void;
+  mode?: "discovery" | "admirer";
+  onMatch?: (connectionId?: string | null) => void;
 }
 
 export function ProfileDetailModal({
@@ -431,6 +534,8 @@ export function ProfileDetailModal({
   candidate,
   profileData: explicitData,
   onActionComplete,
+  mode = "discovery",
+  onMatch,
 }: ProfileDetailModalProps) {
   const data: ProfileDetailData | null = React.useMemo(() => {
     if (explicitData) return explicitData;
@@ -452,6 +557,8 @@ export function ProfileDetailModal({
           data={data}
           onClose={onClose}
           onActionComplete={onActionComplete}
+          mode={mode}
+          onMatch={onMatch}
         />
       </SafeAreaView>
     </Modal>
