@@ -49,11 +49,13 @@ jobs:
 
       - uses: ./.github/actions/setup
 
+      # Not expo/expo-github-action: it resolves the version with `npm info` in
+      # the repository, where npm refuses to run (EBADDEVENGINES) because
+      # package.json pins pnpm through devEngines. The Build step authenticates
+      # through EXPO_TOKEN.
       - name: Install the EAS CLI
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+        working-directory: ${{ runner.temp }}
+        run: npm install --global eas-cli@latest
 
       # A tag builds for the store; a manual run builds what was asked for.
       - name: Resolve the profile

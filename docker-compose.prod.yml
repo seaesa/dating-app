@@ -51,6 +51,10 @@ services:
       S3_PUBLIC_BASE_URL: ${S3_PUBLIC_BASE_URL:?set S3_PUBLIC_BASE_URL}
       CORS_ORIGINS: https://${DOMAIN}
       LOG_JSON: "true"
+      # Caddy is the API's only client (no published port), so trust its
+      # X-Forwarded-For. Otherwise every user shares Caddy's address, and with
+      # it the per-IP OTP limit. Caddy drops a client-sent X-Forwarded-For.
+      FORWARDED_ALLOW_IPS: "*"
     # Only binding under --profile selfhosted; with managed stores these
     # services are not started and `required: false` skips the wait.
     depends_on:

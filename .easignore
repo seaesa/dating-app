@@ -16,6 +16,13 @@ coverage
 /apps/mobile/ios
 /apps/mobile/android
 
+# A developer's .env (LAN API URL, local file paths) must not reach a cloud
+# build: there, eas.json and EAS environment variables are the source. This file
+# replaces .gitignore for EAS, so its .env rules do not apply here.
+**/.env
+**/.env.*
+!**/.env.example
+
 # Nothing the bundler reads.
 apps/api
 docs
