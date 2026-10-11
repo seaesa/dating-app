@@ -4,6 +4,7 @@ from enum import StrEnum
 from beanie import PydanticObjectId
 
 from app.core.schemas import BaseSchema
+from app.modules.users.schemas import UserRead
 
 
 class InteractionAction(StrEnum):
@@ -32,3 +33,12 @@ class InteractionResultRead(BaseSchema):
     action: InteractionAction
     target_id: PydanticObjectId
     matched: bool = False
+    connection_id: PydanticObjectId | None = None
+
+
+class ReceivedInteractionRead(BaseSchema):
+    interaction_id: PydanticObjectId
+    actor: UserRead
+    action: InteractionAction
+    created_at: datetime
+    distance_km: float | None = None

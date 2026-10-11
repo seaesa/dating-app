@@ -149,6 +149,17 @@ class UserService:
 
     async def update_profile(self, user: User, patch: PublicProfileUpdate) -> UserRead:
         _apply(user.public, patch)
+        if patch.city and (
+            user.private.location is None or len(user.private.location.coordinates) != 2
+        ):
+            from app.core.vietnam_provinces import get_province_centroid
+            from app.modules.users.schemas import GeoPoint
+
+            centroid = get_province_centroid(patch.city)
+            if centroid:
+                user.private.location = GeoPoint(
+                    type="Point", coordinates=[centroid[0], centroid[1]]
+                )
         await user.save()
         return await self._project(user, RevealScope.SELF)
 

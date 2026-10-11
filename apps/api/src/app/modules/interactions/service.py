@@ -1,3 +1,4 @@
+import math
 from datetime import UTC, datetime
 
 from beanie import PydanticObjectId
@@ -8,9 +9,11 @@ from app.modules.interactions.schemas import (
     InteractionAction,
     InteractionCreate,
     InteractionResultRead,
+    ReceivedInteractionRead,
 )
 from app.modules.users.models import User
 from app.modules.users.schemas import UserStatus
+from app.modules.users.visibility import RevealScope, project_user
 
 POSITIVE_ACTIONS = frozenset(
     {InteractionAction.GREET, InteractionAction.LIKE, InteractionAction.STAR}
@@ -62,6 +65,7 @@ class InteractionService:
 
         # Check mutual match for positive actions
         matched = False
+        connection_id = None
         if body.action in POSITIVE_ACTIONS:
             target_mutual = await UserInteraction.find_one(
                 {
@@ -71,9 +75,107 @@ class InteractionService:
                 }
             )
             matched = target_mutual is not None
+            if matched:
+                from app.modules.connections.service import ConnectionService
+
+                conn_service = ConnectionService()
+                existing_conn = await conn_service.repository.find_between(
+                    actor.oid, target_oid
+                )
+                if existing_conn:
+                    connection_id = existing_conn.oid
+                else:
+                    try:
+                        req = await conn_service.request(actor, target_oid)
+                        accepted = await conn_service.accept(target_user, req.oid)
+                        connection_id = accepted.oid
+                    except Exception:
+                        found = await conn_service.repository.find_between(
+                            actor.oid, target_oid
+                        )
+                        if found:
+                            connection_id = found.oid
 
         return InteractionResultRead(
             action=body.action,
             target_id=target_oid,
             matched=matched,
+            connection_id=connection_id,
         )
+
+    async def get_received_interactions(
+        self, user: User, limit: int = 50
+    ) -> list[ReceivedInteractionRead]:
+        """Fetch incoming positive interactions that user has not reacted to yet."""
+        # 1. User's outgoing interactions (exclude users already greeted/passed/blocked)
+        outgoing = await UserInteraction.find({"actor_id": user.oid}).to_list()
+        already_handled_ids = {doc.target_id for doc in outgoing}
+        already_handled_ids.add(user.oid)
+
+        # 2. Incoming positive interactions
+        inbound = (
+            await UserInteraction.find(
+                {
+                    "target_id": user.oid,
+                    "actor_id": {"$nin": list(already_handled_ids)},
+                    "action": {"$in": list(POSITIVE_ACTIONS)},
+                }
+            )
+            .sort("-created_at")
+            .limit(limit)
+            .to_list()
+        )
+
+        if not inbound:
+            return []
+
+        # 3. Fetch actor users
+        actor_ids = [doc.actor_id for doc in inbound]
+        actor_users = await User.find(
+            {"_id": {"$in": actor_ids}, "status": UserStatus.ACTIVE}
+        ).to_list()
+        actor_map = {u.oid: u for u in actor_users}
+
+        results: list[ReceivedInteractionRead] = []
+        user_coords = (
+            user.private.location.coordinates
+            if user.private.location and len(user.private.location.coordinates) == 2
+            else None
+        )
+
+        for doc in inbound:
+            actor = actor_map.get(doc.actor_id)
+            if not actor:
+                continue
+
+            dist_km = None
+            actor_loc = actor.private.location
+            if user_coords and actor_loc and len(actor_loc.coordinates) == 2:
+                lon1, lat1 = user_coords
+                lon2, lat2 = actor_loc.coordinates
+                dlat = math.radians(lat2 - lat1)
+                dlon = math.radians(lon2 - lon1)
+                a = (
+                    math.sin(dlat / 2) ** 2
+                    + math.cos(math.radians(lat1))
+                    * math.cos(math.radians(lat2))
+                    * math.sin(dlon / 2) ** 2
+                )
+                c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+                dist_km = round(6371.0 * c, 1)
+
+            if doc.id is None:
+                continue
+
+            projected_actor = project_user(actor, RevealScope.PUBLIC)
+            results.append(
+                ReceivedInteractionRead(
+                    interaction_id=doc.id,
+                    actor=projected_actor,
+                    action=doc.action,
+                    created_at=doc.created_at,
+                    distance_km=dist_km,
+                )
+            )
+
+        return results

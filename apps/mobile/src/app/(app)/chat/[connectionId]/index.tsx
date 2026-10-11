@@ -30,11 +30,19 @@ import { RequestBanner } from "@/components/chat/request-banner";
 import { SystemRow } from "@/components/chat/system-row";
 
 function Ended({ title }: { title: string }) {
+  const goBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(app)/(tabs)/chat");
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 items-center justify-center gap-4 bg-background px-6">
       <Icon as={MessageCircleOff} size={40} className="text-muted-foreground" />
       <Text className="text-center text-lg font-bold text-foreground">{title}</Text>
-      <Button onPress={() => router.back()} className="rounded-full px-6">
+      <Button onPress={goBack} className="rounded-full px-6">
         <Text className="font-semibold text-primary-foreground">Quay lại</Text>
       </Button>
     </SafeAreaView>
@@ -102,8 +110,15 @@ export default function ChatRoomScreen() {
   };
   const consentMode = (kind: RevealKind) =>
     chipState(connection.reveals[kind], me.id) === "incoming" ? "accept" : "request";
+  const goBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(app)/(tabs)/chat");
+    }
+  };
   const closeRoom = (reason: "unmatch" | "block") =>
-    confirmClose(peerName, reason, room.close, () => router.back());
+    confirmClose(peerName, reason, room.close, goBack);
 
   const renderRow = ({ item }: { item: ChatRow }) => {
     if (item.type === "day") {
@@ -135,7 +150,7 @@ export default function ChatRoomScreen() {
       <ChatHeader
         peer={connection.peer}
         pendingRequest={incoming !== undefined}
-        onBack={() => router.back()}
+        onBack={goBack}
         onOpenProfile={openProfile}
         onOpenPrivacy={() => setPrivacyOpen(true)}
         onOpenMenu={() => setMenuOpen(true)}

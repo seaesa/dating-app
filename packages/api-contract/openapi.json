@@ -463,6 +463,16 @@
           "action": {
             "$ref": "#/components/schemas/InteractionAction"
           },
+          "connectionId": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PydanticObjectId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "matched": {
             "default": false,
             "title": "Matched",
@@ -1628,6 +1638,44 @@
           }
         },
         "title": "RangeCriterion",
+        "type": "object"
+      },
+      "ReceivedInteractionRead": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/InteractionAction"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/UserRead"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "distanceKm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distancekm"
+          },
+          "interactionId": {
+            "$ref": "#/components/schemas/PydanticObjectId"
+          }
+        },
+        "required": [
+          "interactionId",
+          "actor",
+          "action",
+          "createdAt"
+        ],
+        "title": "ReceivedInteractionRead",
         "type": "object"
       },
       "RefreshBody": {
@@ -4190,6 +4238,117 @@
           }
         ],
         "summary": "Create Interaction",
+        "tags": [
+          "interactions"
+        ]
+      }
+    },
+    "/v1/interactions/received": {
+      "get": {
+        "description": "Fetch inbound likes/greets received by current user.",
+        "operationId": "getReceivedInteractions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReceivedInteractionRead"
+                  },
+                  "title": "Response Getreceivedinteractions",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation Failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Get Received Interactions",
         "tags": [
           "interactions"
         ]

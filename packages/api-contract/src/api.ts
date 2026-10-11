@@ -23,6 +23,7 @@ import type {
   ProfileOptionsRead,
   PublicProfileUpdate,
   PushDeviceBody,
+  ReceivedInteractionRead,
   RevealKind,
   SendMessageBody,
   SensitiveAttributes,
@@ -111,6 +112,19 @@ export const getDiscoveryCount = (params?: GetDiscoveryCountData["query"]) =>
 
 export const createInteraction = (body: InteractionCreate) =>
   http.post<InteractionResultRead>("/v1/interactions", body).then((r) => r.data);
+
+export const getReceivedInteractions = (limit = 50) =>
+  http
+    .get<ReceivedInteractionRead[]>("/v1/interactions/received", {
+      params: { limit },
+    })
+    .then((r) => r.data);
+
+export const receivedInteractionsQuery = (limit = 50) =>
+  queryOptions({
+    queryKey: ["interactions", "received", limit],
+    queryFn: () => getReceivedInteractions(limit),
+  });
 
 export const discoveryFeedQuery = (params?: GetDiscoveryFeedData["query"]) =>
   queryOptions({

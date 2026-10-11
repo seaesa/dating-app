@@ -18,6 +18,14 @@ export default function ProfileDetailScreen() {
 
   const { data: user, isLoading, error } = useQuery(userQuery(userId ?? ""));
 
+  const goBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(app)/(tabs)");
+    }
+  };
+
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-background">
@@ -37,7 +45,7 @@ export default function ProfileDetailScreen() {
         <Text className="mt-1 text-center text-sm text-muted-foreground">
           Hồ sơ này không tồn tại hoặc đã bị ẩn.
         </Text>
-        <Button onPress={() => router.back()} className="mt-6 rounded-full px-6">
+        <Button onPress={goBack} className="mt-6 rounded-full px-6">
           <Text className="font-semibold text-primary-foreground">Quay lại</Text>
         </Button>
       </SafeAreaView>
@@ -52,7 +60,7 @@ export default function ProfileDetailScreen() {
         <Text className="text-sm text-muted-foreground">
           Không thể hiển thị thông tin hồ sơ.
         </Text>
-        <Button onPress={() => router.back()} className="mt-4 rounded-full px-6">
+        <Button onPress={goBack} className="mt-4 rounded-full px-6">
           <Text className="font-semibold text-primary-foreground">Quay lại</Text>
         </Button>
       </SafeAreaView>
@@ -63,8 +71,8 @@ export default function ProfileDetailScreen() {
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <ProfileDetailContent
         data={profileData}
-        onClose={() => router.back()}
-        onActionComplete={() => router.back()}
+        onClose={goBack}
+        onActionComplete={goBack}
       />
     </SafeAreaView>
   );
