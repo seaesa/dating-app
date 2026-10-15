@@ -13,6 +13,5 @@ export function chipState(reveal: RevealRead, myId: string): ChipState {
 
 export const REVEAL_NOUNS: Record<RevealKind, string> = {
   photos: "ảnh",
-  phone: "số điện thoại",
 };
-export const REVEAL_KINDS: RevealKind[] = ["photos", "phone"];
+export const REVEAL_KINDS: RevealKind[] = ["photos"];

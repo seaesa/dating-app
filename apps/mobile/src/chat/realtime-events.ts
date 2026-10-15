@@ -133,7 +133,7 @@ function bump(
       lastMessage: toLastMessage(message),
       lastActivityAt: message.createdAt,
       unreadCount: fromPeer ? moved.unreadCount + 1 : moved.unreadCount,
-      yourTurn: message.kind === "text" ? message.senderId !== myId : moved.yourTurn,
+      yourTurn: message.kind !== "system" ? message.senderId !== myId : moved.yourTurn,
     };
     const [first, ...rest] = pages;
     if (!first) return data;
@@ -184,7 +184,7 @@ export function onRevealUpdated(
 ): void {
   const peerId = queryClient.getQueryData(connectionQuery(connectionId).queryKey)?.peer
     .id;
-  // The event carries state only; photos and phone come back through the
+  // The event carries state only; photos come back through the
   // API's single gate when these refetch.
   void queryClient.invalidateQueries({
     queryKey: connectionQuery(connectionId).queryKey,

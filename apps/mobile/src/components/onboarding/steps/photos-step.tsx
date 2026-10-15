@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { MIN_PHOTOS } from "@repo/api-contract";
+import { mainPhotoError, MIN_PHOTOS } from "@repo/api-contract";
 
 import { useOnboarding } from "../context";
 import { StepLayout } from "../step-layout";
@@ -21,8 +21,8 @@ export function PhotosStep() {
     try {
       const mediaId = await pickAndUploadPhoto();
       if (mediaId) accept(await savePhotoOrder([...ids, mediaId]));
-    } catch {
-      setError("Không tải được ảnh lên. Thử lại nhé.");
+    } catch (e) {
+      setError(mainPhotoError(e) ?? "Không tải được ảnh lên. Thử lại nhé.");
     } finally {
       setUploading(false);
     }
@@ -32,15 +32,16 @@ export function PhotosStep() {
     setError(null);
     try {
       accept(await savePhotoOrder(ids.filter((id) => id !== mediaId)));
-    } catch {
-      setError("Không xóa được ảnh. Thử lại nhé.");
+    } catch (e) {
+      // Removing the main photo makes the next one main, which may not pass.
+      setError(mainPhotoError(e) ?? "Không xóa được ảnh. Thử lại nhé.");
     }
   }
 
   return (
     <StepLayout
       title="Thêm ảnh của bạn"
-      subtitle={`Ít nhất ${MIN_PHOTOS} ảnh rõ mặt.`}
+      subtitle={`Ít nhất ${MIN_PHOTOS} ảnh. Ảnh đầu tiên là ảnh chính, cần thấy rõ mặt bạn.`}
       canContinue={photos.length >= MIN_PHOTOS && !uploading}
       onContinue={next}
       error={error}

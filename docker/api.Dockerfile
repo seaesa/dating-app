@@ -9,16 +9,18 @@ ENV UV_COMPILE_BYTECODE=1 \
 
 WORKDIR /app
 
+# `vision` (headless OpenCV) is for the face check worker; the API process
+# never imports it. `face` (TensorFlow, gigabytes) stays out of this image.
 # Dependencies first, in their own layer: application code changes far more
 # often than the lockfile, so this layer stays cached across most builds.
 COPY apps/api/pyproject.toml apps/api/uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-install-project --no-dev
+    uv sync --frozen --no-install-project --no-dev --extra vision
 
 COPY apps/api/README.md ./README.md
 COPY apps/api/src ./src
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+    uv sync --frozen --no-dev --extra vision
 
 # ---- runtime ---------------------------------------------------------------
 FROM python:3.13-slim-bookworm AS runtime

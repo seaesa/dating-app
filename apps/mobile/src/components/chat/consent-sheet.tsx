@@ -1,4 +1,3 @@
-import { Image } from "expo-image";
 import * as React from "react";
 import { View } from "react-native";
 
@@ -7,7 +6,6 @@ import { Button, Text } from "@repo/ui";
 
 import { BottomSheet } from "./bottom-sheet";
 
-import { maskPhone } from "@/chat/phone";
 import { REVEAL_NOUNS } from "@/chat/reveal";
 
 export type ConsentMode = "request" | "accept";
@@ -17,22 +15,18 @@ export interface ConsentSheetProps {
   kind: RevealKind;
   mode: ConsentMode;
   peerName: string;
-  myPhotoUrls: string[];
-  myPhone: string | null | undefined;
   busy: boolean;
   onConfirm: () => void;
   onDecline?: () => void;
   onClose: () => void;
 }
 
-/** Shows exactly what of mine the other person will see before I agree. */
+/** Asks before a reveal is requested or accepted. */
 export function ConsentSheet({
   visible,
   kind,
   mode,
   peerName,
-  myPhotoUrls,
-  myPhone,
   busy,
   onConfirm,
   onDecline,
@@ -53,30 +47,6 @@ export function ConsentSheet({
             ? `Khi bạn đồng ý, hai bạn sẽ cùng thấy ${noun} của nhau.`
             : `Khi ${peerName} đồng ý, hai bạn sẽ cùng thấy ${noun} của nhau.`}
         </Text>
-      </View>
-
-      <View className="gap-2">
-        <Text className="text-sm font-semibold text-foreground">
-          {kind === "photos"
-            ? "Ảnh của bạn sẽ được chia sẻ:"
-            : "Số của bạn sẽ được chia sẻ:"}
-        </Text>
-        {kind === "photos" ? (
-          <View className="flex-row gap-2">
-            {myPhotoUrls.slice(0, 4).map((url) => (
-              <Image
-                key={url}
-                source={{ uri: url }}
-                style={{ width: 56, height: 56, borderRadius: 12 }}
-                contentFit="cover"
-              />
-            ))}
-          </View>
-        ) : (
-          <Text className="text-base font-bold text-foreground">
-            {myPhone ? maskPhone(myPhone) : "—"}
-          </Text>
-        )}
       </View>
 
       <Button

@@ -727,7 +727,8 @@
       "MediaKind": {
         "enum": [
           "public",
-          "private"
+          "private",
+          "chat"
         ],
         "title": "MediaKind",
         "type": "string"
@@ -746,9 +747,61 @@
         "title": "Message",
         "type": "object"
       },
+      "MessageImageBody": {
+        "additionalProperties": false,
+        "properties": {
+          "height": {
+            "maximum": 20000.0,
+            "minimum": 1.0,
+            "title": "Height",
+            "type": "integer"
+          },
+          "mediaId": {
+            "$ref": "#/components/schemas/PydanticObjectId"
+          },
+          "width": {
+            "maximum": 20000.0,
+            "minimum": 1.0,
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mediaId",
+          "width",
+          "height"
+        ],
+        "title": "MessageImageBody",
+        "type": "object"
+      },
+      "MessageImageRead": {
+        "additionalProperties": false,
+        "properties": {
+          "height": {
+            "title": "Height",
+            "type": "integer"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "width": {
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "url",
+          "width",
+          "height"
+        ],
+        "title": "MessageImageRead",
+        "type": "object"
+      },
       "MessageKind": {
         "enum": [
           "text",
+          "image",
           "system"
         ],
         "title": "MessageKind",
@@ -830,6 +883,16 @@
           },
           "id": {
             "$ref": "#/components/schemas/PydanticObjectId"
+          },
+          "image": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MessageImageRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "kind": {
             "$ref": "#/components/schemas/MessageKind"
@@ -1694,8 +1757,7 @@
       },
       "RevealKind": {
         "enum": [
-          "photos",
-          "phone"
+          "photos"
         ],
         "title": "RevealKind",
         "type": "string"
@@ -1735,39 +1797,52 @@
       "RevealsRead": {
         "additionalProperties": false,
         "properties": {
-          "phone": {
-            "$ref": "#/components/schemas/RevealRead"
-          },
           "photos": {
             "$ref": "#/components/schemas/RevealRead"
           }
         },
         "required": [
-          "photos",
-          "phone"
+          "photos"
         ],
         "title": "RevealsRead",
         "type": "object"
       },
       "SendMessageBody": {
         "additionalProperties": false,
+        "description": "A text or an image: exactly one of `body` and `image`.",
         "properties": {
           "body": {
-            "maxLength": 1000,
-            "minLength": 1,
-            "title": "Body",
-            "type": "string"
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
           },
           "clientId": {
             "maxLength": 64,
             "minLength": 8,
             "title": "Clientid",
             "type": "string"
+          },
+          "image": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MessageImageBody"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
-          "clientId",
-          "body"
+          "clientId"
         ],
         "title": "SendMessageBody",
         "type": "object"

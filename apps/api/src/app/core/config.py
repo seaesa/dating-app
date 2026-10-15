@@ -52,6 +52,20 @@ class Settings(BaseSettings):
     verification_yaw_straight_max: float = 0.12
     verification_yaw_turn_min: float = 0.25
 
+    # Main photo face check. On by default, so it cannot be forgotten: it needs
+    # `app.cli face-check-worker` running, or every profile photo waits out
+    # face_check_wait_seconds and sign-up stops at the main photo. Off: photos
+    # are not checked, and none is refused for having no face.
+    face_check_enabled: bool = True
+    # How long confirming an upload waits for the worker's verdict before
+    # answering; a slower verdict is still recorded and enforced later.
+    face_check_wait_seconds: float = 3.0
+    face_check_min_score: float = 0.8
+    # Largest face / image area. 1% still passes a full-length photo.
+    face_check_min_area: float = 0.01
+    # A second face at least this large relative to the first: a group photo.
+    face_check_second_face_ratio: float = 0.5
+
     # Object storage
     s3_endpoint: str = "http://localhost:8333"
     s3_region: str = "us-east-1"

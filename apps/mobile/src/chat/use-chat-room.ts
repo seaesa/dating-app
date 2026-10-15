@@ -32,12 +32,16 @@ import {
   localMessage,
   newClientId,
   type ChatMessage,
+  type LocalImage,
 } from "./messages";
 import { upsertMessage } from "./realtime-events";
+
+import { uploadLocalFile } from "@/upload-media";
 
 const statusOf = (error: unknown) => (error as ApiError | null)?.response?.status;
 
 type RevealAction = "request" | "accept" | "decline";
+type SendVars = { clientId: string; body?: string; image?: LocalImage };
 
 const REVEAL_CALLS: Record<
   RevealAction,
@@ -97,9 +101,20 @@ export function useChatRoom(connectionId: string) {
     [],
   );
 
+  // Uploaded but not yet sent: a retry sends the same media, not a new upload.
+  const uploaded = React.useRef<Record<string, string>>({});
   const send = useMutation({
-    mutationFn: (vars: { clientId: string; body: string }) =>
-      sendMessage(connectionId, vars),
+    mutationFn: async ({ clientId, body, image }: SendVars) => {
+      if (!image) return sendMessage(connectionId, { clientId, body });
+      const mediaId =
+        uploaded.current[clientId] ??
+        (await uploadLocalFile(image.uri, image.contentType, "chat"));
+      uploaded.current[clientId] = mediaId;
+      return sendMessage(connectionId, {
+        clientId,
+        image: { mediaId, width: image.width, height: image.height },
+      });
+    },
     onMutate: (vars) => {
       if (myId) {
         toOutbox(
@@ -111,6 +126,7 @@ export function useChatRoom(connectionId: string) {
     onSuccess: (message, vars) => {
       putMessage(message);
       toOutbox(vars.clientId, null);
+      delete uploaded.current[vars.clientId];
     },
     onError: (error, vars) => {
       if (statusOf(error) === 409) {
@@ -136,9 +152,15 @@ export function useChatRoom(connectionId: string) {
     const trimmed = body.trim();
     if (trimmed) send.mutate({ clientId: newClientId(), body: trimmed });
   };
+  const sendImage = (image: LocalImage) =>
+    send.mutate({ clientId: newClientId(), image });
   const retry = (message: ChatMessage) => {
-    if (message.clientId && message.body) {
-      send.mutate({ clientId: message.clientId, body: message.body });
+    if (message.clientId && (message.body || message.localImage)) {
+      send.mutate({
+        clientId: message.clientId,
+        body: message.body ?? undefined,
+        image: message.localImage,
+      });
     }
   };
 
@@ -213,8 +235,9 @@ export function useChatRoom(connectionId: string) {
         void messages.fetchNextPage();
       }
     },
-    hasText: newestFirst.some((m) => m.kind === "text"),
+    hasText: newestFirst.some((m) => m.kind !== "system"),
     sendText,
+    sendImage,
     retry,
     reveal: {
       request: (kind: RevealKind) =>

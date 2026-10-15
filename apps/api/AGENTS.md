@@ -80,6 +80,13 @@ async def update_my_profile(
   install them. `VERIFICATION_ENABLED=false` (the default) switches the feature
   off: the API answers 503 and the worker refuses to start. Selfie frames are
   deleted right after scoring and never stored.
+- The main photo must show a face. Confirming a `private` upload queues it on
+  `media:face-jobs` and waits up to `FACE_CHECK_WAIT_SECONDS` for
+  `python -m app.cli face-check-worker` (OpenCV YuNet, the `vision` extra) to
+  answer; `update_identity` refuses a failed main photo and
+  `complete_onboarding` a pending one. On by default; `pnpm services:up` and
+  `docker-compose.prod.yml` run the worker. `FACE_CHECK_ENABLED=false` checks
+  nothing.
 
 ## Adding an endpoint
 
@@ -99,6 +106,7 @@ uv run fastapi dev src/app/asgi.py # or `pnpm dev:api` from the root
 uv run ruff check --fix . && uv run ruff format .
 uv run mypy
 uv run --extra face python -m app.cli verification-worker   # needs VERIFICATION_ENABLED=true
+uv run --extra vision python -m app.cli face-check-worker   # needs FACE_CHECK_ENABLED=true
 ```
 
 Local OTP codes are not sent: `SMS_PROVIDER=console` logs them under

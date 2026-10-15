@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Annotated
 
 from beanie import PydanticObjectId
-from pydantic import StringConstraints
+from pydantic import Field, StringConstraints, model_validator
 
 from app.core.schemas import BaseSchema, CursorPage
 from app.modules.connections.models import (
@@ -15,6 +15,12 @@ from app.modules.connections.models import (
 from app.modules.users.schemas import UserRead
 
 
+class MessageImageRead(BaseSchema):
+    url: str
+    width: int
+    height: int
+
+
 class MessageRead(BaseSchema):
     id: PydanticObjectId
     connection_id: PydanticObjectId
@@ -22,6 +28,8 @@ class MessageRead(BaseSchema):
     actor_id: PydanticObjectId
     kind: MessageKind
     body: str | None = None
+    # Image messages; None too once the image is gone from storage.
+    image: MessageImageRead | None = None
     event: SystemEvent | None = None
     reveal_kind: RevealKind | None = None
     client_id: str | None = None
@@ -35,7 +43,6 @@ class RevealRead(BaseSchema):
 
 class RevealsRead(BaseSchema):
     photos: RevealRead
-    phone: RevealRead
 
 
 class LastMessageRead(BaseSchema):
@@ -80,11 +87,32 @@ class UnreadCountRead(BaseSchema):
     count: int
 
 
+Pixels = Annotated[int, Field(ge=1, le=20000)]
+
+
+class MessageImageBody(BaseSchema):
+    media_id: PydanticObjectId
+    width: Pixels
+    height: Pixels
+
+
 class SendMessageBody(BaseSchema):
+    """A text or an image: exactly one of `body` and `image`."""
+
     client_id: Annotated[str, StringConstraints(min_length=8, max_length=64)]
-    body: Annotated[
-        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)
-    ]
+    body: (
+        Annotated[
+            str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)
+        ]
+        | None
+    ) = None
+    image: MessageImageBody | None = None
+
+    @model_validator(mode="after")
+    def _one_of(self) -> "SendMessageBody":
+        if (self.body is None) == (self.image is None):
+            raise ValueError("send exactly one of body and image")
+        return self
 
 
 class MarkReadBody(BaseSchema):

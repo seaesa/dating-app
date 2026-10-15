@@ -32,5 +32,6 @@ export function previewText(
 ): string {
   if (!last) return "Hãy gửi lời chào đầu tiên";
   if (last.kind === "system") return systemText(last, myId, peerName);
-  return last.senderId === myId ? `Bạn: ${last.preview}` : last.preview;
+  const text = last.kind === "image" ? "Đã gửi một ảnh" : last.preview;
+  return last.senderId === myId ? `Bạn: ${text}` : text;
 }

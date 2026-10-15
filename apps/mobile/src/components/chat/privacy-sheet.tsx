@@ -1,6 +1,5 @@
 import Check from "lucide-react-native/icons/check";
 import Images from "lucide-react-native/icons/images";
-import Phone from "lucide-react-native/icons/phone";
 import * as React from "react";
 import { View } from "react-native";
 
@@ -13,7 +12,6 @@ import { chipState, REVEAL_KINDS } from "@/chat/reveal";
 
 const ROW = {
   photos: { icon: Images, label: "Ảnh" },
-  phone: { icon: Phone, label: "Số điện thoại" },
 } as const;
 
 export interface PrivacySheetProps {
@@ -41,7 +39,7 @@ export function PrivacySheet({
   return (
     <BottomSheet visible={visible} onClose={onClose} className="gap-4">
       <View className="gap-1">
-        <Text className="text-xl font-bold text-foreground">Ảnh và số điện thoại</Text>
+        <Text className="text-xl font-bold text-foreground">Mở ảnh</Text>
         <Text className="text-sm text-muted-foreground">
           Chỉ mở khi cả hai đồng ý, và hai bạn cùng thấy của nhau.
         </Text>

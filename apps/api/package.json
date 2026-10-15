@@ -12,6 +12,7 @@
     "openapi": "uv run python -m app.cli export-openapi ../../packages/api-contract/openapi.json",
     "clean": "rm -rf .venv .ruff_cache .mypy_cache node_modules .turbo",
     "worker:push": "uv run python -m app.cli push-worker",
-    "worker:verification": "uv run --extra face python -m app.cli verification-worker"
+    "worker:verification": "uv run --extra face python -m app.cli verification-worker",
+    "worker:face-check": "uv run --extra vision python -m app.cli face-check-worker"
   }
 }

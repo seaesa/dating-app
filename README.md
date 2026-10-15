@@ -124,6 +124,10 @@ The images are private on first publish, so a first deploy needs
 `docker login ghcr.io` with a token that can read packages. Without published
 images, build them on the host instead: `... up -d --build`.
 
+Besides `api` and `web`, `up -d` starts two workers from the API image:
+`push-worker` (chat notifications) and `face-check-worker` (refuses a main
+photo without a face; sign-up cannot finish without it running).
+
 Caddy terminates TLS and serves the API under `/api` on the same origin as the
 web app, so production needs no CORS. Point `MONGODB_URL`, `REDIS_URL` and
 `S3_*` at managed services, or run MongoDB, Redis and SeaweedFS here with

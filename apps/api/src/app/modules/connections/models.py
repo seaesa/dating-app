@@ -26,7 +26,6 @@ class CloseReason(StrEnum):
 
 class RevealKind(StrEnum):
     PHOTOS = "photos"
-    PHONE = "phone"
 
 
 class RevealState(StrEnum):
@@ -37,6 +36,7 @@ class RevealState(StrEnum):
 
 class MessageKind(StrEnum):
     TEXT = "text"
+    IMAGE = "image"
     SYSTEM = "system"
 
 
@@ -58,10 +58,9 @@ class Reveal(BaseModel):
 
 class Reveals(BaseModel):
     photos: Reveal = Field(default_factory=Reveal)
-    phone: Reveal = Field(default_factory=Reveal)
 
     def get(self, kind: RevealKind) -> Reveal:
-        return self.photos if kind is RevealKind.PHOTOS else self.phone
+        return self.photos
 
 
 class MemberState(BaseModel):
@@ -139,11 +138,16 @@ class Connection(Document):
 
 class ChatMessage(Document):
     connection_id: PydanticObjectId
-    # Set on text messages only; a system message has an actor but no sender.
+    # Set on text and image messages; a system message has an actor but no sender.
     sender_id: PydanticObjectId | None = None
     actor_id: PydanticObjectId
     kind: MessageKind
     body: str | None = None
+    # Image messages: a `chat` media asset owned by the sender, and its size so
+    # the bubble keeps its shape before the image loads.
+    media_id: PydanticObjectId | None = None
+    width: int | None = None
+    height: int | None = None
     event: SystemEvent | None = None
     reveal_kind: RevealKind | None = None
     client_id: str | None = None

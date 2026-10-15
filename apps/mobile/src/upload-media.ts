@@ -1,12 +1,12 @@
 import * as FileSystem from "expo-file-system/legacy";
 
-import { confirmUpload, createUploadUrl } from "@repo/api-contract";
+import { confirmUpload, createUploadUrl, type MediaKind } from "@repo/api-contract";
 
 /** Upload a local file through the presigned flow and return its media id. */
 export async function uploadLocalFile(
   uri: string,
   contentType: string,
-  kind: "public" | "private",
+  kind: MediaKind,
 ): Promise<string> {
   const info = await FileSystem.getInfoAsync(uri);
   const size =

@@ -31,11 +31,10 @@ class Grants:
     """What the two sides of a pair have mutually opened to each other."""
 
     photos: bool = False
-    phone: bool = False
 
     @property
     def any(self) -> bool:
-        return self.photos or self.phone
+        return self.photos
 
 
 NO_GRANTS = Grants()
@@ -55,7 +54,6 @@ def grants_of(connection: "Connection | None") -> Grants:
         return NO_GRANTS
     return Grants(
         photos=connection.reveals.photos.state is RevealState.GRANTED,
-        phone=connection.reveals.phone.state is RevealState.GRANTED,
     )
 
 
@@ -121,7 +119,7 @@ def project_user(
     is_self = scope is RevealScope.SELF
     identity = PrivateIdentityRead(
         # The name is public (displayName); the real name and socials stay with
-        # the owner. A reveal opens photos and phone only, each on its own grant.
+        # the owner. A reveal opens photos only; the phone never leaves the owner.
         real_name=target.private.real_name if is_self else None,
         photo_urls=[url for _, url in photos or []] if is_self or grants.photos else [],
         socials=target.private.socials if is_self else {},
@@ -153,6 +151,6 @@ def project_user(
         profile=profile,
         identity=identity,
         account=account,
-        phone=target.phone if is_self or grants.phone else None,
+        phone=target.phone if is_self else None,
         created_at=target.created_at,
     )

@@ -130,6 +130,8 @@ export type {
   MatchScoreBreakdown,
   MediaKind,
   Message,
+  MessageImageBody,
+  MessageImageRead,
   MessageKind,
   MessagePage,
   MessageRead,

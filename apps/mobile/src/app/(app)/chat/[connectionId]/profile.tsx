@@ -1,4 +1,3 @@
-import * as Clipboard from "expo-clipboard";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import ArrowLeft from "lucide-react-native/icons/arrow-left";
@@ -7,7 +6,6 @@ import * as React from "react";
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   Pressable,
   ScrollView,
   useWindowDimensions,
@@ -16,13 +14,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { RevealKind } from "@repo/api-contract";
-import { formatPhone } from "@repo/core";
 import { Button, cn, Icon, Text } from "@repo/ui";
 
 import { attributeEntry, interestEntry, useCatalog } from "@/chat/catalog";
 import { confirmClose } from "@/chat/confirm-close";
 import { sharedInterests } from "@/chat/icebreakers";
-import { zaloUrl } from "@/chat/phone";
 import { chipState, type ChipState } from "@/chat/reveal";
 import { useChatRoom } from "@/chat/use-chat-room";
 import { ConsentSheet } from "@/components/chat/consent-sheet";
@@ -60,7 +56,6 @@ const ACTION: Record<RevealKind, Record<"none" | "incoming" | "outgoing", string
     incoming: "Xem yêu cầu mở ảnh",
     outgoing: "Đang chờ đồng ý",
   },
-  phone: { none: "Yêu cầu mở SĐT", incoming: "Xem yêu cầu", outgoing: "Đang chờ đồng ý" },
 };
 
 export default function PartnerProfileScreen() {
@@ -103,11 +98,10 @@ export default function PartnerProfileScreen() {
   }
 
   const { connection, me } = room;
-  const { profile, identity, phone } = connection.peer;
+  const { profile, identity } = connection.peer;
   const photos = identity?.photoUrls ?? [];
   const shared = new Set(sharedInterests(profile.interests, me.profile.interests));
   const photoState = chipState(connection.reveals.photos, me.id);
-  const phoneState = chipState(connection.reveals.phone, me.id);
   const onReveal = (kind: RevealKind, state: ChipState) => {
     if (state === "none" || state === "incoming") setConsentKind(kind);
   };
@@ -123,7 +117,6 @@ export default function PartnerProfileScreen() {
       router.dismissTo("/(app)/(tabs)/chat"),
     );
   const photoAction = photoState === "granted" ? null : ACTION.photos[photoState];
-  const phoneAction = phoneState === "granted" ? null : ACTION.phone[phoneState];
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
@@ -213,57 +206,6 @@ export default function PartnerProfileScreen() {
               {STATE_LABEL[photoState]}
             </Text>
           </View>
-          <Text className="text-xs text-muted-foreground">Số điện thoại</Text>
-          {phone ? (
-            <>
-              <Text className="text-lg font-bold text-foreground">
-                {formatPhone(phone)}
-              </Text>
-              <View className="flex-row gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onPress={() => void Linking.openURL(`tel:${phone}`)}
-                  className="rounded-full"
-                >
-                  <Text>Gọi</Text>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onPress={() => void Linking.openURL(zaloUrl(phone))}
-                  className="rounded-full"
-                >
-                  <Text>Zalo</Text>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onPress={() => void Clipboard.setStringAsync(formatPhone(phone))}
-                  className="rounded-full"
-                >
-                  <Text>Sao chép</Text>
-                </Button>
-              </View>
-            </>
-          ) : (
-            <View className="flex-row items-center justify-between gap-3">
-              <Text className="text-base text-muted-foreground">
-                {STATE_LABEL[phoneState]}
-              </Text>
-              {phoneAction ? (
-                <Button
-                  size="sm"
-                  variant={phoneState === "outgoing" ? "ghost" : "outline"}
-                  disabled={phoneState === "outgoing"}
-                  onPress={() => onReveal("phone", phoneState)}
-                  className="rounded-full"
-                >
-                  <Text>{phoneAction}</Text>
-                </Button>
-              ) : null}
-            </View>
-          )}
         </View>
 
         <View className="gap-4 px-5 pt-6">
@@ -349,8 +291,6 @@ export default function PartnerProfileScreen() {
           kind={consentKind}
           mode={consentMode(consentKind)}
           peerName={profile.displayName}
-          myPhotoUrls={me.identity?.photoUrls ?? []}
-          myPhone={me.phone}
           busy={room.reveal.pending}
           onConfirm={() =>
             run(() =>

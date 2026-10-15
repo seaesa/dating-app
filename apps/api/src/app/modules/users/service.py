@@ -30,6 +30,14 @@ from app.modules.users.visibility import (
 MIN_PHOTOS = 2
 
 
+def _main_photo_error(reason: str) -> ValidationError:
+    """The main photo is the one others meet first: it must show its owner."""
+    return ValidationError(
+        detail="The main photo must show your face.",
+        errors={"photoMediaIds": [reason]},
+    )
+
+
 def _apply(target: BaseModel, patch: BaseModel) -> None:
     """Apply a patch, distinguishing an omitted field from an explicit null.
 
@@ -104,6 +112,11 @@ class UserService:
             attempts_left=attempts_left,
             verification_available=self.settings.verification_enabled,
         )
+
+    async def _main_photo_problem(self, media_id: PydanticObjectId) -> str | None:
+        from app.modules.media.service import MediaService
+
+        return await MediaService(self.settings).main_photo_problem(media_id)
 
     async def get_for_viewer(
         self, user_id: PydanticObjectId, viewer: User | None
@@ -183,6 +196,12 @@ class UserService:
         old_reference = next(iter(user.private.photo_media_ids), None)
         _apply(user.private, patch)
         new_reference = next(iter(user.private.photo_media_ids), None)
+        if new_reference is not None and new_reference != old_reference:
+            # A verdict still pending is let through here; completing sign-up
+            # waits for it.
+            problem = await self._main_photo_problem(new_reference)
+            if problem not in (None, "face_check_pending"):
+                raise _main_photo_error(problem)
         if new_reference != old_reference:
             # The badge vouches for one face. Another photo has to be checked
             # again, or a verified account could swap in someone else.
@@ -230,6 +249,9 @@ class UserService:
                 detail="The profile is not complete yet.",
                 errors={name: ["required"] for name in missing},
             )
+        problem = await self._main_photo_problem(user.private.photo_media_ids[0])
+        if problem is not None:
+            raise _main_photo_error(problem)
         if user.status is UserStatus.PENDING_ONBOARDING:
             user.status = UserStatus.ACTIVE
             await user.save()
