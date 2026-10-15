@@ -45,7 +45,7 @@ class CandidateFilters(BaseSchema):
     genders: list[Gender] = Field(default_factory=list)
     age_min: Annotated[int, Field(ge=18, le=99)] = 18
     age_max: Annotated[int, Field(ge=18, le=99)] = 50
-    max_distance_km: Annotated[int, Field(ge=1, le=300)] | None = 50
+    max_distance_km: Annotated[int, Field(ge=0, le=300)] | None = None
     cities: list[str] = Field(default_factory=list)
 
 

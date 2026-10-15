@@ -32,10 +32,10 @@ export interface DiscoveryFilterState {
 }
 
 export const DEFAULT_FILTERS: DiscoveryFilterState = {
-  gender: "female",
-  ageMin: 22,
-  ageMax: 30,
-  maxDistanceKm: 10,
+  gender: "all",
+  ageMin: 18,
+  ageMax: 50,
+  maxDistanceKm: 0,
   city: "",
 };
 
@@ -60,7 +60,7 @@ const AGE_LABELS = [
 ];
 
 const DISTANCE_LABELS = [
-  { value: 1, label: "1 km" },
+  { value: 0, label: "Toàn quốc" },
   { value: 25, label: "25 km" },
   { value: 50, label: "50 km" },
   { value: 100, label: "100 km" },
@@ -127,7 +127,8 @@ export function FilterModal({
       genders,
       age_min: debouncedFilters.ageMin,
       age_max: debouncedFilters.ageMax,
-      max_distance_km: debouncedFilters.maxDistanceKm,
+      max_distance_km:
+        debouncedFilters.maxDistanceKm > 0 ? debouncedFilters.maxDistanceKm : undefined,
       cities: debouncedFilters.city ? [debouncedFilters.city] : undefined,
     };
   }, [debouncedFilters]);
@@ -263,15 +264,17 @@ export function FilterModal({
 
                 <View className="rounded-full bg-primary-muted px-3 py-1">
                   <Text className="text-xs font-black text-primary">
-                    {draftFilters.maxDistanceKm} km
+                    {draftFilters.maxDistanceKm === 0
+                      ? "Toàn quốc"
+                      : `${draftFilters.maxDistanceKm} km`}
                   </Text>
                 </View>
               </View>
 
               <Slider
-                min={1}
+                min={0}
                 max={100}
-                step={1}
+                step={5}
                 value={draftFilters.maxDistanceKm}
                 onChange={(val) =>
                   setDraftFilters((prev) => ({

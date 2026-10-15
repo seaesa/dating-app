@@ -14,7 +14,6 @@ import {
   createInteraction,
   discoveryCountQuery,
   discoveryFeedQuery,
-  meQuery,
   type DiscoveryCandidateRead,
 } from "@repo/api-contract";
 import { APP_NAME } from "@repo/core";
@@ -39,21 +38,6 @@ export default function HomeFeedScreen() {
     React.useState<DiscoveryFilterState>(DEFAULT_FILTERS);
   const [searchQuery, setSearchQuery] = React.useState("");
 
-  // Sync default gender filter with user's profile gender
-  const { data: meData } = useQuery(meQuery());
-  React.useEffect(() => {
-    if (meData?.profile?.gender) {
-      const g = meData.profile.gender;
-      if (g === "male") {
-        setActiveFilters((prev) => ({ ...prev, gender: "female" }));
-      } else if (g === "female") {
-        setActiveFilters((prev) => ({ ...prev, gender: "male" }));
-      } else {
-        setActiveFilters((prev) => ({ ...prev, gender: "all" }));
-      }
-    }
-  }, [meData?.profile?.gender]);
-
   // Convert filter state to API parameters
   const queryParams = React.useMemo(() => {
     return {
@@ -63,7 +47,8 @@ export default function HomeFeedScreen() {
           : ([activeFilters.gender] as Array<"female" | "male" | "other">),
       age_min: activeFilters.ageMin,
       age_max: activeFilters.ageMax,
-      max_distance_km: activeFilters.maxDistanceKm,
+      max_distance_km:
+        activeFilters.maxDistanceKm > 0 ? activeFilters.maxDistanceKm : undefined,
       cities: activeFilters.city ? [activeFilters.city] : undefined,
     };
   }, [activeFilters]);
@@ -97,19 +82,31 @@ export default function HomeFeedScreen() {
     return [];
   }, [feedData]);
 
-  // Client-side search filtering
-  const filteredProfiles = React.useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) return allProfiles;
+  const [dismissed, setDismissed] = React.useState<Record<string, boolean>>({});
 
-    return allProfiles.filter((p) => {
-      const matchName = p.displayName.toLowerCase().includes(query);
+  // Mutation for Pass / Ignore
+  const passMutation = useMutation({
+    mutationFn: createInteraction,
+    onSuccess: (_result, vars) => {
+      setDismissed((prev) => ({ ...prev, [vars.targetId]: true }));
+      queryClient.invalidateQueries({ queryKey: ["discovery"] });
+    },
+  });
+
+  // Client-side search and dismiss filtering
+  const filteredProfiles = React.useMemo(() => {
+    const list = allProfiles.filter((p) => !dismissed[p.userId]);
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return list;
+
+    return list.filter((p) => {
       const matchCity = p.city.toLowerCase().includes(query);
+      const matchAge = p.age.toString() === query;
       const matchInterests =
         p.interests?.some((i) => i.toLowerCase().includes(query)) ?? false;
-      return matchName || matchCity || matchInterests;
+      return matchCity || matchAge || matchInterests;
     });
-  }, [allProfiles, searchQuery]);
+  }, [allProfiles, searchQuery, dismissed]);
 
   const candidateCount =
     countData?.count ?? feedData?.totalCount ?? filteredProfiles.length;
@@ -123,6 +120,18 @@ export default function HomeFeedScreen() {
     greetMutation.mutate({
       targetId: userId,
       action: "greet",
+    });
+  }
+
+  function handlePass(userId: string) {
+    if (dismissed[userId]) return;
+    setDismissed((prev) => ({ ...prev, [userId]: true }));
+    if (!/^[0-9a-fA-F]{24}$/.test(userId)) {
+      return;
+    }
+    passMutation.mutate({
+      targetId: userId,
+      action: "pass",
     });
   }
 
@@ -272,15 +281,15 @@ export default function HomeFeedScreen() {
               const isGreeted = greeted[profile.userId];
 
               return (
-                <Pressable
+                <View
                   key={profile.userId}
-                  onPress={() => setSelectedProfile(profile)}
-                  className="flex-row items-center justify-between rounded-2xl border border-border/60 bg-card p-3 shadow-sm shadow-black/5 active:opacity-80"
+                  className="flex-row items-center justify-between rounded-2xl border border-border/60 bg-card p-3 shadow-sm shadow-black/5"
                 >
-                  <View className="flex-row items-center gap-3">
-                    {/* Avatar */}
+                  {/* Left: Avatar + Only 3 info points (Gender, Age, Location) */}
+                  <View className="flex-1 flex-row items-center gap-3 pr-2">
+                    {/* Anonymous Avatar */}
                     <View
-                      className={`h-12 w-12 items-center justify-center rounded-full ${
+                      className={`h-12 w-12 items-center justify-center rounded-full shrink-0 ${
                         isFemale ? "bg-rose-500/10" : "bg-blue-500/10"
                       }`}
                     >
@@ -288,8 +297,8 @@ export default function HomeFeedScreen() {
                     </View>
 
                     {/* Info */}
-                    <View className="gap-0.5">
-                      <View className="flex-row items-center gap-1.5">
+                    <View className="flex-1 gap-0.5">
+                      <View className="flex-row items-center gap-1.5 flex-wrap">
                         <View
                           className={`rounded-md px-1.5 py-0.5 ${
                             isFemale ? "bg-rose-500/15" : "bg-blue-500/15"
@@ -303,18 +312,13 @@ export default function HomeFeedScreen() {
                             {isFemale ? "Nữ" : "Nam"}
                           </Text>
                         </View>
-                        <Text className="text-base font-bold text-foreground">
-                          {profile.displayName}
+                        <Text className="text-base font-extrabold text-foreground">
+                          {profile.age} tuổi
                         </Text>
-                        {profile.verified ? (
-                          <View className="h-4 w-4 items-center justify-center rounded-full bg-sky-500">
-                            <Text className="text-[9px] font-bold text-white">✓</Text>
-                          </View>
-                        ) : null}
                       </View>
 
-                      <Text className="text-xs text-muted-foreground">
-                        {profile.age} tuổi • 📍 {profile.city}
+                      <Text className="text-xs text-muted-foreground" numberOfLines={1}>
+                        📍 {profile.city || "Việt Nam"}
                         {profile.distanceKm !== undefined && profile.distanceKm !== null
                           ? ` • Cách ${profile.distanceKm} km`
                           : ""}
@@ -322,24 +326,36 @@ export default function HomeFeedScreen() {
                     </View>
                   </View>
 
-                  {/* Greet Button */}
-                  <Button
-                    size="sm"
-                    disabled={isGreeted || greetMutation.isPending}
-                    onPress={() => handleGreet(profile.userId)}
-                    className={`h-9 rounded-full px-3.5 ${
-                      isGreeted ? "bg-secondary" : "bg-primary"
-                    }`}
-                  >
-                    <Text
-                      className={`text-xs font-bold ${
-                        isGreeted ? "text-muted-foreground" : "text-primary-foreground"
+                  {/* Responsive Action Buttons: ✕ Bỏ qua & 💌 Chào */}
+                  <View className="flex-row items-center gap-1.5 shrink-0">
+                    <Pressable
+                      disabled={isGreeted || passMutation.isPending}
+                      onPress={() => handlePass(profile.userId)}
+                      hitSlop={6}
+                      className="h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-secondary/80 active:opacity-60"
+                      accessibilityLabel="Bỏ qua"
+                    >
+                      <Text className="text-xs font-bold text-muted-foreground">✕</Text>
+                    </Pressable>
+
+                    <Button
+                      size="sm"
+                      disabled={isGreeted || greetMutation.isPending}
+                      onPress={() => handleGreet(profile.userId)}
+                      className={`h-9 rounded-full px-3.5 ${
+                        isGreeted ? "bg-secondary" : "bg-primary"
                       }`}
                     >
-                      {isGreeted ? "✓ Đã chào" : "💌 Chào"}
-                    </Text>
-                  </Button>
-                </Pressable>
+                      <Text
+                        className={`text-xs font-bold ${
+                          isGreeted ? "text-muted-foreground" : "text-primary-foreground"
+                        }`}
+                      >
+                        {isGreeted ? "✓ Đã chào" : "💌 Chào"}
+                      </Text>
+                    </Button>
+                  </View>
+                </View>
               );
             })}
           </View>

@@ -54,11 +54,15 @@ def _build_override_filters(
     if not has_params:
         return None
 
+    effective_max_dist = (
+        max_distance_km if (max_distance_km is not None and max_distance_km > 0) else None
+    )
+
     return CandidateFilters(
         genders=genders or [],
         age_min=age_min if age_min is not None else 18,
         age_max=age_max if age_max is not None else 50,
-        max_distance_km=max_distance_km if max_distance_km is not None else 50,
+        max_distance_km=effective_max_dist,
         cities=cities or [],
     )
 
@@ -74,7 +78,7 @@ async def get_discovery_feed(
     genders: Annotated[list[Gender] | None, Query()] = None,
     age_min: Annotated[int | None, Query(ge=18, le=99)] = None,
     age_max: Annotated[int | None, Query(ge=18, le=99)] = None,
-    max_distance_km: Annotated[int | None, Query(ge=1, le=300)] = None,
+    max_distance_km: Annotated[int | None, Query(ge=0, le=300)] = None,
     cities: Annotated[list[str] | None, Query()] = None,
 ) -> DiscoveryFeedRead:
     """Fetch ranked candidate recommendations with 100-pt scoring and exploration."""
@@ -117,7 +121,7 @@ async def get_discovery_count(
     genders: Annotated[list[Gender] | None, Query()] = None,
     age_min: Annotated[int | None, Query(ge=18, le=99)] = None,
     age_max: Annotated[int | None, Query(ge=18, le=99)] = None,
-    max_distance_km: Annotated[int | None, Query(ge=1, le=300)] = None,
+    max_distance_km: Annotated[int | None, Query(ge=0, le=300)] = None,
     cities: Annotated[list[str] | None, Query()] = None,
 ) -> DiscoveryCountRead:
     """Count eligible candidates matching filter parameters for live filter preview."""
