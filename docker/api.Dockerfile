@@ -23,7 +23,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --extra vision
 
 # ---- runtime ---------------------------------------------------------------
-FROM python:3.13-slim-bookworm AS runtime
+FROM python:3.14-slim-bookworm AS runtime
 
 RUN groupadd --system --gid 1001 app \
     && useradd --system --uid 1001 --gid app --create-home app
