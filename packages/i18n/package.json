@@ -18,7 +18,7 @@
     "clean": "rm -rf node_modules .turbo"
   },
   "dependencies": {
-    "i18next": "^25.0.0"
+    "i18next": "^26.4.4"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
