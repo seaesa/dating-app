@@ -82,8 +82,9 @@ class MatchingRepository:
             "status": UserStatus.ACTIVE,
         }
 
-        # Candidate's gender in filters.genders
-        if filters.genders:
+        # Candidate's gender in filters.genders (only filter if a subset is selected)
+        all_genders = {"female", "male", "other"}
+        if filters.genders and set(filters.genders) < all_genders:
             base_match["public.gender"] = {"$in": filters.genders}
 
         # Mutual gender: Candidate accepts user's gender
@@ -135,25 +136,31 @@ class MatchingRepository:
                 effective_coords = [centroid[0], centroid[1]]
 
         if effective_coords is not None:
-            max_dist_meters = (filters.max_distance_km or 50) * 1000
+            max_dist_meters = (
+                (filters.max_distance_km * 1000)
+                if (filters.max_distance_km is not None and filters.max_distance_km > 0)
+                else None
+            )
             # Expand pool to avoid geographic starvation of high-compatibility users
             geo_pool_limit = min(max(limit * 4, 100), 500)
-            pipeline: list[dict[str, Any]] = [
-                {
-                    "$geoNear": {
-                        "near": {
-                            "type": "Point",
-                            "coordinates": effective_coords,
-                        },
-                        "distanceField": "distance_meters",
-                        "maxDistance": max_dist_meters,
-                        "spherical": True,
-                        "query": base_match,
-                    }
+            geo_near_stage: dict[str, Any] = {
+                "near": {
+                    "type": "Point",
+                    "coordinates": effective_coords,
                 },
+                "distanceField": "distance_meters",
+                "spherical": True,
+                "query": base_match,
+            }
+            if max_dist_meters is not None:
+                geo_near_stage["maxDistance"] = max_dist_meters
+
+            pipeline: list[dict[str, Any]] = [
+                {"$geoNear": geo_near_stage},
                 {
                     "$match": {
                         "$or": [
+                            {"matching.criteria": None},
                             {"matching.criteria.max_distance_km": None},
                             {
                                 "$expr": {
@@ -191,12 +198,13 @@ class MatchingRepository:
                 )
                 seen_ids.add(candidate_user.oid)
 
-            # If fewer than limit, supplement with users in same city without GPS
-            if len(candidates) < limit and user.public.city:
+            # If fewer than limit, supplement with users without GPS
+            if len(candidates) < limit:
                 remaining = limit - len(candidates)
                 city_match = dict(base_match)
                 city_match["_id"]["$nin"].extend(list(seen_ids))
-                city_match["public.city"] = user.public.city
+                if user.public.city and filters.max_distance_km is not None:
+                    city_match["public.city"] = user.public.city
                 city_match["private.location"] = None
 
                 city_users = await User.find(city_match).limit(remaining).to_list()
@@ -205,11 +213,11 @@ class MatchingRepository:
 
             return candidates
 
-        # Branch 2: User has no GPS -> Filter by city
+        # Branch 2: User has no GPS -> Filter by city if distance restricted
         city_match = dict(base_match)
         if filters.cities:
             city_match["public.city"] = {"$in": filters.cities}
-        elif user.public.city:
+        elif user.public.city and filters.max_distance_km is not None:
             city_match["public.city"] = user.public.city
 
         city_users = await User.find(city_match).limit(limit).to_list()

@@ -38,19 +38,13 @@ class MatchingService:
                 cities=criteria.cities,
             )
 
-        # Conservative default when criteria has not been saved yet
-        default_gender: list[Gender] = []
-        if user.public.gender == "male":
-            default_gender = ["female"]
-        elif user.public.gender == "female":
-            default_gender = ["male"]
-
+        # Unrestricted default when criteria has not been saved yet
         return CandidateFilters(
-            genders=default_gender,
+            genders=[],
             age_min=18,
             age_max=50,
-            max_distance_km=50,
-            cities=[user.public.city] if user.public.city else [],
+            max_distance_km=None,
+            cities=[],
         )
 
     def _check_direction_dealbreakers(self, actor: User, target: User) -> bool:
@@ -146,6 +140,20 @@ class MatchingService:
             )
 
         # Stage 3: Rank, explore, and slice page
+        preferred_genders: list[Gender] = []
+        if filters and filters.genders:
+            preferred_genders = filters.genders
+        elif user.matching.criteria and user.matching.criteria.genders:
+            preferred_genders = user.matching.criteria.genders
+        elif user.public.gender == "male":
+            preferred_genders = ["female"]
+        elif user.public.gender == "female":
+            preferred_genders = ["male"]
+
         page_size = offset + limit
-        ranked = rank_and_explore(scored_candidates, page_size=page_size)
+        ranked = rank_and_explore(
+            scored_candidates,
+            page_size=page_size,
+            preferred_genders=preferred_genders,
+        )
         return ranked[offset : offset + limit]

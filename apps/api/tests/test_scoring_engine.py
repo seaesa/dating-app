@@ -361,3 +361,41 @@ async def test_service_get_ranked_recommendations() -> None:
     # First candidate has shared cafe interest and matching serious intent -> highest score
     assert results[0].user.public.display_name == "Female 0"
     assert results[0].scores.total_score > results[1].scores.total_score
+
+
+def test_rank_and_explore_preferred_gender_priority() -> None:
+    from app.modules.matching.ranking import rank_and_explore
+    from app.modules.matching.schemas import MatchScoreBreakdown, ScoredCandidate
+    from app.modules.users.types import Gender
+
+    def make_cand(uid: str, gender: Gender, score: float) -> ScoredCandidate:
+        user = User(
+            phone=f"+8490000000{uid}",
+            public=PublicProfile(
+                display_name=f"User {uid}",
+                gender=gender,
+                birth_year=1995,
+                city="Hà Nội",
+            ),
+        )
+        scores = MatchScoreBreakdown(
+            total_score=score,
+            intent_score=20.0,
+            lifestyle_score=20.0,
+            interests_score=15.0,
+            distance_score=10.0,
+            activity_score=5.0,
+        )
+        return ScoredCandidate(user=user, distance_km=5.0, scores=scores)
+
+    # Cand 1: male with high score (90)
+    c_male = make_cand("1", "male", 90.0)
+    # Cand 2: female with lower score (70)
+    c_female = make_cand("2", "female", 70.0)
+
+    # When preferred_genders is ["female"], female candidate MUST be ranked first even with lower score
+    ranked = rank_and_explore(
+        [c_male, c_female], page_size=10, preferred_genders=["female"]
+    )
+    assert ranked[0].user.public.gender == "female"
+    assert ranked[1].user.public.gender == "male"

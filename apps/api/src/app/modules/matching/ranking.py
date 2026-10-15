@@ -26,11 +26,13 @@ def rank_and_explore(
     candidates: list[ScoredCandidate],
     page_size: int = 20,
     epsilon: float = 0.1,
+    preferred_genders: Sequence[str] | None = None,
     now: datetime | None = None,
     seed: int | None = None,
 ) -> list[ScoredCandidate]:
     """Rank candidates with an epsilon-greedy strategy (Stage 3).
 
+    - Prioritizes candidates whose gender matches preferred_genders (if specified).
     - 90% (1 - epsilon): Highest compatibility score (Exploitation).
     - 10% (epsilon): Fresh profiles joined within 48h (Exploration).
     """
@@ -39,8 +41,14 @@ def rank_and_explore(
 
     identify_new_candidates(candidates, now=now)
 
-    # Sort all candidates by total score descending
-    sorted_by_score = sorted(candidates, key=lambda c: c.scores.total_score, reverse=True)
+    # Sort: preferred gender first (if specified), then by score descending
+    pref_set = set(preferred_genders) if preferred_genders else set()
+
+    def _sort_key(c: ScoredCandidate) -> tuple[int, float]:
+        is_pref = 1 if (pref_set and c.user.public.gender in pref_set) else 0
+        return (is_pref, c.scores.total_score)
+
+    sorted_by_score = sorted(candidates, key=_sort_key, reverse=True)
 
     if len(candidates) <= page_size:
         return sorted_by_score
