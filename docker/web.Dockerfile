@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:24-slim AS base
+FROM node:25-slim AS base
 ENV PNPM_HOME=/pnpm PATH=/pnpm:$PATH
 RUN corepack enable
 
@@ -51,7 +51,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm --filter=web run build
 
 # ---- runtime ---------------------------------------------------------------
-FROM node:24-slim AS runtime
+FROM node:25-slim AS runtime
 WORKDIR /app
 
 RUN groupadd --system --gid 1001 nodejs \
