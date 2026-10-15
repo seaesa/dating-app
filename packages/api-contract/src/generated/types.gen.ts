@@ -370,7 +370,7 @@ export type MatchScoreBreakdown = {
 /**
  * MediaKind
  */
-export type MediaKind = "public" | "private";
+export type MediaKind = "public" | "private" | "chat";
 
 /**
  * Message
@@ -383,9 +383,42 @@ export type Message = {
 };
 
 /**
+ * MessageImageBody
+ */
+export type MessageImageBody = {
+  /**
+   * Height
+   */
+  height: number;
+  mediaId: PydanticObjectId;
+  /**
+   * Width
+   */
+  width: number;
+};
+
+/**
+ * MessageImageRead
+ */
+export type MessageImageRead = {
+  /**
+   * Height
+   */
+  height: number;
+  /**
+   * Url
+   */
+  url: string;
+  /**
+   * Width
+   */
+  width: number;
+};
+
+/**
  * MessageKind
  */
-export type MessageKind = "text" | "system";
+export type MessageKind = "text" | "image" | "system";
 
 /**
  * MessagePage
@@ -421,6 +454,7 @@ export type MessageRead = {
   createdAt: string;
   event?: SystemEvent | null;
   id: PydanticObjectId;
+  image?: MessageImageRead | null;
   kind: MessageKind;
   revealKind?: RevealKind | null;
   senderId?: PydanticObjectId | null;
@@ -833,7 +867,7 @@ export type RefreshBody = {
 /**
  * RevealKind
  */
-export type RevealKind = "photos" | "phone";
+export type RevealKind = "photos";
 
 /**
  * RevealRead
@@ -852,22 +886,24 @@ export type RevealState = "none" | "requested" | "granted";
  * RevealsRead
  */
 export type RevealsRead = {
-  phone: RevealRead;
   photos: RevealRead;
 };
 
 /**
  * SendMessageBody
+ *
+ * A text or an image: exactly one of `body` and `image`.
  */
 export type SendMessageBody = {
   /**
    * Body
    */
-  body: string;
+  body?: string | null;
   /**
    * Clientid
    */
   clientId: string;
+  image?: MessageImageBody | null;
 };
 
 /**

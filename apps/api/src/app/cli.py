@@ -40,6 +40,7 @@ def main(argv: list[str] | None = None) -> int:
     export.add_argument("destination", type=pathlib.Path)
 
     sub.add_parser("verification-worker")
+    sub.add_parser("face-check-worker")
     sub.add_parser("push-worker")
 
     seed = sub.add_parser("seed-chat")
@@ -52,6 +53,8 @@ def main(argv: list[str] | None = None) -> int:
         export_openapi(args.destination)
     elif args.command == "verification-worker":
         return run_verification_worker()
+    elif args.command == "face-check-worker":
+        return run_face_check_worker()
     elif args.command == "push-worker":
         return run_push_worker()
     elif args.command == "seed-chat":
@@ -67,6 +70,19 @@ def run_verification_worker() -> int:
     settings = get_settings()
     if not settings.verification_enabled:
         print("VERIFICATION_ENABLED is false; the verification worker is not started.")
+        return 1
+    worker_main(settings)
+    return 0
+
+
+def run_face_check_worker() -> int:
+    """Start the main photo face check worker; refuses while the check is off."""
+    from app.core.config import get_settings
+    from app.modules.media.face_worker import main as worker_main
+
+    settings = get_settings()
+    if not settings.face_check_enabled:
+        print("FACE_CHECK_ENABLED is false; the face check worker is not started.")
         return 1
     worker_main(settings)
     return 0

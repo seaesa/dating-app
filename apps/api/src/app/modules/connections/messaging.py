@@ -37,6 +37,7 @@ from app.modules.connections.timeline import (
     require_open,
     to_message_read,
 )
+from app.modules.media.service import MediaService
 from app.modules.realtime.events import publish
 from app.modules.users.models import User
 from app.modules.users.schemas import UserStatus
@@ -53,9 +54,6 @@ def to_reveals_read(reveals: Reveals) -> RevealsRead:
     return RevealsRead(
         photos=RevealRead(
             state=reveals.photos.state, requested_by=reveals.photos.requested_by
-        ),
-        phone=RevealRead(
-            state=reveals.phone.state, requested_by=reveals.phone.requested_by
         ),
     )
 
@@ -83,6 +81,17 @@ class MessagingService:
         self.settings = settings
         self.connections = connections or ConnectionRepository()
         self.messages = messages or ChatMessageRepository()
+        self.media = MediaService(settings)
+
+    async def _reads(self, messages: list[ChatMessage]) -> list[MessageRead]:
+        """Messages with their images signed: one query and one presign batch."""
+        urls = await self.media.signed_for_owners(
+            [(m.media_id, m.sender_id) for m in messages if m.media_id and m.sender_id]
+        )
+        return [
+            to_message_read(m, urls.get(m.media_id) if m.media_id else None)
+            for m in messages
+        ]
 
     async def _open(self, viewer: User, connection_id: PydanticObjectId) -> Connection:
         return require_open(
@@ -153,8 +162,7 @@ class MessagingService:
             limit=limit, cursor=cursor, filters={"connection_id": connection.oid}
         )
         return MessagePage(
-            items=[to_message_read(m) for m in page.items],
-            next_cursor=page.next_cursor,
+            items=await self._reads(page.items), next_cursor=page.next_cursor
         )
 
     async def send(
@@ -166,7 +174,7 @@ class MessagingService:
         if existing is not None:
             if existing.connection_id != connection_id:
                 raise ConflictError(detail="That clientId was already used.")
-            return to_message_read(existing)
+            return (await self._reads([existing]))[0]
 
         connection = await self._open(viewer, connection_id)
         peer_id = connection.peer_of(viewer.oid)
@@ -178,24 +186,28 @@ class MessagingService:
         await sliding_window(
             f"rl:chat:send:{viewer.oid}", limit=SEND_LIMIT, window=SEND_WINDOW_SECONDS
         )
+        image = body.image
+        if image is not None:
+            await self.media.assert_chat_image(image.media_id, owner_id=viewer.oid)
         try:
             message = await post_message(
                 connection,
                 actor_id=viewer.oid,
-                kind=MessageKind.TEXT,
+                kind=MessageKind.TEXT if image is None else MessageKind.IMAGE,
                 body=body.body,
+                image=(image.media_id, image.width, image.height) if image else None,
                 client_id=body.client_id,
             )
         except DuplicateKeyError:
             again = await self.messages.find_by_client_id(viewer.oid, body.client_id)
             if again is None:
                 raise
-            return to_message_read(again)
+            return (await self._reads([again]))[0]
         if message is None:
             # Closed between the read above and the write.
             raise ConflictError(detail="This conversation has ended.")
 
-        read = to_message_read(message)
+        read = (await self._reads([message]))[0]
         await announce_message(connection, read, push_to=peer_id)
         return read
 

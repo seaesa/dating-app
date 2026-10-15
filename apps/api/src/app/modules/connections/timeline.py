@@ -15,7 +15,7 @@ from app.modules.connections.models import (
     RevealKind,
     SystemEvent,
 )
-from app.modules.connections.schemas import MessageRead
+from app.modules.connections.schemas import MessageImageRead, MessageRead
 from app.modules.notifications.service import PushKind, enqueue_push
 from app.modules.realtime.events import publish
 
@@ -32,7 +32,13 @@ def require_open(connection: Connection) -> Connection:
     return connection
 
 
-def to_message_read(message: ChatMessage) -> MessageRead:
+def to_message_read(message: ChatMessage, image_url: str | None = None) -> MessageRead:
+    """`image_url` is the signed URL of an image message's media, if it exists."""
+    image = (
+        MessageImageRead(url=image_url, width=message.width, height=message.height)
+        if image_url and message.width and message.height
+        else None
+    )
     return MessageRead(
         id=message.oid,
         connection_id=message.connection_id,
@@ -40,6 +46,7 @@ def to_message_read(message: ChatMessage) -> MessageRead:
         actor_id=message.actor_id,
         kind=message.kind,
         body=message.body,
+        image=image,
         event=message.event,
         reveal_kind=message.reveal_kind,
         client_id=message.client_id,
@@ -63,6 +70,7 @@ async def post_message(
     actor_id: PydanticObjectId,
     kind: MessageKind,
     body: str | None = None,
+    image: tuple[PydanticObjectId, int, int] | None = None,
     event: SystemEvent | None = None,
     reveal_kind: RevealKind | None = None,
     client_id: str | None = None,
@@ -79,13 +87,17 @@ async def post_message(
     `with_transaction` retries the write conflicts that two people writing to
     the same room at once produce.
     """
+    media_id, width, height = image or (None, None, None)
     message = ChatMessage(
         id=PydanticObjectId(),
         connection_id=connection.oid,
-        sender_id=actor_id if kind is MessageKind.TEXT else None,
+        sender_id=None if kind is MessageKind.SYSTEM else actor_id,
         actor_id=actor_id,
         kind=kind,
         body=body,
+        media_id=media_id,
+        width=width,
+        height=height,
         event=event,
         reveal_kind=reveal_kind,
         client_id=client_id,

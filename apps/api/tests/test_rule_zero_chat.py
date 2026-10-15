@@ -56,26 +56,12 @@ async def test_photo_grant_reveals_photos_and_nothing_else(api, bearer):
 
 
 @pytest.mark.asyncio
-async def test_phone_grant_reveals_phone_only(api, bearer):
-    a = await make_user("+84910000001")
-    b = await make_user("+84910000002")
-    room = await connect(a, b)
-    await grant_directly(room, RevealKind.PHONE)
-
-    body = await view(api, bearer, a, b)
-    assert body["phone"] == "+84910000002"
-    assert body["identity"]["photoUrls"] == []
-    assert body["identity"]["realName"] is None
-
-
-@pytest.mark.asyncio
 async def test_third_person_never_sees_a_pairs_grants(api, bearer):
     a = await make_user("+84910000001")
     b = await make_user("+84910000002")
     c = await make_user("+84910000003")
     room = await connect(a, b)
     await grant_directly(room, RevealKind.PHOTOS)
-    await grant_directly(room, RevealKind.PHONE)
     await connect(c, a)  # c is connected to a, with nothing granted
 
     assert_public_only(await view(api, bearer, c, a))

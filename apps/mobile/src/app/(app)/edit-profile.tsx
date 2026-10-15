@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
+  mainPhotoError,
   meQuery,
   profileOptionsQuery,
   updateMyProfile,
@@ -134,7 +135,7 @@ export default function EditProfileScreen() {
       }
     } catch (err) {
       console.error("Lỗi tải ảnh:", err);
-      setError("Không thể tải ảnh lên máy chủ. Vui lòng thử lại.");
+      setError(mainPhotoError(err) ?? "Không thể tải ảnh lên máy chủ. Vui lòng thử lại.");
     } finally {
       setIsUploadingPhoto(false);
     }
@@ -151,7 +152,8 @@ export default function EditProfileScreen() {
       await queryClient.invalidateQueries({ queryKey: ["users", "me"] });
     } catch (err) {
       console.error("Lỗi xóa ảnh:", err);
-      setError("Không thể xóa ảnh. Vui lòng thử lại.");
+      // Removing the main photo makes the next one main, which may not pass.
+      setError(mainPhotoError(err) ?? "Không thể xóa ảnh. Vui lòng thử lại.");
     }
   }
 

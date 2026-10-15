@@ -2,6 +2,7 @@ import * as React from "react";
 import { KeyboardAvoidingView, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { mainPhotoError } from "@repo/api-contract";
 import { Button, StepProgress, Text } from "@repo/ui";
 
 import { useOnboarding } from "./context";
@@ -41,8 +42,9 @@ export function StepLayout({
     setSaveError(null);
     try {
       await action();
-    } catch {
-      setSaveError("Không lưu được. Kiểm tra kết nối rồi thử lại.");
+    } catch (e) {
+      // Finishing sign-up is refused while the main photo fails its check.
+      setSaveError(mainPhotoError(e) ?? "Không lưu được. Kiểm tra kết nối rồi thử lại.");
     } finally {
       setBusy(false);
     }

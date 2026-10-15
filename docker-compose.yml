@@ -96,6 +96,32 @@ services:
       redis:
         condition: service_healthy
 
+  # Checks that a main photo shows a face; the API waits on it for every
+  # profile photo. Rebuild after changing the API source.
+  face-check-worker:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    command: ["python", "-m", "app.cli", "face-check-worker"]
+    restart: unless-stopped
+    env_file:
+      - path: apps/api/.env
+        required: false
+    environment:
+      MONGODB_URL: mongodb://mongo:27017/?replicaSet=rs0&directConnection=true
+      REDIS_URL: redis://redis:6379/0
+      S3_ENDPOINT: http://s3:8333
+      FACE_CHECK_ENABLED: "true"
+    healthcheck:
+      disable: true
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      s3:
+        condition: service_healthy
+
 volumes:
   mongo-data:
   s3-data:

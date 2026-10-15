@@ -1,3 +1,4 @@
+import ImagePlus from "lucide-react-native/icons/image-plus";
 import SendHorizontal from "lucide-react-native/icons/send-horizontal";
 import * as React from "react";
 import { Pressable, TextInput, View } from "react-native";
@@ -11,9 +12,10 @@ export interface ComposerProps {
   value: string;
   onChange: (text: string) => void;
   onSend: () => void;
+  onPickImage: () => void;
 }
 
-export function Composer({ value, onChange, onSend }: ComposerProps) {
+export function Composer({ value, onChange, onSend, onPickImage }: ComposerProps) {
   const input = React.useRef<TextInput>(null);
   const empty = value.trim().length === 0;
   const send = () => {
@@ -24,6 +26,13 @@ export function Composer({ value, onChange, onSend }: ComposerProps) {
   };
   return (
     <View className="flex-row items-end gap-2 border-t border-border/40 bg-background px-3 py-2">
+      <Pressable
+        onPress={onPickImage}
+        accessibilityLabel="Gửi ảnh"
+        className="h-11 w-11 items-center justify-center"
+      >
+        <Icon as={ImagePlus} size={22} className="text-muted-foreground" />
+      </Pressable>
       <View className="flex-1 rounded-3xl bg-secondary px-4 py-2">
         <TextInput
           ref={input}

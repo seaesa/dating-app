@@ -2,8 +2,19 @@ import type { MessageRead } from "@repo/api-contract";
 
 export type LocalStatus = "sending" | "failed";
 
+/** A picked photo, kept until it is sent so a failed send can retry it. */
+export interface LocalImage {
+  uri: string;
+  contentType: string;
+  width: number;
+  height: number;
+}
+
 /** A server message, or one still on its way (`localStatus` set). */
-export type ChatMessage = MessageRead & { localStatus?: LocalStatus };
+export type ChatMessage = MessageRead & {
+  localStatus?: LocalStatus;
+  localImage?: LocalImage;
+};
 
 export type ChatRow =
   | { type: "day"; key: string; label: string }
@@ -33,16 +44,20 @@ export function localMessage(params: {
   connectionId: string;
   myId: string;
   clientId: string;
-  body: string;
+  body?: string;
+  image?: LocalImage;
   status: LocalStatus;
 }): ChatMessage {
+  const { image } = params;
   return {
     id: `local-${params.clientId}`,
     connectionId: params.connectionId,
     senderId: params.myId,
     actorId: params.myId,
-    kind: "text",
-    body: params.body,
+    kind: image ? "image" : "text",
+    body: params.body ?? null,
+    image: image ? { url: image.uri, width: image.width, height: image.height } : null,
+    localImage: image,
     event: null,
     revealKind: null,
     clientId: params.clientId,
@@ -80,7 +95,7 @@ function lastSeenMineId(
   if (!peerLastReadId) return null;
   const seen = newestFirst.find(
     (m) =>
-      m.kind === "text" &&
+      m.kind !== "system" &&
       m.senderId === myId &&
       !isLocalId(m.id) &&
       m.id <= peerLastReadId,
@@ -90,8 +105,8 @@ function lastSeenMineId(
 
 function sameGroup(previous: ChatMessage, message: ChatMessage): boolean {
   return (
-    previous.kind === "text" &&
-    message.kind === "text" &&
+    previous.kind !== "system" &&
+    message.kind !== "system" &&
     previous.senderId === message.senderId &&
     new Date(message.createdAt).getTime() - new Date(previous.createdAt).getTime() <=
       GROUP_GAP_MS

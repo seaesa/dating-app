@@ -51,11 +51,11 @@ async def test_decline_then_request_again_immediately(api, bearer):
     a = await make_user("+84910000001")
     b = await make_user("+84910000002")
     room = await connect(a, b)
-    await api.post(path(room, "phone"), headers=bearer(a))
-    declined = await api.post(path(room, "phone", "/decline"), headers=bearer(b))
-    assert declined.json()["reveals"]["phone"] == {"state": "none", "requestedBy": None}
-    again = await api.post(path(room, "phone"), headers=bearer(a))
-    assert again.json()["reveals"]["phone"]["state"] == "requested"
+    await api.post(path(room, "photos"), headers=bearer(a))
+    declined = await api.post(path(room, "photos", "/decline"), headers=bearer(b))
+    assert declined.json()["reveals"]["photos"] == {"state": "none", "requestedBy": None}
+    again = await api.post(path(room, "photos"), headers=bearer(a))
+    assert again.json()["reveals"]["photos"]["state"] == "requested"
 
 
 @pytest.mark.asyncio
@@ -63,10 +63,20 @@ async def test_both_requesting_grants(api, bearer):
     a = await make_user("+84910000001")
     b = await make_user("+84910000002")
     room = await connect(a, b)
-    await api.post(path(room, "phone"), headers=bearer(a))
-    both = await api.post(path(room, "phone"), headers=bearer(b))
-    assert both.json()["reveals"]["phone"]["state"] == "granted"
-    assert both.json()["peer"]["phone"] == "+84910000001"
+    await api.post(path(room, "photos"), headers=bearer(a))
+    both = await api.post(path(room, "photos"), headers=bearer(b))
+    assert both.json()["reveals"]["photos"]["state"] == "granted"
+    assert len(both.json()["peer"]["identity"]["photoUrls"]) == 2
+    assert both.json()["peer"].get("phone") is None
+
+
+@pytest.mark.asyncio
+async def test_phone_cannot_be_revealed(api, bearer):
+    a = await make_user("+84910000001")
+    b = await make_user("+84910000002")
+    room = await connect(a, b)
+    response = await api.post(path(room, "phone"), headers=bearer(a))
+    assert response.status_code == 422
 
 
 @pytest.mark.asyncio
@@ -107,8 +117,8 @@ async def test_reveal_event_carries_no_private_data(api, bearer, redis):
     pubsub = redis.pubsub(ignore_subscribe_messages=True)
     await pubsub.subscribe(f"u:{a.oid}")
 
-    await api.post(path(room, "phone"), headers=bearer(a))
-    await api.post(path(room, "phone", "/accept"), headers=bearer(b))
+    await api.post(path(room, "photos"), headers=bearer(a))
+    await api.post(path(room, "photos", "/accept"), headers=bearer(b))
 
     raw_events = []
     for _ in range(100):
@@ -119,7 +129,7 @@ async def test_reveal_event_carries_no_private_data(api, bearer, redis):
     reveal = [json.loads(e) for e in raw_events if '"reveal.updated"' in e]
     assert reveal[-1]["data"] == {
         "connectionId": str(room.oid),
-        "kind": "phone",
+        "kind": "photos",
         "state": "granted",
         "requestedBy": str(a.oid),
     }

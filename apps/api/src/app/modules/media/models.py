@@ -12,11 +12,21 @@ from app.core.db import DOCUMENT_MODELS
 class MediaKind(StrEnum):
     PUBLIC = "public"
     PRIVATE = "private"
+    # Sent in a chat: signed for the two members of the room, never the profile.
+    CHAT = "chat"
 
 
 class MediaStatus(StrEnum):
     PENDING = "pending"
     READY = "ready"
+
+
+class FaceCheck(StrEnum):
+    """Whether a profile photo can be the main one: it shows the owner's face."""
+
+    PENDING = "pending"
+    PASSED = "passed"
+    FAILED = "failed"
 
 
 class MediaAsset(Document):
@@ -26,6 +36,9 @@ class MediaAsset(Document):
     content_type: str
     size: int
     status: MediaStatus = MediaStatus.PENDING
+    # Profile photos only, while the check is enabled; None means unchecked.
+    face_check: FaceCheck | None = None
+    face_check_reason: str | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     @property

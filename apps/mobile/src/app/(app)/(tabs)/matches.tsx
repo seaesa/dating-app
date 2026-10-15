@@ -255,7 +255,10 @@ export default function MatchesScreen() {
                             className="mt-0.5 text-xs text-foreground/80 line-clamp-1"
                             numberOfLines={1}
                           >
-                            💬 {item.lastMessage.preview}
+                            💬{" "}
+                            {item.lastMessage.kind === "image"
+                              ? "Đã gửi một ảnh"
+                              : item.lastMessage.preview}
                           </Text>
                         ) : (
                           <Text className="mt-0.5 text-[11px] font-medium text-emerald-600">

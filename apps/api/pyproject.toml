@@ -24,6 +24,11 @@ face = [
     "deepface>=0.0.101",
     "tf-keras>=2.21.0",
 ]
+# The main photo face check worker. Headless OpenCV, without the GUI libraries
+# a slim container lacks.
+vision = [
+    "opencv-python-headless>=4.12",
+]
 
 [dependency-groups]
 dev = [
@@ -33,6 +38,10 @@ dev = [
     "pytest-asyncio>=1.4.0",
     "ruff>=0.16.9",
 ]
+
+[tool.uv]
+# DeepFace pulls in the full opencv-python; both install the same `cv2`.
+conflicts = [[{ extra = "face" }, { extra = "vision" }]]
 
 [build-system]
 requires = ["hatchling"]

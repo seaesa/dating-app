@@ -17,11 +17,13 @@ import { Button, Icon, Text } from "@repo/ui";
 import { useCatalog } from "@/chat/catalog";
 import { confirmClose } from "@/chat/confirm-close";
 import type { ChatRow } from "@/chat/messages";
+import { pickChatImage } from "@/chat/pick-image";
 import { chipState, REVEAL_KINDS } from "@/chat/reveal";
 import { useChatRoom } from "@/chat/use-chat-room";
 import { ChatHeader } from "@/components/chat/chat-header";
 import { Composer } from "@/components/chat/composer";
 import { ConsentSheet } from "@/components/chat/consent-sheet";
+import { ImageViewer } from "@/components/chat/image-viewer";
 import { IntroCard } from "@/components/chat/intro-card";
 import { MessageBubble } from "@/components/chat/message-bubble";
 import { OptionsSheet } from "@/components/chat/options-sheet";
@@ -59,6 +61,7 @@ export default function ChatRoomScreen() {
   const [privacyOpen, setPrivacyOpen] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [consentKind, setConsentKind] = React.useState<RevealKind | null>(null);
+  const [viewing, setViewing] = React.useState<string | null>(null);
   const list = React.useRef<FlashListRef<ChatRow>>(null);
 
   // The keyboard shrinks the list from the bottom; keep the newest message in
@@ -103,6 +106,14 @@ export default function ChatRoomScreen() {
     room.sendText(draft);
     setDraft("");
   };
+  const pickImage = () => {
+    pickChatImage()
+      .then((image) => {
+        if (image) room.sendImage(image);
+      })
+      .catch(retryLater);
+  };
+  const photosOpen = connection.reveals.photos.state === "granted";
   const run = (action: () => Promise<unknown>) => {
     action()
       .then(() => setConsentKind(null))
@@ -140,7 +151,9 @@ export default function ChatRoomScreen() {
         startsGroup={item.startsGroup}
         endsGroup={item.endsGroup}
         seen={item.seen}
+        blurred={!item.mine && !photosOpen}
         onRetry={room.retry}
+        onOpenImage={setViewing}
       />
     );
   };
@@ -188,9 +201,15 @@ export default function ChatRoomScreen() {
             onReview={() => setConsentKind(incoming)}
           />
         ) : null}
-        <Composer value={draft} onChange={setDraft} onSend={send} />
+        <Composer
+          value={draft}
+          onChange={setDraft}
+          onSend={send}
+          onPickImage={pickImage}
+        />
       </KeyboardAvoidingView>
 
+      <ImageViewer url={viewing} onClose={() => setViewing(null)} />
       <PrivacySheet
         visible={privacyOpen}
         reveals={connection.reveals}
@@ -208,8 +227,6 @@ export default function ChatRoomScreen() {
           kind={consentKind}
           mode={consentMode(consentKind)}
           peerName={peerName}
-          myPhotoUrls={me.identity?.photoUrls ?? []}
-          myPhone={me.phone}
           busy={room.reveal.pending}
           onConfirm={() =>
             run(() =>

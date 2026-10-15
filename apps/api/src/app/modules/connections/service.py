@@ -232,7 +232,7 @@ class ConnectionService:
     ) -> None:
         reveal = (await self.repository.get_or_404(connection.oid)).reveals.get(kind)
         try:
-            # State only. Photos and phone are fetched through project_user,
+            # State only. Photos are fetched through project_user,
             # never carried by an event.
             await publish(
                 connection.participant_ids,
