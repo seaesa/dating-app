@@ -1,6 +1,5 @@
 import { router } from "expo-router";
 import Handshake from "lucide-react-native/icons/handshake";
-import Heart from "lucide-react-native/icons/heart";
 import MessageCircleHeart from "lucide-react-native/icons/message-circle-heart";
 import VenetianMask from "lucide-react-native/icons/venetian-mask";
 import * as React from "react";
@@ -10,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { APP_NAME } from "@repo/core";
 import { Button, Icon, Text } from "@repo/ui";
 
+import { AppLogo } from "@/components/brand/app-logo";
 import { openPrivacy, openTerms } from "@/legal";
 
 // The product's promise comes first: it is why the app later asks for a real
@@ -39,15 +39,8 @@ export default function WelcomeScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background">
       <View className="items-center pt-6">
-        <View className="flex-row items-center gap-2">
-          <View className="h-9 w-9 items-center justify-center rounded-xl bg-primary">
-            <Icon
-              as={Heart}
-              size={20}
-              className="text-primary-foreground"
-              fill="currentColor"
-            />
-          </View>
+        <View className="flex-row items-center gap-2.5">
+          <AppLogo size={36} />
           <Text className="text-2xl font-black tracking-tight text-foreground">
             {APP_NAME}
           </Text>

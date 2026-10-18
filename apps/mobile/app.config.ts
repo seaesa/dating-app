@@ -54,7 +54,7 @@ const config: ExpoConfig = {
     googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#ffffff",
+      backgroundColor: "#0D0817",
     },
     // `edgeToEdgeEnabled` is deliberately absent: Android 16 makes edge-to-edge
     // mandatory, and the plugin now rejects the option outright during prebuild.

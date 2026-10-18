@@ -1,0 +1,141 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Nền Dark Obsidian Tím Huyền Bí Siêu Sang -->
+    <radialGradient id="bgObsidian" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#24123A" />
+      <stop offset="45%" stop-color="#130A20" />
+      <stop offset="100%" stop-color="#08040E" />
+    </radialGradient>
+
+    <!-- Hào Quang Tỏa Sáng Phía Sau Trái Tim -->
+    <radialGradient id="haloGlow" cx="50%" cy="48%" r="48%">
+      <stop offset="0%" stop-color="#FF2E7E" stop-opacity="0.45" />
+      <stop offset="45%" stop-color="#7928CA" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#08040E" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Dải Lụa Trái: Hồng Neon Hẹn Hò sang Đỏ Ruby Đam Mê -->
+    <linearGradient id="ribbonLeft" x1="220" y1="220" x2="520" y2="820" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF4392" />
+      <stop offset="35%" stop-color="#FF1E56" />
+      <stop offset="80%" stop-color="#D9044D" />
+      <stop offset="100%" stop-color="#9E0038" />
+    </linearGradient>
+
+    <!-- Dải Lụa Phải: Tím Hoàng Gia sang Ultraviolet Vũ Trụ -->
+    <linearGradient id="ribbonRight" x1="804" y1="220" x2="504" y2="820" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#C084FC" />
+      <stop offset="35%" stop-color="#9333EA" />
+      <stop offset="75%" stop-color="#6B21A8" />
+      <stop offset="100%" stop-color="#4C1D95" />
+    </linearGradient>
+
+    <!-- Điểm Giao Thoa Mặt Nạ Bí Mật (Masquerade Reveal Arch) -->
+    <linearGradient id="revealArch" x1="260" y1="260" x2="764" y2="260" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF65A3" />
+      <stop offset="50%" stop-color="#FA26A0" />
+      <stop offset="100%" stop-color="#A855F7" />
+    </linearGradient>
+
+    <!-- Ánh Sáng Phản Chiếu Thủy Tinh Vát Cạnh -->
+    <linearGradient id="specularGlint" x1="240" y1="230" x2="480" y2="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.6" />
+      <stop offset="40%" stop-color="#FFFFFF" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Ánh Sáng Phản Chiếu Cánh Phải -->
+    <linearGradient id="specularRight" x1="784" y1="230" x2="544" y2="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.5" />
+      <stop offset="40%" stop-color="#FFFFFF" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Trái Tim Tinh Khiết Bên Trong -->
+    <linearGradient id="innerGem" x1="512" y1="360" x2="512" y2="650" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="60%" stop-color="#FFE4EE" />
+      <stop offset="100%" stop-color="#FECDD3" />
+    </linearGradient>
+
+    <!-- Drop Shadow 3D Đa Lớp -->
+    <filter id="shadow3D" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="24" stdDeviation="30" flood-color="#000000" flood-opacity="0.75" />
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#FF1E56" flood-opacity="0.4" />
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#9333EA" flood-opacity="0.3" />
+    </filter>
+
+    <!-- Flare Tinh Tú -->
+    <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="35%" stop-color="#FF8EB4" stop-opacity="0.9" />
+      <stop offset="70%" stop-color="#E11D48" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#E11D48" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Nền Canvas Đầy Đủ 1024x1024 (Chuẩn App Store & Google Play) -->
+  <rect width="1024" height="1024" fill="url(#bgObsidian)" />
+
+  <!-- Quầng Sáng Tỏa Sau Trái Tim -->
+  <circle cx="512" cy="490" r="370" fill="url(#haloGlow)" />
+
+  <!-- KHỐI BIỂU TƯỢNG TRÁI TIM VÔ CỰC ĐAN LỒNG 3D (INFINITY REVEAL HEART) -->
+  <g filter="url(#shadow3D)">
+    <!-- Cánh Trái (Ribbon Left): Đường cong mềm mại tạo nửa trái tim -->
+    <path
+      d="M512 345C450 240 330 205 235 255C140 305 130 440 190 550C250 660 410 760 512 825C485 750 430 670 380 600C315 510 305 435 345 375C385 315 460 315 512 345Z"
+      fill="url(#ribbonLeft)"
+    />
+
+    <!-- Cánh Phải (Ribbon Right): Đan xen tạo chiều sâu 3D phía sau và vươn lên đỉnh -->
+    <path
+      d="M512 345C574 240 694 205 789 255C884 305 894 440 834 550C774 660 614 760 512 825C539 750 594 670 644 600C709 510 719 435 679 375C639 315 564 315 512 345Z"
+      fill="url(#ribbonRight)"
+    />
+
+    <!-- Vòm Kết Nối Lồng Ghép Phía Trên (Biểu tượng Chiếc Mặt Nạ Masquerade hé mở) -->
+    <path
+      d="M512 355C440 270 340 245 255 285C215 305 185 340 170 385C195 340 245 305 315 295C405 280 480 320 512 355C544 320 619 280 709 295C779 305 829 340 854 385C839 340 809 305 769 285C684 245 584 270 512 355Z"
+      fill="url(#revealArch)"
+    />
+
+    <!-- Cạnh Phản Chiếu Thủy Tinh (Specular Left Glint) -->
+    <path
+      d="M255 285C340 245 440 270 512 355C470 320 405 290 325 300C245 310 195 350 175 400C170 365 195 320 255 285Z"
+      fill="url(#specularGlint)"
+    />
+
+    <!-- Cạnh Phản Chiếu Thủy Tinh (Specular Right Glint) -->
+    <path
+      d="M769 285C684 245 584 270 512 355C554 320 619 290 699 300C779 310 829 350 849 400C854 365 829 320 769 285Z"
+      fill="url(#specularRight)"
+    />
+
+    <!-- Trái Tim Pha Lê Lõi Tâm (Crystal Core Heart) -->
+    <path
+      d="M512 430C485 390 435 395 410 430C385 465 410 520 512 590C614 520 639 465 614 430C589 395 539 390 512 430Z"
+      fill="url(#innerGem)"
+    />
+
+    <!-- Điểm Gặp Nhau Tỏa Sáng: Ngôi Sao 4 Cánh Kỳ Diệu (The Spark of Match) -->
+    <g transform="translate(512 490)">
+      <!-- Vòng hào quang sáng trung tâm -->
+      <circle cx="0" cy="0" r="70" fill="url(#starGlow)" />
+      
+      <!-- Tia sao lớn trục dọc -->
+      <path d="M0 -65L8 -15L15 0L8 15L0 65L-8 15L-15 0L-8 -15Z" fill="#FFFFFF" />
+      <!-- Tia sao lớn trục ngang -->
+      <path d="M-65 0L-15 -8L0 -15L15 -8L65 0L15 8L0 15L-15 8Z" fill="#FFFFFF" />
+      
+      <!-- Tia sao chéo 45 độ tinh tế -->
+      <path d="M-28 -28L-8 -4L0 0L-4 -8Z" fill="#FFFFFF" opacity="0.8" />
+      <path d="M28 -28L8 -4L0 0L4 -8Z" fill="#FFFFFF" opacity="0.8" />
+      <path d="M28 28L8 4L0 0L4 8Z" fill="#FFFFFF" opacity="0.8" />
+      <path d="M-28 28L-8 4L0 0L-4 8Z" fill="#FFFFFF" opacity="0.8" />
+
+      <!-- Tâm sao lấp lánh điểm vàng hồng -->
+      <circle cx="0" cy="0" r="6" fill="#FFF1F2" />
+    </g>
+  </g>
+</svg>
