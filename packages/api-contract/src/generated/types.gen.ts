@@ -16,12 +16,577 @@ export type AccountRead = {
    */
   dateOfBirth: string | null;
   location: GeoPoint | null;
+  membership?: UserMembership;
   /**
    * Photos
    */
   photos: Array<PhotoRead>;
   sensitive: SensitiveAttributes;
   verification: VerificationRead;
+};
+
+/**
+ * AdminAuditLogPage
+ */
+export type AdminAuditLogPage = {
+  /**
+   * Items
+   */
+  items: Array<AdminAuditLogRead>;
+  /**
+   * Limit
+   */
+  limit: number;
+  /**
+   * Page
+   */
+  page: number;
+  /**
+   * Total
+   */
+  total: number;
+  /**
+   * Totalpages
+   */
+  totalPages: number;
+};
+
+/**
+ * AdminAuditLogRead
+ */
+export type AdminAuditLogRead = {
+  /**
+   * Action
+   */
+  action: string;
+  /**
+   * Adminid
+   */
+  adminId: string;
+  /**
+   * Adminusername
+   */
+  adminUsername: string;
+  /**
+   * Createdat
+   */
+  createdAt: string;
+  /**
+   * Details
+   */
+  details?: {
+    [key: string]: unknown;
+  };
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Ipaddress
+   */
+  ipAddress?: string | null;
+  /**
+   * Targetid
+   */
+  targetId?: string | null;
+  /**
+   * Targettype
+   */
+  targetType: string;
+};
+
+/**
+ * AdminDashboardStatsRead
+ */
+export type AdminDashboardStatsRead = {
+  /**
+   * Activevipusers
+   */
+  activeVipUsers: number;
+  /**
+   * Conversionrate
+   */
+  conversionRate: number;
+  /**
+   * Paidorderscount
+   */
+  paidOrdersCount: number;
+  /**
+   * Totalrevenue
+   */
+  totalRevenue: number;
+  /**
+   * Totalusers
+   */
+  totalUsers: number;
+};
+
+/**
+ * AdminLoginRequest
+ */
+export type AdminLoginRequest = {
+  /**
+   * Password
+   */
+  password: string;
+  /**
+   * Username
+   */
+  username: string;
+};
+
+/**
+ * AdminManualActivateRequest
+ */
+export type AdminManualActivateRequest = {
+  /**
+   * Note
+   *
+   * Lý do duyệt đơn thủ công
+   */
+  note: string;
+};
+
+/**
+ * AdminMeRead
+ */
+export type AdminMeRead = {
+  /**
+   * Createdat
+   */
+  createdAt: string;
+  /**
+   * Email
+   */
+  email: string;
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Isactive
+   */
+  isActive: boolean;
+  /**
+   * Lastloginat
+   */
+  lastLoginAt?: string | null;
+  role: AdminRole;
+  /**
+   * Username
+   */
+  username: string;
+};
+
+/**
+ * AdminOrderPage
+ */
+export type AdminOrderPage = {
+  /**
+   * Items
+   */
+  items: Array<AdminOrderRead>;
+  /**
+   * Limit
+   */
+  limit: number;
+  /**
+   * Page
+   */
+  page: number;
+  /**
+   * Total
+   */
+  total: number;
+  /**
+   * Totalpages
+   */
+  totalPages: number;
+};
+
+/**
+ * AdminOrderRead
+ */
+export type AdminOrderRead = {
+  /**
+   * Amount
+   */
+  amount: number;
+  /**
+   * Createdat
+   */
+  createdAt: string;
+  /**
+   * Expiresat
+   */
+  expiresAt: string;
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Paidat
+   */
+  paidAt?: string | null;
+  /**
+   * Paymentcode
+   */
+  paymentCode: string;
+  /**
+   * Plancode
+   */
+  planCode: string;
+  /**
+   * Planname
+   */
+  planName?: string | null;
+  /**
+   * Qrurl
+   */
+  qrUrl: string;
+  status: OrderStatus;
+  /**
+   * Updatedat
+   */
+  updatedAt: string;
+  /**
+   * Userdisplayname
+   */
+  userDisplayName?: string | null;
+  /**
+   * Userid
+   */
+  userId: string;
+  /**
+   * Userphone
+   */
+  userPhone?: string | null;
+  /**
+   * Web2Mtransactionid
+   */
+  web2MTransactionId?: string | null;
+};
+
+/**
+ * AdminPlanCreate
+ */
+export type AdminPlanCreate = {
+  /**
+   * Code
+   */
+  code: string;
+  /**
+   * Description
+   */
+  description?: string;
+  /**
+   * Durationdays
+   */
+  durationDays: number;
+  /**
+   * Features
+   */
+  features?: Array<string>;
+  /**
+   * Isactive
+   */
+  isActive?: boolean;
+  /**
+   * Ispopular
+   */
+  isPopular?: boolean;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Originalprice
+   */
+  originalPrice: number;
+  /**
+   * Price
+   */
+  price: number;
+  /**
+   * Sortorder
+   */
+  sortOrder?: number;
+};
+
+/**
+ * AdminPlanRead
+ */
+export type AdminPlanRead = {
+  /**
+   * Code
+   */
+  code: string;
+  /**
+   * Createdat
+   */
+  createdAt: string;
+  /**
+   * Description
+   */
+  description?: string;
+  /**
+   * Durationdays
+   */
+  durationDays: number;
+  /**
+   * Features
+   */
+  features?: Array<string>;
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Isactive
+   */
+  isActive?: boolean;
+  /**
+   * Ispopular
+   */
+  isPopular?: boolean;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Originalprice
+   */
+  originalPrice: number;
+  /**
+   * Price
+   */
+  price: number;
+  /**
+   * Sortorder
+   */
+  sortOrder?: number;
+  /**
+   * Updatedat
+   */
+  updatedAt: string;
+};
+
+/**
+ * AdminPlanUpdate
+ */
+export type AdminPlanUpdate = {
+  /**
+   * Description
+   */
+  description?: string | null;
+  /**
+   * Durationdays
+   */
+  durationDays?: number | null;
+  /**
+   * Features
+   */
+  features?: Array<string> | null;
+  /**
+   * Isactive
+   */
+  isActive?: boolean | null;
+  /**
+   * Ispopular
+   */
+  isPopular?: boolean | null;
+  /**
+   * Name
+   */
+  name?: string | null;
+  /**
+   * Originalprice
+   */
+  originalPrice?: number | null;
+  /**
+   * Price
+   */
+  price?: number | null;
+  /**
+   * Sortorder
+   */
+  sortOrder?: number | null;
+};
+
+/**
+ * AdminRole
+ */
+export type AdminRole = "superadmin" | "moderator";
+
+/**
+ * AdminSystemConfigRead
+ */
+export type AdminSystemConfigRead = {
+  /**
+   * Freemodeenabled
+   */
+  freeModeEnabled: boolean;
+  /**
+   * Qrttlminutes
+   */
+  qrTtlMinutes: number;
+  /**
+   * Supportzalourl
+   */
+  supportZaloUrl?: string;
+  /**
+   * Updatedat
+   */
+  updatedAt: string;
+  /**
+   * Updatedby
+   */
+  updatedBy?: string | null;
+  /**
+   * Web2Maccountholder
+   */
+  web2MAccountHolder: string;
+  /**
+   * Web2Mbankname
+   */
+  web2MBankName: string;
+  /**
+   * Web2Mbanknumber
+   */
+  web2MBankNumber: string;
+};
+
+/**
+ * AdminSystemConfigUpdate
+ */
+export type AdminSystemConfigUpdate = {
+  /**
+   * Freemodeenabled
+   */
+  freeModeEnabled?: boolean | null;
+  /**
+   * Qrttlminutes
+   */
+  qrTtlMinutes?: number | null;
+  /**
+   * Supportzalourl
+   */
+  supportZaloUrl?: string | null;
+  /**
+   * Web2Maccountholder
+   */
+  web2MAccountHolder?: string | null;
+  /**
+   * Web2Mbankname
+   */
+  web2MBankName?: string | null;
+  /**
+   * Web2Mbanknumber
+   */
+  web2MBankNumber?: string | null;
+};
+
+/**
+ * AdminTokenResponse
+ */
+export type AdminTokenResponse = {
+  /**
+   * Accesstoken
+   */
+  accessToken: string;
+  /**
+   * Expiresin
+   */
+  expiresIn: number;
+  /**
+   * Tokentype
+   */
+  tokenType?: string;
+};
+
+/**
+ * AdminUserBanRequest
+ */
+export type AdminUserBanRequest = {
+  /**
+   * Reason
+   *
+   * Lý do khóa hoặc mở khóa tài khoản
+   */
+  reason: string;
+};
+
+/**
+ * AdminUserListItem
+ */
+export type AdminUserListItem = {
+  /**
+   * Age
+   */
+  age?: number | null;
+  /**
+   * City
+   */
+  city?: string | null;
+  /**
+   * Createdat
+   */
+  createdAt: string;
+  /**
+   * Displayname
+   */
+  displayName: string;
+  /**
+   * Gender
+   */
+  gender?: string | null;
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Isactive
+   */
+  isActive: boolean;
+  /**
+   * Isvip
+   */
+  isVip: boolean;
+  /**
+   * Phone
+   */
+  phone: string;
+  status: UserStatus;
+  /**
+   * Vipexpiresat
+   */
+  vipExpiresAt?: string | null;
+};
+
+/**
+ * AdminUserPage
+ */
+export type AdminUserPage = {
+  /**
+   * Items
+   */
+  items: Array<AdminUserListItem>;
+  /**
+   * Limit
+   */
+  limit: number;
+  /**
+   * Page
+   */
+  page: number;
+  /**
+   * Total
+   */
+  total: number;
+  /**
+   * Totalpages
+   */
+  totalPages: number;
 };
 
 /**
@@ -373,6 +938,90 @@ export type MatchScoreBreakdown = {
 export type MediaKind = "public" | "private" | "chat";
 
 /**
+ * MembershipConfigRead
+ */
+export type MembershipConfigRead = {
+  /**
+   * Free Mode Enabled
+   *
+   * Trạng thái chế độ dùng thử miễn phí toàn hệ thống
+   */
+  free_mode_enabled: boolean;
+  /**
+   * Plans
+   *
+   * Danh sách các gói hội viên
+   */
+  plans?: Array<MembershipPlanRead>;
+};
+
+/**
+ * MembershipPlanRead
+ */
+export type MembershipPlanRead = {
+  /**
+   * Code
+   *
+   * Mã gói định danh (vd: 49k, 99k)
+   */
+  code: string;
+  /**
+   * Description
+   *
+   * Mô tả chi tiết
+   */
+  description?: string;
+  /**
+   * Duration Days
+   *
+   * Thời hạn sử dụng (ngày)
+   */
+  duration_days: number;
+  /**
+   * Features
+   *
+   * Danh sách quyền lợi
+   */
+  features?: Array<string>;
+  /**
+   * Is Active
+   *
+   * Trạng thái kích hoạt
+   */
+  is_active?: boolean;
+  /**
+   * Is Popular
+   *
+   * Đánh dấu gói phổ biến nhất
+   */
+  is_popular?: boolean;
+  /**
+   * Name
+   *
+   * Tên gói hiển thị
+   */
+  name: string;
+  /**
+   * Original Price
+   *
+   * Giá gốc trước giảm (VND)
+   */
+  original_price: number;
+  /**
+   * Price
+   *
+   * Giá gói (VND)
+   */
+  price: number;
+  /**
+   * Sort Order
+   *
+   * Thứ tự sắp xếp
+   */
+  sort_order?: number;
+};
+
+/**
  * Message
  */
 export type Message = {
@@ -476,6 +1125,121 @@ export type OptionRead = {
    * Value
    */
   value: string;
+};
+
+/**
+ * OrderCreate
+ */
+export type OrderCreate = {
+  /**
+   * Plan Code
+   *
+   * Mã gói hội viên cần mua (vd: 49k, 99k)
+   */
+  plan_code: string;
+};
+
+/**
+ * OrderRead
+ */
+export type OrderRead = {
+  /**
+   * Amount
+   *
+   * Số tiền thanh toán
+   */
+  amount: number;
+  /**
+   * Created At
+   */
+  created_at: string;
+  /**
+   * Expires At
+   */
+  expires_at: string;
+  /**
+   * Id
+   *
+   * ID đơn hàng
+   */
+  id: string;
+  /**
+   * Paid At
+   */
+  paid_at?: string | null;
+  /**
+   * Payment Code
+   *
+   * Mã chuyển khoản (TDxxxxxx)
+   */
+  payment_code: string;
+  /**
+   * Plan Code
+   *
+   * Mã gói
+   */
+  plan_code: string;
+  /**
+   * Qr Url
+   *
+   * Link ảnh VietQR QuickLink
+   */
+  qr_url: string;
+  /**
+   * Trạng thái đơn hàng
+   */
+  status: OrderStatus;
+  /**
+   * User Id
+   *
+   * ID người dùng
+   */
+  user_id: string;
+  /**
+   * Web2M Transaction Id
+   */
+  web2m_transaction_id?: string | null;
+};
+
+/**
+ * OrderStatus
+ */
+export type OrderStatus = "pending" | "paid" | "expired" | "manual_paid" | "cancelled";
+
+/**
+ * OrderStatusRead
+ */
+export type OrderStatusRead = {
+  /**
+   * Expires At
+   */
+  expires_at: string;
+  /**
+   * Membership Expires At
+   *
+   * Thời hạn hội viên mới sau khi kích hoạt thành công
+   */
+  membership_expires_at?: string | null;
+  /**
+   * Order Id
+   *
+   * ID đơn hàng
+   */
+  order_id: string;
+  /**
+   * Paid
+   *
+   * Đã thanh toán thành công chưa
+   */
+  paid: boolean;
+  /**
+   * Paid At
+   */
+  paid_at?: string | null;
+  /**
+   * Trạng thái đơn hàng hiện tại
+   */
+  status: OrderStatus;
 };
 
 /**
@@ -1009,6 +1773,34 @@ export type UploadUrlResponse = {
 };
 
 /**
+ * UserMembership
+ *
+ * Membership tier status stored on User and exposed to owner.
+ */
+export type UserMembership = {
+  /**
+   * Autorenew
+   */
+  autoRenew?: boolean;
+  /**
+   * Expiresat
+   */
+  expiresAt?: string | null;
+  /**
+   * Isactive
+   */
+  isActive?: boolean;
+  /**
+   * Plancode
+   */
+  planCode?: string | null;
+  /**
+   * Startedat
+   */
+  startedAt?: string | null;
+};
+
+/**
  * UserRead
  *
  * The only user-shaped response the API emits.
@@ -1116,6 +1908,792 @@ export type HealthResponses = {
 };
 
 export type HealthResponse = HealthResponses[keyof HealthResponses];
+
+export type GetAdminAuditLogsData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Page
+     */
+    page?: number;
+    /**
+     * Limit
+     */
+    limit?: number;
+    /**
+     * Admin Id
+     */
+    admin_id?: string | null;
+    /**
+     * Action
+     */
+    action?: string | null;
+    /**
+     * Target Type
+     */
+    target_type?: string | null;
+  };
+  url: "/v1/admin/audit-logs";
+};
+
+export type GetAdminAuditLogsErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetAdminAuditLogsError =
+  GetAdminAuditLogsErrors[keyof GetAdminAuditLogsErrors];
+
+export type GetAdminAuditLogsResponses = {
+  /**
+   * Successful Response
+   */
+  200: AdminAuditLogPage;
+};
+
+export type GetAdminAuditLogsResponse =
+  GetAdminAuditLogsResponses[keyof GetAdminAuditLogsResponses];
+
+export type AdminLoginData = {
+  body: AdminLoginRequest;
+  path?: never;
+  query?: never;
+  url: "/v1/admin/auth/login";
+};
+
+export type AdminLoginErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type AdminLoginError = AdminLoginErrors[keyof AdminLoginErrors];
+
+export type AdminLoginResponses = {
+  /**
+   * Successful Response
+   */
+  200: AdminTokenResponse;
+};
+
+export type AdminLoginResponse = AdminLoginResponses[keyof AdminLoginResponses];
+
+export type GetAdminMeData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v1/admin/auth/me";
+};
+
+export type GetAdminMeErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetAdminMeError = GetAdminMeErrors[keyof GetAdminMeErrors];
+
+export type GetAdminMeResponses = {
+  /**
+   * Successful Response
+   */
+  200: AdminMeRead;
+};
+
+export type GetAdminMeResponse = GetAdminMeResponses[keyof GetAdminMeResponses];
+
+export type GetAdminDashboardStatsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v1/admin/dashboard/stats";
+};
+
+export type GetAdminDashboardStatsErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetAdminDashboardStatsError =
+  GetAdminDashboardStatsErrors[keyof GetAdminDashboardStatsErrors];
+
+export type GetAdminDashboardStatsResponses = {
+  /**
+   * Successful Response
+   */
+  200: AdminDashboardStatsRead;
+};
+
+export type GetAdminDashboardStatsResponse =
+  GetAdminDashboardStatsResponses[keyof GetAdminDashboardStatsResponses];
+
+export type GetAdminPlansData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v1/admin/membership/plans";
+};
+
+export type GetAdminPlansErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetAdminPlansError = GetAdminPlansErrors[keyof GetAdminPlansErrors];
+
+export type GetAdminPlansResponses = {
+  /**
+   * Response Getadminplans
+   *
+   * Successful Response
+   */
+  200: Array<AdminPlanRead>;
+};
+
+export type GetAdminPlansResponse = GetAdminPlansResponses[keyof GetAdminPlansResponses];
+
+export type CreateAdminPlanData = {
+  body: AdminPlanCreate;
+  path?: never;
+  query?: never;
+  url: "/v1/admin/membership/plans";
+};
+
+export type CreateAdminPlanErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type CreateAdminPlanError = CreateAdminPlanErrors[keyof CreateAdminPlanErrors];
+
+export type CreateAdminPlanResponses = {
+  /**
+   * Successful Response
+   */
+  201: AdminPlanRead;
+};
+
+export type CreateAdminPlanResponse =
+  CreateAdminPlanResponses[keyof CreateAdminPlanResponses];
+
+export type DeleteAdminPlanData = {
+  body?: never;
+  path: {
+    /**
+     * Code
+     */
+    code: string;
+  };
+  query?: {
+    /**
+     * Hard Delete
+     */
+    hard_delete?: boolean;
+  };
+  url: "/v1/admin/membership/plans/{code}";
+};
+
+export type DeleteAdminPlanErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type DeleteAdminPlanError = DeleteAdminPlanErrors[keyof DeleteAdminPlanErrors];
+
+export type DeleteAdminPlanResponses = {
+  /**
+   * Successful Response
+   */
+  200: Message;
+};
+
+export type DeleteAdminPlanResponse =
+  DeleteAdminPlanResponses[keyof DeleteAdminPlanResponses];
+
+export type UpdateAdminPlanData = {
+  body: AdminPlanUpdate;
+  path: {
+    /**
+     * Code
+     */
+    code: string;
+  };
+  query?: never;
+  url: "/v1/admin/membership/plans/{code}";
+};
+
+export type UpdateAdminPlanErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type UpdateAdminPlanError = UpdateAdminPlanErrors[keyof UpdateAdminPlanErrors];
+
+export type UpdateAdminPlanResponses = {
+  /**
+   * Successful Response
+   */
+  200: AdminPlanRead;
+};
+
+export type UpdateAdminPlanResponse =
+  UpdateAdminPlanResponses[keyof UpdateAdminPlanResponses];
+
+export type GetAdminOrdersData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Page
+     */
+    page?: number;
+    /**
+     * Limit
+     */
+    limit?: number;
+    /**
+     * Status
+     */
+    status?: OrderStatus | null;
+    /**
+     * Payment Code
+     */
+    payment_code?: string | null;
+    /**
+     * User Id
+     */
+    user_id?: string | null;
+  };
+  url: "/v1/admin/orders";
+};
+
+export type GetAdminOrdersErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetAdminOrdersError = GetAdminOrdersErrors[keyof GetAdminOrdersErrors];
+
+export type GetAdminOrdersResponses = {
+  /**
+   * Successful Response
+   */
+  200: AdminOrderPage;
+};
+
+export type GetAdminOrdersResponse =
+  GetAdminOrdersResponses[keyof GetAdminOrdersResponses];
+
+export type GetAdminOrderDetailData = {
+  body?: never;
+  path: {
+    /**
+     * Order Id
+     */
+    order_id: string;
+  };
+  query?: never;
+  url: "/v1/admin/orders/{order_id}";
+};
+
+export type GetAdminOrderDetailErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetAdminOrderDetailError =
+  GetAdminOrderDetailErrors[keyof GetAdminOrderDetailErrors];
+
+export type GetAdminOrderDetailResponses = {
+  /**
+   * Successful Response
+   */
+  200: AdminOrderRead;
+};
+
+export type GetAdminOrderDetailResponse =
+  GetAdminOrderDetailResponses[keyof GetAdminOrderDetailResponses];
+
+export type ManualActivateOrderData = {
+  body: AdminManualActivateRequest;
+  path: {
+    /**
+     * Order Id
+     */
+    order_id: string;
+  };
+  query?: never;
+  url: "/v1/admin/orders/{order_id}/manual-activate";
+};
+
+export type ManualActivateOrderErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type ManualActivateOrderError =
+  ManualActivateOrderErrors[keyof ManualActivateOrderErrors];
+
+export type ManualActivateOrderResponses = {
+  /**
+   * Successful Response
+   */
+  200: AdminOrderRead;
+};
+
+export type ManualActivateOrderResponse =
+  ManualActivateOrderResponses[keyof ManualActivateOrderResponses];
+
+export type GetAdminSystemConfigData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v1/admin/system-config";
+};
+
+export type GetAdminSystemConfigErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetAdminSystemConfigError =
+  GetAdminSystemConfigErrors[keyof GetAdminSystemConfigErrors];
+
+export type GetAdminSystemConfigResponses = {
+  /**
+   * Successful Response
+   */
+  200: AdminSystemConfigRead;
+};
+
+export type GetAdminSystemConfigResponse =
+  GetAdminSystemConfigResponses[keyof GetAdminSystemConfigResponses];
+
+export type UpdateAdminSystemConfigData = {
+  body: AdminSystemConfigUpdate;
+  path?: never;
+  query?: never;
+  url: "/v1/admin/system-config";
+};
+
+export type UpdateAdminSystemConfigErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type UpdateAdminSystemConfigError =
+  UpdateAdminSystemConfigErrors[keyof UpdateAdminSystemConfigErrors];
+
+export type UpdateAdminSystemConfigResponses = {
+  /**
+   * Successful Response
+   */
+  200: AdminSystemConfigRead;
+};
+
+export type UpdateAdminSystemConfigResponse =
+  UpdateAdminSystemConfigResponses[keyof UpdateAdminSystemConfigResponses];
+
+export type GetAdminUsersData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Page
+     */
+    page?: number;
+    /**
+     * Limit
+     */
+    limit?: number;
+    /**
+     * Search
+     */
+    search?: string | null;
+    /**
+     * Is Vip
+     */
+    is_vip?: boolean | null;
+    /**
+     * Status
+     */
+    status?: UserStatus | null;
+  };
+  url: "/v1/admin/users";
+};
+
+export type GetAdminUsersErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetAdminUsersError = GetAdminUsersErrors[keyof GetAdminUsersErrors];
+
+export type GetAdminUsersResponses = {
+  /**
+   * Successful Response
+   */
+  200: AdminUserPage;
+};
+
+export type GetAdminUsersResponse = GetAdminUsersResponses[keyof GetAdminUsersResponses];
+
+export type BanAdminUserData = {
+  body: AdminUserBanRequest;
+  path: {
+    /**
+     * User Id
+     */
+    user_id: string;
+  };
+  query?: never;
+  url: "/v1/admin/users/{user_id}/ban";
+};
+
+export type BanAdminUserErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type BanAdminUserError = BanAdminUserErrors[keyof BanAdminUserErrors];
+
+export type BanAdminUserResponses = {
+  /**
+   * Successful Response
+   */
+  200: AdminUserListItem;
+};
+
+export type BanAdminUserResponse = BanAdminUserResponses[keyof BanAdminUserResponses];
 
 export type LogoutData = {
   body: RefreshBody;
@@ -2273,6 +3851,203 @@ export type ConfirmUploadResponses = {
 };
 
 export type ConfirmUploadResponse = ConfirmUploadResponses[keyof ConfirmUploadResponses];
+
+export type GetMembershipConfigData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v1/membership/config";
+};
+
+export type GetMembershipConfigErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetMembershipConfigError =
+  GetMembershipConfigErrors[keyof GetMembershipConfigErrors];
+
+export type GetMembershipConfigResponses = {
+  /**
+   * Successful Response
+   */
+  200: MembershipConfigRead;
+};
+
+export type GetMembershipConfigResponse =
+  GetMembershipConfigResponses[keyof GetMembershipConfigResponses];
+
+export type CreateOrderData = {
+  body: OrderCreate;
+  path?: never;
+  query?: never;
+  url: "/v1/orders";
+};
+
+export type CreateOrderErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type CreateOrderError = CreateOrderErrors[keyof CreateOrderErrors];
+
+export type CreateOrderResponses = {
+  /**
+   * Successful Response
+   */
+  201: OrderRead;
+};
+
+export type CreateOrderResponse = CreateOrderResponses[keyof CreateOrderResponses];
+
+export type GetOrderData = {
+  body?: never;
+  path: {
+    /**
+     * Order Id
+     *
+     * ID của đơn hàng
+     */
+    order_id: string;
+  };
+  query?: never;
+  url: "/v1/orders/{order_id}";
+};
+
+export type GetOrderErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetOrderError = GetOrderErrors[keyof GetOrderErrors];
+
+export type GetOrderResponses = {
+  /**
+   * Successful Response
+   */
+  200: OrderRead;
+};
+
+export type GetOrderResponse = GetOrderResponses[keyof GetOrderResponses];
+
+export type GetOrderStatusData = {
+  body?: never;
+  path: {
+    /**
+     * Order Id
+     *
+     * ID của đơn hàng
+     */
+    order_id: string;
+  };
+  query?: never;
+  url: "/v1/orders/{order_id}/status";
+};
+
+export type GetOrderStatusErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetOrderStatusError = GetOrderStatusErrors[keyof GetOrderStatusErrors];
+
+export type GetOrderStatusResponses = {
+  /**
+   * Successful Response
+   */
+  200: OrderStatusRead;
+};
+
+export type GetOrderStatusResponse =
+  GetOrderStatusResponses[keyof GetOrderStatusResponses];
 
 export type GetMeData = {
   body?: never;

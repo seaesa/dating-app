@@ -5,6 +5,9 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { router } from "expo-router";
+import Crown from "lucide-react-native/icons/crown";
+import Lock from "lucide-react-native/icons/lock";
+import Sparkles from "lucide-react-native/icons/sparkles";
 import * as React from "react";
 import {
   ActivityIndicator,
@@ -24,12 +27,14 @@ import {
   type ConnectionSummaryRead,
   type ReceivedInteractionRead,
 } from "@repo/api-contract";
-import { Button, SegmentedControl, Text } from "@repo/ui";
+import { Button, Icon, SegmentedControl, Text } from "@repo/ui";
 
 import {
   ProfileDetailModal,
   type ProfileDetailData,
-} from "../../../components/discovery/profile-detail-modal";
+} from "@/components/discovery/profile-detail-modal";
+import { MembershipModal, VietQrPaymentModal } from "@/components/membership";
+import { useMembership } from "@/hooks/use-membership";
 
 type MatchesTab = "matches" | "likes";
 
@@ -56,6 +61,9 @@ function mapReceivedInteractionToProfile(
 
 export default function MatchesScreen() {
   const queryClient = useQueryClient();
+  const { hasFeature } = useMembership();
+  const canSeeWhoLikedYou = hasFeature("SEE_WHO_LIKED_YOU");
+
   const [activeTab, setActiveTab] = React.useState<MatchesTab>("matches");
   const [celebrationData, setCelebrationData] = React.useState<{
     name: string;
@@ -63,6 +71,16 @@ export default function MatchesScreen() {
   } | null>(null);
   const [selectedActor, setSelectedActor] =
     React.useState<ReceivedInteractionRead | null>(null);
+
+  const [isMembershipModalVisible, setIsMembershipModalVisible] = React.useState(false);
+  const [isPaymentModalVisible, setIsPaymentModalVisible] = React.useState(false);
+  const [selectedPlanCode, setSelectedPlanCode] = React.useState<string | null>(null);
+
+  const handleSelectPlan = (planCode: string) => {
+    setSelectedPlanCode(planCode);
+    setIsMembershipModalVisible(false);
+    setIsPaymentModalVisible(true);
+  };
 
   // Queries
   const connectionsQueryData = useInfiniteQuery(connectionsQuery());
@@ -291,6 +309,69 @@ export default function MatchesScreen() {
               Đang tải danh sách lời chào đến...
             </Text>
           </View>
+        ) : !canSeeWhoLikedYou ? (
+          /* PAYWALL GUARD VIEW */
+          <View className="gap-4 pb-8 my-2">
+            {/* Paywall Banner Card */}
+            <View className="rounded-3xl border-2 border-primary/40 bg-card p-5 shadow-lg shadow-primary/10 gap-3.5">
+              <View className="flex-row items-center gap-3">
+                <View className="h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20">
+                  <Icon as={Crown} className="text-amber-500" size={26} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-black text-foreground">
+                    {receivedLikes.length > 0
+                      ? `Có ${receivedLikes.length} người đang thích bạn!`
+                      : "Xem ai đang thích và gửi lời chào"}
+                  </Text>
+                  <Text className="text-xs text-muted-foreground leading-4 mt-0.5">
+                    Nâng cấp gói Hội viên VIP để mở khóa xem ai đã thích bạn, xem ảnh và
+                    kết đôi ngay.
+                  </Text>
+                </View>
+              </View>
+
+              <Button
+                onPress={() => setIsMembershipModalVisible(true)}
+                className="h-12 w-full flex-row items-center justify-center rounded-2xl bg-primary shadow-md shadow-primary/25 active:opacity-90"
+              >
+                <View className="flex-row items-center gap-2">
+                  <Icon as={Sparkles} className="text-primary-foreground" size={16} />
+                  <Text className="text-sm font-bold text-primary-foreground">
+                    Mở khóa xem ai thích bạn ngay 💖
+                  </Text>
+                </View>
+              </Button>
+            </View>
+
+            {/* Locked Teaser Cards Preview */}
+            <View className="gap-3 opacity-70">
+              <Text className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
+                Danh sách đang bị ẩn (Nâng cấp VIP để mở)
+              </Text>
+
+              {[1, 2].map((idx) => (
+                <View
+                  key={idx}
+                  className="rounded-2xl border border-dashed border-border/80 bg-secondary/20 p-4 gap-3"
+                >
+                  <View className="flex-row items-center gap-3">
+                    <View className="h-12 w-12 items-center justify-center rounded-full bg-secondary">
+                      <Icon as={Lock} className="text-muted-foreground" size={20} />
+                    </View>
+                    <View className="flex-1 gap-1">
+                      <View className="flex-row items-center gap-2">
+                        <View className="h-4 w-28 rounded-md bg-secondary" />
+                        <View className="h-4 w-16 rounded-md bg-primary/20" />
+                      </View>
+                      <View className="h-3 w-36 rounded-md bg-secondary/70" />
+                    </View>
+                  </View>
+                  <View className="h-8 w-full rounded-xl bg-secondary/50" />
+                </View>
+              ))}
+            </View>
+          </View>
         ) : receivedLikes.length === 0 ? (
           <View className="items-center justify-center rounded-3xl border border-dashed border-border/80 bg-secondary/30 p-8 my-6">
             <View className="h-20 w-20 items-center justify-center rounded-full bg-amber-500/10">
@@ -492,6 +573,23 @@ export default function MatchesScreen() {
           queryClient.invalidateQueries({ queryKey: ["connections"] });
           queryClient.invalidateQueries({ queryKey: ["discovery"] });
           setSelectedActor(null);
+        }}
+      />
+
+      {/* Membership Pricing Modal */}
+      <MembershipModal
+        visible={isMembershipModalVisible}
+        onClose={() => setIsMembershipModalVisible(false)}
+        onSelectPlan={handleSelectPlan}
+      />
+
+      {/* VietQR Payment Modal */}
+      <VietQrPaymentModal
+        visible={isPaymentModalVisible}
+        planCode={selectedPlanCode}
+        onClose={() => {
+          setIsPaymentModalVisible(false);
+          setSelectedPlanCode(null);
         }}
       />
     </SafeAreaView>

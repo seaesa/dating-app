@@ -2,6 +2,22 @@ import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 
 import { http } from "./client";
 import type {
+  AdminAuditLogPage,
+  AdminDashboardStatsRead,
+  AdminLoginRequest,
+  AdminManualActivateRequest,
+  AdminMeRead,
+  AdminOrderPage,
+  AdminOrderRead,
+  AdminPlanCreate,
+  AdminPlanRead,
+  AdminPlanUpdate,
+  AdminSystemConfigRead,
+  AdminSystemConfigUpdate,
+  AdminTokenResponse,
+  AdminUserBanRequest,
+  AdminUserListItem,
+  AdminUserPage,
   ChallengeRead,
   CloseBody,
   ConnectionPage,
@@ -13,9 +29,14 @@ import type {
   InteractionCreate,
   InteractionResultRead,
   MatchCriteria,
+  MembershipConfigRead,
   Message,
   MessagePage,
   MessageRead,
+  OrderCreate,
+  OrderRead,
+  OrderStatus,
+  OrderStatusRead,
   OtpRequestBody,
   OtpRequestResponse,
   OtpVerifyBody,
@@ -220,4 +241,261 @@ export const messagesQuery = (connectionId: string) =>
     queryFn: ({ pageParam }) => listMessages(connectionId, pageParam),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
+  });
+
+// Membership & Payments
+
+export const getMembershipConfig = () =>
+  http.get<MembershipConfigRead>("/v1/membership/config").then((r) => r.data);
+
+export const membershipConfigQuery = () =>
+  queryOptions({
+    queryKey: ["membership", "config"],
+    queryFn: getMembershipConfig,
+    staleTime: 60 * 1000,
+  });
+
+export const createOrder = (body: OrderCreate) =>
+  http.post<OrderRead>("/v1/orders", body).then((r) => r.data);
+
+export const getOrder = (orderId: string) =>
+  http.get<OrderRead>(`/v1/orders/${encodeURIComponent(orderId)}`).then((r) => r.data);
+
+export const orderQuery = (orderId: string) =>
+  queryOptions({
+    queryKey: ["orders", orderId],
+    queryFn: () => getOrder(orderId),
+  });
+
+export const getOrderStatus = (orderId: string) =>
+  http
+    .get<OrderStatusRead>(`/v1/orders/${encodeURIComponent(orderId)}/status`)
+    .then((r) => r.data);
+
+export const orderStatusQuery = (orderId: string) =>
+  queryOptions({
+    queryKey: ["orders", orderId, "status"],
+    queryFn: () => getOrderStatus(orderId),
+  });
+
+// Admin Auth
+
+export const adminLogin = (body: AdminLoginRequest) =>
+  http.post<AdminTokenResponse>("/v1/admin/auth/login", body).then((r) => r.data);
+
+export const getAdminMe = (token?: string) =>
+  http
+    .get<AdminMeRead>(
+      "/v1/admin/auth/me",
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    )
+    .then((r) => r.data);
+
+export const adminMeQuery = (token?: string) =>
+  queryOptions({
+    queryKey: ["admin", "me", token],
+    queryFn: () => getAdminMe(token),
+  });
+
+// Admin Membership Plans
+
+export const getAdminPlans = (token?: string) =>
+  http
+    .get<AdminPlanRead[]>(
+      "/v1/admin/membership/plans",
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    )
+    .then((r) => r.data);
+
+export const adminPlansQuery = (token?: string) =>
+  queryOptions({
+    queryKey: ["admin", "membership", "plans", token],
+    queryFn: () => getAdminPlans(token),
+  });
+
+export const createAdminPlan = (body: AdminPlanCreate, token?: string) =>
+  http
+    .post<AdminPlanRead>(
+      "/v1/admin/membership/plans",
+      body,
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    )
+    .then((r) => r.data);
+
+export const updateAdminPlan = (code: string, body: AdminPlanUpdate, token?: string) =>
+  http
+    .put<AdminPlanRead>(
+      `/v1/admin/membership/plans/${encodeURIComponent(code)}`,
+      body,
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    )
+    .then((r) => r.data);
+
+export const deleteAdminPlan = (code: string, hardDelete?: boolean, token?: string) =>
+  http
+    .delete<Message>(`/v1/admin/membership/plans/${encodeURIComponent(code)}`, {
+      params: hardDelete ? { hard_delete: true } : undefined,
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
+    .then((r) => r.data);
+
+// Admin System Config
+
+export const getAdminSystemConfig = (token?: string) =>
+  http
+    .get<AdminSystemConfigRead>(
+      "/v1/admin/system-config",
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    )
+    .then((r) => r.data);
+
+export const adminSystemConfigQuery = (token?: string) =>
+  queryOptions({
+    queryKey: ["admin", "system-config", token],
+    queryFn: () => getAdminSystemConfig(token),
+  });
+
+export const updateAdminSystemConfig = (body: AdminSystemConfigUpdate, token?: string) =>
+  http
+    .put<AdminSystemConfigRead>(
+      "/v1/admin/system-config",
+      body,
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    )
+    .then((r) => r.data);
+
+// Admin Orders
+
+export interface GetAdminOrdersParams {
+  page?: number;
+  limit?: number;
+  status?: OrderStatus;
+  paymentCode?: string;
+  userId?: string;
+}
+
+export const getAdminOrders = (params?: GetAdminOrdersParams, token?: string) =>
+  http
+    .get<AdminOrderPage>("/v1/admin/orders", {
+      params: {
+        page: params?.page,
+        limit: params?.limit,
+        status: params?.status,
+        payment_code: params?.paymentCode,
+        user_id: params?.userId,
+      },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
+    .then((r) => r.data);
+
+export const adminOrdersQuery = (params?: GetAdminOrdersParams, token?: string) =>
+  queryOptions({
+    queryKey: ["admin", "orders", params, token],
+    queryFn: () => getAdminOrders(params, token),
+  });
+
+export const getAdminOrderDetail = (orderId: string, token?: string) =>
+  http
+    .get<AdminOrderRead>(
+      `/v1/admin/orders/${encodeURIComponent(orderId)}`,
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    )
+    .then((r) => r.data);
+
+export const adminOrderDetailQuery = (orderId: string, token?: string) =>
+  queryOptions({
+    queryKey: ["admin", "orders", orderId, token],
+    queryFn: () => getAdminOrderDetail(orderId, token),
+  });
+
+export const manualActivateOrder = (
+  orderId: string,
+  body: AdminManualActivateRequest,
+  token?: string,
+) =>
+  http
+    .post<AdminOrderRead>(
+      `/v1/admin/orders/${encodeURIComponent(orderId)}/manual-activate`,
+      body,
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    )
+    .then((r) => r.data);
+
+export const getAdminDashboardStats = (token?: string) =>
+  http
+    .get<AdminDashboardStatsRead>(
+      "/v1/admin/dashboard/stats",
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    )
+    .then((r) => r.data);
+
+export const adminDashboardStatsQuery = (token?: string) =>
+  queryOptions({
+    queryKey: ["admin", "dashboard", "stats", token],
+    queryFn: () => getAdminDashboardStats(token),
+  });
+
+export interface GetAdminUsersParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  isVip?: boolean;
+  status?: string;
+}
+
+export const getAdminUsers = (params?: GetAdminUsersParams, token?: string) =>
+  http
+    .get<AdminUserPage>("/v1/admin/users", {
+      params: {
+        page: params?.page,
+        limit: params?.limit,
+        search: params?.search,
+        is_vip: params?.isVip,
+        status: params?.status,
+      },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
+    .then((r) => r.data);
+
+export const adminUsersQuery = (params?: GetAdminUsersParams, token?: string) =>
+  queryOptions({
+    queryKey: ["admin", "users", params, token],
+    queryFn: () => getAdminUsers(params, token),
+  });
+
+export const banAdminUser = (userId: string, body: AdminUserBanRequest, token?: string) =>
+  http
+    .post<AdminUserListItem>(
+      `/v1/admin/users/${encodeURIComponent(userId)}/ban`,
+      body,
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    )
+    .then((r) => r.data);
+
+export interface GetAdminAuditLogsParams {
+  page?: number;
+  limit?: number;
+  adminId?: string;
+  action?: string;
+  targetType?: string;
+}
+
+export const getAdminAuditLogs = (params?: GetAdminAuditLogsParams, token?: string) =>
+  http
+    .get<AdminAuditLogPage>("/v1/admin/audit-logs", {
+      params: {
+        page: params?.page,
+        limit: params?.limit,
+        admin_id: params?.adminId,
+        action: params?.action,
+        target_type: params?.targetType,
+      },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
+    .then((r) => r.data);
+
+export const adminAuditLogsQuery = (params?: GetAdminAuditLogsParams, token?: string) =>
+  queryOptions({
+    queryKey: ["admin", "audit-logs", params, token],
+    queryFn: () => getAdminAuditLogs(params, token),
   });

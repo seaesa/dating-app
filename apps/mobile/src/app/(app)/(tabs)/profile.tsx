@@ -10,11 +10,26 @@ import { useAuthStore } from "@repo/store";
 import { Button, ProfileCard, Skeleton, Text } from "@repo/ui";
 
 import { attributeEntry } from "@/chat/catalog";
+import {
+  MembershipCard,
+  MembershipModal,
+  VietQrPaymentModal,
+} from "@/components/membership";
 
 export default function ProfileScreen() {
   const signOut = useAuthStore((s) => s.signOut);
   const { data, isPending, isError } = useQuery(meQuery());
   const { data: optionsData } = useQuery(profileOptionsQuery());
+
+  const [isMembershipModalVisible, setIsMembershipModalVisible] = React.useState(false);
+  const [isPaymentModalVisible, setIsPaymentModalVisible] = React.useState(false);
+  const [selectedPlanCode, setSelectedPlanCode] = React.useState<string | null>(null);
+
+  const handleSelectPlan = (planCode: string) => {
+    setSelectedPlanCode(planCode);
+    setIsMembershipModalVisible(false);
+    setIsPaymentModalVisible(true);
+  };
 
   const profile = data?.profile;
   const photoUrl = data?.identity?.photoUrls[0] ?? null;
@@ -190,6 +205,9 @@ export default function ProfileScreen() {
                 interests={formattedInterests}
                 avatarUrl={photoUrl}
               />
+
+              {/* Membership Status & Upgrade Card */}
+              <MembershipCard onUpgrade={() => setIsMembershipModalVisible(true)} />
 
               {/* Action Button: Chỉnh sửa hồ sơ */}
               <Button
@@ -488,6 +506,23 @@ export default function ProfileScreen() {
           ) : null}
         </View>
       </ScrollView>
+
+      {/* Membership Pricing Modal */}
+      <MembershipModal
+        visible={isMembershipModalVisible}
+        onClose={() => setIsMembershipModalVisible(false)}
+        onSelectPlan={handleSelectPlan}
+      />
+
+      {/* VietQR Payment Modal */}
+      <VietQrPaymentModal
+        visible={isPaymentModalVisible}
+        planCode={selectedPlanCode}
+        onClose={() => {
+          setIsPaymentModalVisible(false);
+          setSelectedPlanCode(null);
+        }}
+      />
     </SafeAreaView>
   );
 }

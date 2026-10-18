@@ -10,9 +10,20 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
   description: "Meet people without giving away who you are, until you both choose to.",
+  applicationName: `${APP_NAME} Admin`,
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: `${APP_NAME} Admin`,
+  },
 };
 
 export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
   // From the shared tokens, not literals: the browser chrome should match the
   // page, and a hand-written hex drifts the first time a brand colour changes.
   themeColor: [
@@ -41,6 +52,8 @@ const APPLY_COLOR_SCHEME = `try{var m=matchMedia("(prefers-color-scheme: dark)")
 var a=function(){document.documentElement.classList.toggle("dark",m.matches)};
 a();m.addEventListener("change",a)}catch(e){}`;
 
+const PWA_EARLY_INIT = `try{window.__pwaInstallPrompt=null;window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__pwaInstallPrompt=e;window.dispatchEvent(new CustomEvent("pwa-prompt-ready"))});if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js")}}catch(e){}`;
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Set by proxy.ts in production; the CSP there blocks this script without it.
   const nonce = (await headers()).get("x-nonce") ?? undefined;
@@ -51,7 +64,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="vi" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+        <link rel="icon" href="/icon-512.png" type="image/png" sizes="512x512" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: APPLY_COLOR_SCHEME }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: PWA_EARLY_INIT }} />
       </head>
       <body>
         <Providers>{children}</Providers>

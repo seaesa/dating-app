@@ -140,6 +140,7 @@ def project_user(
             ),
             sensitive=target.matching.sensitive,
             criteria=target.matching.criteria,
+            membership=target.membership,
         )
         if is_self
         else None

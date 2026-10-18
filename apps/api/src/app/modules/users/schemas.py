@@ -238,6 +238,16 @@ class PhotoRead(BaseSchema):
     url: str
 
 
+class UserMembership(BaseSchema):
+    """Membership tier status stored on User and exposed to owner."""
+
+    is_active: bool = False
+    plan_code: str | None = None
+    started_at: datetime | None = None
+    expires_at: datetime | None = None
+    auto_renew: bool = False
+
+
 class AccountRead(BaseSchema):
     """What only the account owner sees about their own account."""
 
@@ -250,6 +260,7 @@ class AccountRead(BaseSchema):
     verification: VerificationRead
     sensitive: SensitiveAttributes
     criteria: MatchCriteria | None
+    membership: UserMembership = Field(default_factory=UserMembership)
 
 
 class UserRead(BaseSchema):

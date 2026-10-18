@@ -1,0 +1,45 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient Khiên Chính: Neon Pink -> Ruby Red -> Royal Purple -->
+    <linearGradient id="shieldGrad" x1="88" y1="36" x2="424" y2="482" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF2E7E" />
+      <stop offset="45%" stop-color="#E11D48" />
+      <stop offset="100%" stop-color="#7928CA" />
+    </linearGradient>
+
+    <!-- Cạnh Kim Cương Phản Chiếu Ánh Sáng -->
+    <linearGradient id="facetLight" x1="93" y1="100" x2="256" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.05" />
+    </linearGradient>
+
+    <!-- Trái Tim Lồng Ghép Gradient Bạch Kim -->
+    <linearGradient id="heartGrad" x1="256" y1="140" x2="256" y2="310" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#FFE4E6" />
+    </linearGradient>
+
+    <!-- Drop Shadow Phát Sáng -->
+    <filter id="iconGlow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#7928CA" flood-opacity="0.3" />
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#E11D48" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <g filter="url(#iconGlow)">
+    <!-- Khung Khiên Bảo Mật Giác Cắt Kim Cương -->
+    <path d="M256 36L88 100V238C88 349 160 451 256 482C352 451 424 349 424 238V100L256 36Z" fill="url(#shieldGrad)" />
+    
+    <!-- Cắt Vát Kim Cương Phía Trái -->
+    <path d="M256 41L93 103V238C93 346 163 445 256 476V41Z" fill="url(#facetLight)" />
+    
+    <!-- Cặp Trái Tim Đan Lồng Cách Điệu -->
+    <path d="M256 168C232 139 186 143 168 175C151 206 172 250 256 307C340 250 361 206 344 175C326 143 280 139 256 168Z" fill="url(#heartGrad)" fill-opacity="0.96" />
+    
+    <!-- Chữ T Trung Tâm Biểu Tượng Quyền Lực -->
+    <path d="M202 195H310V227H272V323H240V227H202V195Z" fill="#BE123C" />
+    
+    <!-- Ngôi Sao Sparkle Kết Đôi -->
+    <path d="M256 88L269 122L303 135L269 148L256 182L243 148L209 135L243 122L256 88Z" fill="#FFFFFF" />
+  </g>
+</svg>

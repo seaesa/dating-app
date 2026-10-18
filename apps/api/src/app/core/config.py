@@ -89,6 +89,18 @@ class Settings(BaseSettings):
     expo_push_url: str = "https://exp.host/--/api/v2/push/send"
     expo_access_token: str = ""
 
+    # Web2M Payment Gateway (VietQR)
+    web2m_api_get_qr: str = "https://api.web2m.com/quicklink"
+    web2m_api_get_transaction: str = "https://api.web2m.com/api/getTransaction"
+    web2m_bank_name: str = "MBBank"
+    web2m_bank_number: str = ""
+    web2m_bank_password: str = ""
+    web2m_bank_token: str = ""
+    web2m_account_holder: str = ""
+    web2m_is_mask: str = "false"
+    web2m_bank_background: str = "default"
+    web2m_qr_ttl_minutes: int = 15
+
     # HTTP
     # NoDecode because pydantic-settings JSON-decodes complex types from a
     # dotenv source BEFORE field validators run, so a plain comma-separated
