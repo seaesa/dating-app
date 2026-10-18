@@ -48,6 +48,27 @@ def main(argv: list[str] | None = None) -> int:
     seed.add_argument("--b", required=True, help="second phone, E.164")
     seed.add_argument("--messages", type=int, default=6)
 
+    sub.add_parser(
+        "seed-membership",
+        help="Seed default system configuration and membership packages",
+    )
+
+    create_admin = sub.add_parser(
+        "create-admin",
+        help="Create a system administrator account",
+    )
+    create_admin.add_argument("--username", required=True, help="Administrator username")
+    create_admin.add_argument(
+        "--email", required=True, help="Administrator email address"
+    )
+    create_admin.add_argument("--password", required=True, help="Administrator password")
+    create_admin.add_argument(
+        "--role",
+        default="superadmin",
+        choices=["superadmin", "moderator"],
+        help="Administrator role (default: superadmin)",
+    )
+
     args = parser.parse_args(argv)
     if args.command == "export-openapi":
         export_openapi(args.destination)
@@ -59,6 +80,10 @@ def main(argv: list[str] | None = None) -> int:
         return run_push_worker()
     elif args.command == "seed-chat":
         return run_seed(args.a, args.b, args.messages)
+    elif args.command == "seed-membership":
+        return run_seed_membership_cli()
+    elif args.command == "create-admin":
+        return run_create_admin_cli(args.username, args.email, args.password, args.role)
     return 0
 
 
@@ -110,6 +135,81 @@ def run_seed(phone_a: str, phone_b: str, messages: int) -> int:
         return 1
     asyncio.run(run_seed_chat(settings, phone_a, phone_b, messages))
     return 0
+
+
+def run_seed_membership_cli() -> int:
+    """Seed default system config and standard membership plans."""
+    import asyncio
+
+    from app.core.config import get_settings
+    from app.seed import run_seed_membership
+
+    settings = get_settings()
+    asyncio.run(run_seed_membership(settings))
+    return 0
+
+
+def run_create_admin_cli(username: str, email: str, password: str, role: str) -> int:
+    """Create an administrator account from CLI."""
+    import asyncio
+
+    from app.core.config import get_settings
+
+    settings = get_settings()
+    return asyncio.run(_create_admin(settings, username, email, password, role))
+
+
+async def _create_admin(
+    settings: Settings, username: str, email: str, password: str, role: str
+) -> int:
+    from pymongo.errors import DuplicateKeyError
+
+    from app.core.db import close_database, init_database
+    from app.modules.admin.models import AdminRole, AdminUser
+    from app.modules.admin.security import hash_password
+
+    if len(password) < 6:
+        print("Error: Password must be at least 6 characters long.", file=sys.stderr)
+        return 1
+
+    await init_database(settings)
+    try:
+        existing_username = await AdminUser.find_one({"username": username})
+        if existing_username is not None:
+            print(
+                f"Error: Admin with username '{username}' already exists.",
+                file=sys.stderr,
+            )
+            return 1
+
+        existing_email = await AdminUser.find_one({"email": email})
+        if existing_email is not None:
+            print(
+                f"Error: Admin with email '{email}' already exists.",
+                file=sys.stderr,
+            )
+            return 1
+
+        admin = AdminUser(
+            username=username,
+            email=email,
+            password_hash=hash_password(password),
+            role=AdminRole(role),
+            is_active=True,
+        )
+        await admin.insert()
+        print(
+            f"Successfully created admin user '{username}' ({email}) with role '{role}'."
+        )
+        return 0
+    except DuplicateKeyError as exc:
+        print(
+            f"Error: Admin with that username or email already exists ({exc}).",
+            file=sys.stderr,
+        )
+        return 1
+    finally:
+        await close_database()
 
 
 if __name__ == "__main__":

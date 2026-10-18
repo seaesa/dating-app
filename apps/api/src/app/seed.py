@@ -190,3 +190,88 @@ async def run_seed_chat(
     finally:
         await close_redis()
         await close_database()
+
+
+async def seed_membership_data(settings: Settings) -> None:
+    """Initialize default SystemConfig (free mode) and standard MembershipPlans."""
+    from app.modules.membership.models import MembershipPlan
+    from app.modules.system_config.models import SystemConfig
+
+    sys_config = await SystemConfig.find_one()
+    if sys_config is None:
+        sys_config = SystemConfig(
+            free_mode_enabled=True,
+            qr_ttl_minutes=15,
+            web2m_bank_name=settings.web2m_bank_name or "MBBank",
+            web2m_bank_number=settings.web2m_bank_number or "",
+            web2m_account_holder=settings.web2m_account_holder or "",
+        )
+        await sys_config.insert()
+        print("seeded default SystemConfig (free_mode_enabled=True)")
+    else:
+        print("SystemConfig already exists, skipped")
+
+    # Seed 49k plan
+    plan_49k = await MembershipPlan.find_one({"code": "49k"})
+    if plan_49k is None:
+        plan_49k = MembershipPlan(
+            code="49k",
+            name="Gói VIP Cơ Bản",
+            description="Mở khóa ai thích bạn và lướt không giới hạn trong 30 ngày.",
+            price=49000,
+            original_price=99000,
+            duration_days=30,
+            features=[
+                "SEE_WHO_LIKED_YOU",
+                "UNLIMITED_LIKES",
+                "REWIND_LAST_PASS",
+                "VIP_BADGE",
+            ],
+            is_active=True,
+            is_popular=False,
+            sort_order=1,
+        )
+        await plan_49k.insert()
+        print("seeded MembershipPlan '49k'")
+    else:
+        print("MembershipPlan '49k' already exists, skipped")
+
+    # Seed 99k plan
+    plan_99k = await MembershipPlan.find_one({"code": "99k"})
+    if plan_99k is None:
+        plan_99k = MembershipPlan(
+            code="99k",
+            name="Gói VIP Toàn Diện",
+            description=(
+                "Trải nghiệm VIP cao cấp nhất: Boost hồ sơ, "
+                "Super Likes và bộ lọc nâng cao trong 90 ngày."
+            ),
+            price=99000,
+            original_price=199000,
+            duration_days=90,
+            features=[
+                "SEE_WHO_LIKED_YOU",
+                "UNLIMITED_LIKES",
+                "REWIND_LAST_PASS",
+                "VIP_BADGE",
+                "DAILY_SUPER_LIKES",
+                "PROFILE_BOOST",
+                "ADVANCED_FILTERS",
+                "FAST_TRACK_REVEAL",
+            ],
+            is_active=True,
+            is_popular=True,
+            sort_order=2,
+        )
+        await plan_99k.insert()
+        print("seeded MembershipPlan '99k'")
+    else:
+        print("MembershipPlan '99k' already exists, skipped")
+
+
+async def run_seed_membership(settings: Settings) -> None:
+    await init_database(settings)
+    try:
+        await seed_membership_data(settings)
+    finally:
+        await close_database()

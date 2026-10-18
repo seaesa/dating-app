@@ -13,6 +13,7 @@
     "clean": "rm -rf .venv .ruff_cache .mypy_cache node_modules .turbo",
     "worker:push": "uv run python -m app.cli push-worker",
     "worker:verification": "uv run --extra face python -m app.cli verification-worker",
-    "worker:face-check": "uv run --extra vision python -m app.cli face-check-worker"
+    "worker:face-check": "uv run --extra vision python -m app.cli face-check-worker",
+    "seed:membership": "uv run python -m app.cli seed-membership"
   }
 }

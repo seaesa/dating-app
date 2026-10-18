@@ -10,6 +10,7 @@ from app.modules.users.schemas import (
     MatchingProfile,
     PrivateIdentity,
     PublicProfile,
+    UserMembership,
     UserStatus,
 )
 
@@ -29,6 +30,7 @@ class User(Document):
     public: PublicProfile
     private: PrivateIdentity = Field(default_factory=PrivateIdentity)
     matching: MatchingProfile = Field(default_factory=MatchingProfile)
+    membership: UserMembership = Field(default_factory=UserMembership)
     # Matching ranks recently active people higher; written by get_current_user.
     last_active_at: datetime | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
