@@ -1,0 +1,177 @@
+<svg width="1284" height="2778" viewBox="0 0 1284 2778" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Nền Dark Obsidian Tím Huyền Bí Sang Trọng Toàn Màn Hình -->
+    <radialGradient id="splashBg" cx="50%" cy="45%" r="70%">
+      <stop offset="0%" stop-color="#22113A" />
+      <stop offset="35%" stop-color="#140922" />
+      <stop offset="100%" stop-color="#08030E" />
+    </radialGradient>
+
+    <!-- Hào Quang Lớn Tỏa Sáng Sau Logo -->
+    <radialGradient id="splashHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FF2E7E" stop-opacity="0.38" />
+      <stop offset="45%" stop-color="#7928CA" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#08030E" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Dải Lụa Trái -->
+    <linearGradient id="sRibbonLeft" x1="0" y1="0" x2="300" y2="600" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF4392" />
+      <stop offset="35%" stop-color="#FF1E56" />
+      <stop offset="80%" stop-color="#D9044D" />
+      <stop offset="100%" stop-color="#9E0038" />
+    </linearGradient>
+
+    <!-- Dải Lụa Phải -->
+    <linearGradient id="sRibbonRight" x1="600" y1="0" x2="300" y2="600" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#C084FC" />
+      <stop offset="35%" stop-color="#9333EA" />
+      <stop offset="75%" stop-color="#6B21A8" />
+      <stop offset="100%" stop-color="#4C1D95" />
+    </linearGradient>
+
+    <!-- Vòm Kết Nối Mặt Nạ -->
+    <linearGradient id="sRevealArch" x1="50" y1="50" x2="550" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF65A3" />
+      <stop offset="50%" stop-color="#FA26A0" />
+      <stop offset="100%" stop-color="#A855F7" />
+    </linearGradient>
+
+    <!-- Highlight Ánh Sáng -->
+    <linearGradient id="sSpecLeft" x1="0" y1="0" x2="300" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.6" />
+      <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+
+    <linearGradient id="sSpecRight" x1="600" y1="0" x2="300" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.5" />
+      <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Trái Tim Lõi -->
+    <linearGradient id="sInnerGem" x1="300" y1="100" x2="300" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="60%" stop-color="#FFE4EE" />
+      <stop offset="100%" stop-color="#FECDD3" />
+    </linearGradient>
+
+    <!-- Flare Tinh Tú -->
+    <radialGradient id="sStarGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="35%" stop-color="#FF8EB4" stop-opacity="0.9" />
+      <stop offset="70%" stop-color="#E11D48" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#E11D48" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Chữ Terdin Gradient Bạch Kim Ánh Hồng -->
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="50%" stop-color="#FFF1F5" />
+      <stop offset="100%" stop-color="#FFE4E6" />
+    </linearGradient>
+  </defs>
+
+  <!-- Nền Splash Screen Toàn Màn Hình -->
+  <rect width="1284" height="2778" fill="url(#splashBg)" />
+
+  <!-- Quầng Sáng Trung Tâm -->
+  <circle cx="642" cy="1160" r="540" fill="url(#splashHalo)" />
+
+  <!-- LOGO TRÁI TIM LỒNG PHÁT SÁNG Ở TRỌNG TÂM MÀN HÌNH (Scale 0.76, centered at 642, 1120) -->
+  <g transform="translate(642 1120) scale(0.72) translate(-512 -512)">
+    <!-- Cánh Trái (Ribbon Left) -->
+    <path
+      d="M512 345C450 240 330 205 235 255C140 305 130 440 190 550C250 660 410 760 512 825C485 750 430 670 380 600C315 510 305 435 345 375C385 315 460 315 512 345Z"
+      fill="url(#sRibbonLeft)"
+    />
+
+    <!-- Cánh Phải (Ribbon Right) -->
+    <path
+      d="M512 345C574 240 694 205 789 255C884 305 894 440 834 550C774 660 614 760 512 825C539 750 594 670 644 600C709 510 719 435 679 375C639 315 564 315 512 345Z"
+      fill="url(#sRibbonRight)"
+    />
+
+    <!-- Vòm Kết Nối Lồng Ghép -->
+    <path
+      d="M512 355C440 270 340 245 255 285C215 305 185 340 170 385C195 340 245 305 315 295C405 280 480 320 512 355C544 320 619 280 709 295C779 305 829 340 854 385C839 340 809 305 769 285C684 245 584 270 512 355Z"
+      fill="url(#sRevealArch)"
+    />
+
+    <!-- Cạnh Phản Chiếu Thủy Tinh Trái -->
+    <path
+      d="M255 285C340 245 440 270 512 355C470 320 405 290 325 300C245 310 195 350 175 400C170 365 195 320 255 285Z"
+      fill="url(#sSpecLeft)"
+    />
+
+    <!-- Cạnh Phản Chiếu Thủy Tinh Phải -->
+    <path
+      d="M769 285C684 245 584 270 512 355C554 320 619 290 699 300C779 310 829 350 849 400C854 365 829 320 769 285Z"
+      fill="url(#sSpecRight)"
+    />
+
+    <!-- Trái Tim Pha Lê Lõi Tâm -->
+    <path
+      d="M512 430C485 390 435 395 410 430C385 465 410 520 512 590C614 520 639 465 614 430C589 395 539 390 512 430Z"
+      fill="url(#sInnerGem)"
+    />
+
+    <!-- Điểm Gặp Nhau Tỏa Sáng: Ngôi Sao 4 Cánh Kỳ Diệu -->
+    <g transform="translate(512 490)">
+      <circle cx="0" cy="0" r="70" fill="url(#sStarGlow)" />
+      <path d="M0 -65L8 -15L15 0L8 15L0 65L-8 15L-15 0L-8 -15Z" fill="#FFFFFF" />
+      <path d="M-65 0L-15 -8L0 -15L15 -8L65 0L15 8L0 15L-15 8Z" fill="#FFFFFF" />
+      <path d="M-28 -28L-8 -4L0 0L-4 -8Z" fill="#FFFFFF" opacity="0.8" />
+      <path d="M28 -28L8 -4L0 0L4 -8Z" fill="#FFFFFF" opacity="0.8" />
+      <path d="M28 28L8 4L0 0L4 8Z" fill="#FFFFFF" opacity="0.8" />
+      <path d="M-28 28L-8 4L0 0L-4 8Z" fill="#FFFFFF" opacity="0.8" />
+      <circle cx="0" cy="0" r="6" fill="#FFF1F2" />
+    </g>
+  </g>
+
+  <!-- TYPOGRAPHY THƯƠNG HIỆU CAO CẤP -->
+  <!-- Tên Ứng Dụng: TERDIN -->
+  <text
+    x="642"
+    y="1520"
+    text-anchor="middle"
+    fill="url(#textGrad)"
+    font-family="system-ui, -apple-system, sans-serif"
+    font-size="64"
+    font-weight="900"
+    letter-spacing="14"
+  >
+    TERDIN
+  </text>
+
+  <!-- Tagline / Slogan Ý Nghĩa -->
+  <text
+    x="642"
+    y="1600"
+    text-anchor="middle"
+    fill="#FF8EB4"
+    font-family="system-ui, -apple-system, sans-serif"
+    font-size="22"
+    font-weight="600"
+    letter-spacing="6"
+    opacity="0.9"
+  >
+    HẸN HÒ · RIÊNG TƯ · CHÂN THÀNH
+  </text>
+
+  <!-- Dòng Cam Kết Bảo Mật Dưới Đáy Màn Hình -->
+  <text
+    x="642"
+    y="2620"
+    text-anchor="middle"
+    fill="#94A3B8"
+    font-family="system-ui, -apple-system, sans-serif"
+    font-size="16"
+    font-weight="500"
+    letter-spacing="3"
+    opacity="0.5"
+  >
+    PRIVATE IDENTITY · RULE ZERO
+  </text>
+</svg>
