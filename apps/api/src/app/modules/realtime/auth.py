@@ -17,16 +17,22 @@ class SocketAuthError(Exception):
 
 
 async def authenticate_socket(
-    header: str | None, settings: Settings
+    header: str | None, settings: Settings, token: str | None = None
 ) -> tuple[User, float]:
     """The user behind a socket and when their access token expires."""
-    if not header or not header.lower().startswith("bearer "):
+    raw_token = token
+    if not raw_token and header and header.lower().startswith("bearer "):
+        raw_token = header[7:].strip()
+    if not raw_token:
         raise SocketAuthError(CLOSE_AUTH)
     try:
-        payload = decode_token(header[7:].strip(), settings, expect=TokenType.ACCESS)
+        payload = decode_token(raw_token, settings, expect=TokenType.ACCESS)
     except UnauthorizedError as exc:
         raise SocketAuthError(CLOSE_AUTH) from exc
-    user = await User.get(PydanticObjectId(payload["sub"]))
+    try:
+        user = await User.get(PydanticObjectId(payload["sub"]))
+    except Exception as exc:
+        raise SocketAuthError(CLOSE_AUTH) from exc
     if user is None:
         raise SocketAuthError(CLOSE_AUTH)
     if user.status is UserStatus.SUSPENDED:
