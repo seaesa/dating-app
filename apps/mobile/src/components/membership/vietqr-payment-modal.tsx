@@ -83,37 +83,46 @@ export function VietQrPaymentModal({
   const [copiedField, setCopiedField] = React.useState<string | null>(null);
   const [isCelebrated, setIsCelebrated] = React.useState<boolean>(false);
 
+  const hasRequestedRef = React.useRef(false);
+  const prevVisibleRef = React.useRef(visible);
+  const onCloseRef = React.useRef(onClose);
+  onCloseRef.current = onClose;
+  const onSuccessRef = React.useRef(onSuccess);
+  onSuccessRef.current = onSuccess;
+
   const createOrderMutation = useMutation({
     mutationFn: createOrder,
     onSuccess: (data) => {
       setOrder(data);
       setTimeLeft(getRemainingSeconds(data.expires_at));
     },
+    onError: () => {
+      hasRequestedRef.current = false;
+    },
   });
+
+  const { mutate: createOrderMutate, reset: resetOrderMutation } = createOrderMutation;
 
   // Trigger creation when modal is opened with planCode
   React.useEffect(() => {
-    if (
-      visible &&
-      planCode &&
-      !order &&
-      !createOrderMutation.isPending &&
-      !createOrderMutation.isSuccess
-    ) {
-      createOrderMutation.mutate({ plan_code: planCode });
+    if (visible && planCode && !order && !hasRequestedRef.current) {
+      hasRequestedRef.current = true;
+      createOrderMutate({ plan_code: planCode });
     }
-  }, [visible, planCode, order, createOrderMutation]);
+  }, [visible, planCode, order, createOrderMutate]);
 
-  // Reset when closing
+  // Reset when closing (only when transitioning from open to closed)
   React.useEffect(() => {
-    if (!visible) {
+    if (prevVisibleRef.current && !visible) {
+      hasRequestedRef.current = false;
       setOrder(null);
       setTimeLeft(0);
       setCopiedField(null);
       setIsCelebrated(false);
-      createOrderMutation.reset();
+      resetOrderMutation();
     }
-  }, [visible, createOrderMutation]);
+    prevVisibleRef.current = visible;
+  }, [visible, resetOrderMutation]);
 
   // Countdown timer
   React.useEffect(() => {
@@ -160,13 +169,13 @@ export function VietQrPaymentModal({
       void queryClient.invalidateQueries({
         queryKey: ["membership", "config"],
       });
-      onSuccess?.();
+      onSuccessRef.current?.();
       const timeout = setTimeout(() => {
-        onClose();
+        onCloseRef.current();
       }, 3000);
       return () => clearTimeout(timeout);
     }
-  }, [orderStatus?.paid, isCelebrated, queryClient, onSuccess, onClose]);
+  }, [orderStatus?.paid, isCelebrated, queryClient]);
 
   const handleCopy = async (text: string, field: string) => {
     await Clipboard.setStringAsync(text);

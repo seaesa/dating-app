@@ -1,3 +1,5 @@
+import { Platform } from "react-native";
+
 import type { RealtimeEnvelope } from "./bus";
 
 const PING_MS = 25_000;
@@ -13,7 +15,7 @@ const CLOSE_FORBIDDEN = 4403;
 // react-native/Libraries/WebSocket/WebSocket.js) that the DOM typings omit.
 type NativeWebSocketConstructor = new (
   url: string,
-  protocols: string | string[] | null,
+  protocols: string | string[] | undefined,
   options: { headers: Record<string, string> },
 ) => WebSocket;
 const NativeWebSocket = WebSocket as unknown as NativeWebSocketConstructor;
@@ -66,10 +68,20 @@ export class RealtimeSocket {
       this.scheduleReconnect();
       return;
     }
-    // React Native's WebSocket takes headers; the token stays out of URLs and logs.
-    const socket = new NativeWebSocket(this.options.url, null, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    // React Native's native WebSocket takes headers; the token stays out of URLs and logs.
+    // On Web (browser), standard WebSocket does not support custom handshake headers,
+    // so pass the token via query parameter.
+    let url = this.options.url;
+    if (Platform.OS === "web") {
+      const sep = url.includes("?") ? "&" : "?";
+      url = `${url}${sep}token=${encodeURIComponent(token)}`;
+    }
+    const socket =
+      Platform.OS === "web"
+        ? new WebSocket(url)
+        : new NativeWebSocket(url, undefined, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
     this.socket = socket;
     socket.onopen = () => {
       this.ping = setInterval(
@@ -91,10 +103,17 @@ export class RealtimeSocket {
     };
     socket.onclose = (closed) => {
       if (this.socket !== socket) return;
+      const wasUnstable = this.stable !== null;
       this.socket = null;
       this.clearTimers();
       if (!this.running || closed.code === CLOSE_FORBIDDEN) return;
-      if (closed.code === CLOSE_AUTH_EXPIRED) {
+      // On Web, browsers mask any handshake rejection / server close code as 1006.
+      // If the socket closed immediately before becoming stable, trigger auth refresh.
+      const isAuthExpired =
+        closed.code === CLOSE_AUTH_EXPIRED ||
+        (Platform.OS === "web" && closed.code === 1006 && wasUnstable);
+
+      if (isAuthExpired) {
         void this.options
           .onAuthExpired()
           .catch(() => undefined)

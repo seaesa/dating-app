@@ -157,3 +157,23 @@ async def test_failed_subscribe_does_not_poison_the_user(redis, monkeypatch):
     [(_, count)] = await redis.pubsub_numsub("u:user-1")
     assert count == 1
     await hub.close()
+
+
+@pytest.mark.asyncio
+async def test_token_query_parameter_authenticates_socket(chat_app, redis, settings):
+    from app.core.security import create_access_token
+
+    a = await make_user("+84910000001")
+    token = create_access_token(str(a.oid), settings)
+
+    async def subscribed():
+        return await subscribers(redis, a) == 1
+
+    url_with_token = f"{URL}?token={token}"
+    async with (
+        ws_client(chat_app) as client,
+        aconnect_ws(url_with_token, client) as ws,
+    ):
+        assert await eventually(subscribed)
+        assert await is_online(a.oid)
+        await ws.send_json({"type": "ping"})

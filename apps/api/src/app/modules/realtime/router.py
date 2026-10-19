@@ -27,9 +27,10 @@ async def realtime_socket(websocket: WebSocket) -> None:
     """
     await websocket.accept()
     settings = websocket.app.state.settings
+    token_param = websocket.query_params.get("token")
     try:
         user, expires_at = await authenticate_socket(
-            websocket.headers.get("authorization"), settings
+            websocket.headers.get("authorization"), settings, token=token_param
         )
     except SocketAuthError as exc:
         await websocket.close(code=exc.code)
