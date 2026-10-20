@@ -1,28 +1,36 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
+import ChevronRight from "lucide-react-native/icons/chevron-right";
+import UserX from "lucide-react-native/icons/user-x";
 import * as React from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Platform, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { meQuery, profileOptionsQuery } from "@repo/api-contract";
 import { useAuthStore } from "@repo/store";
-import { Button, ProfileCard, Skeleton, Text } from "@repo/ui";
+import { Button, Icon, ProfileCard, Skeleton, Text } from "@repo/ui";
 
 import { attributeEntry } from "@/chat/catalog";
 import {
   MembershipCard,
   MembershipModal,
   VietQrPaymentModal,
+  VipPerksModal,
 } from "@/components/membership";
+import { BlockedUsersModal } from "@/components/profile/blocked-users-modal";
+import { useMembership } from "@/hooks/use-membership";
 
 export default function ProfileScreen() {
   const signOut = useAuthStore((s) => s.signOut);
+  const { isVip, membership, currentPlan } = useMembership();
   const { data, isPending, isError } = useQuery(meQuery());
   const { data: optionsData } = useQuery(profileOptionsQuery());
 
   const [isMembershipModalVisible, setIsMembershipModalVisible] = React.useState(false);
   const [isPaymentModalVisible, setIsPaymentModalVisible] = React.useState(false);
+  const [isPerksModalVisible, setIsPerksModalVisible] = React.useState(false);
+  const [isBlockedModalVisible, setIsBlockedModalVisible] = React.useState(false);
   const [selectedPlanCode, setSelectedPlanCode] = React.useState<string | null>(null);
 
   const handleSelectPlan = (planCode: string) => {
@@ -173,7 +181,9 @@ export default function ProfileScreen() {
 
       <ScrollView
         className="flex-1 px-5 pt-4"
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{
+          paddingBottom: Platform.select({ web: 120, default: 80 }),
+        }}
         showsVerticalScrollIndicator={false}
       >
         <View className="gap-5">
@@ -204,10 +214,17 @@ export default function ProfileScreen() {
                 bio={data.profile.bio}
                 interests={formattedInterests}
                 avatarUrl={photoUrl}
+                isVip={Boolean(data.profile.isVip || isVip)}
+                vipPlan={
+                  currentPlan?.code ?? membership?.planCode ?? data.profile.vipPlan
+                }
               />
 
               {/* Membership Status & Upgrade Card */}
-              <MembershipCard onUpgrade={() => setIsMembershipModalVisible(true)} />
+              <MembershipCard
+                onUpgrade={() => setIsMembershipModalVisible(true)}
+                onViewPerks={() => setIsPerksModalVisible(true)}
+              />
 
               {/* Action Button: Chỉnh sửa hồ sơ */}
               <Button
@@ -418,9 +435,11 @@ export default function ProfileScreen() {
 
                 <View className="gap-2.5 pt-3">
                   <View className="flex-row items-center justify-between">
-                    <Text className="text-xs text-muted-foreground">Tên thật:</Text>
+                    <Text className="text-xs text-muted-foreground">Họ và tên:</Text>
                     <Text className="text-sm font-bold text-foreground">
-                      {data.identity?.realName ?? "Chưa thiết lập"}
+                      {data.identity?.realName ||
+                        data.profile.displayName ||
+                        "Chưa thiết lập"}
                     </Text>
                   </View>
 
@@ -440,52 +459,37 @@ export default function ProfileScreen() {
                     <Text className="font-bold text-foreground">
                       Nguyên tắc Rule Zero:
                     </Text>{" "}
-                    Tên thật, số điện thoại và ảnh chân dung sẽ luôn được mã hóa an toàn.
+                    Họ và tên, số điện thoại và ảnh chân dung sẽ luôn được mã hóa an toàn.
                     Chỉ khi cả hai người cùng đồng ý mở danh tính trong cuộc trò chuyện,
                     thông tin mới được tiết lộ.
                   </Text>
                 </View>
               </View>
 
-              {/* Settings / Preferences Shortcuts */}
-              <View className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm shadow-black/5">
+              {/* Settings / Privacy Options */}
+              <View className="overflow-hidden rounded-2xl border border-border/70 bg-card">
                 <Pressable
-                  className="flex-row items-center justify-between border-b border-border/40 p-4 active:bg-secondary/60"
-                  onPress={() => router.push("/(app)/edit-profile")}
-                >
-                  <View className="flex-row items-center gap-3">
-                    <Text className="text-base">⚙️</Text>
-                    <Text className="text-sm font-semibold text-foreground">
-                      Tùy chọn ghép đôi & đối tượng
-                    </Text>
-                  </View>
-                  <Text className="text-sm text-muted-foreground">→</Text>
-                </Pressable>
-
-                <Pressable
-                  className="flex-row items-center justify-between border-b border-border/40 p-4 active:bg-secondary/60"
-                  onPress={() => {}}
-                >
-                  <View className="flex-row items-center gap-3">
-                    <Text className="text-base">🔔</Text>
-                    <Text className="text-sm font-semibold text-foreground">
-                      Thông báo & Tin nhắn
-                    </Text>
-                  </View>
-                  <Text className="text-sm text-muted-foreground">→</Text>
-                </Pressable>
-
-                <Pressable
+                  onPress={() => setIsBlockedModalVisible(true)}
                   className="flex-row items-center justify-between p-4 active:bg-secondary/60"
-                  onPress={() => {}}
                 >
                   <View className="flex-row items-center gap-3">
-                    <Text className="text-base">❓</Text>
-                    <Text className="text-sm font-semibold text-foreground">
-                      Trung tâm hỗ trợ & An toàn
-                    </Text>
+                    <View className="h-9 w-9 items-center justify-center rounded-xl bg-destructive/10">
+                      <Icon as={UserX} size={18} className="text-destructive" />
+                    </View>
+                    <View>
+                      <Text className="text-sm font-bold text-foreground">
+                        Danh sách đã chặn
+                      </Text>
+                      <Text className="text-xs text-muted-foreground">
+                        Quản lý và mở chặn người dùng
+                      </Text>
+                    </View>
                   </View>
-                  <Text className="text-sm text-muted-foreground">→</Text>
+                  <Icon
+                    as={ChevronRight}
+                    size={18}
+                    className="text-muted-foreground/60"
+                  />
                 </Pressable>
               </View>
 
@@ -514,6 +518,13 @@ export default function ProfileScreen() {
         onSelectPlan={handleSelectPlan}
       />
 
+      {/* VIP Perks Modal */}
+      <VipPerksModal
+        visible={isPerksModalVisible}
+        onClose={() => setIsPerksModalVisible(false)}
+        onUpgrade={() => setIsMembershipModalVisible(true)}
+      />
+
       {/* VietQR Payment Modal */}
       <VietQrPaymentModal
         visible={isPaymentModalVisible}
@@ -522,6 +533,12 @@ export default function ProfileScreen() {
           setIsPaymentModalVisible(false);
           setSelectedPlanCode(null);
         }}
+      />
+
+      {/* Blocked Users Modal */}
+      <BlockedUsersModal
+        visible={isBlockedModalVisible}
+        onClose={() => setIsBlockedModalVisible(false)}
       />
     </SafeAreaView>
   );

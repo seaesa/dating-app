@@ -162,6 +162,8 @@ class UserService:
 
     async def update_profile(self, user: User, patch: PublicProfileUpdate) -> UserRead:
         _apply(user.public, patch)
+        if patch.display_name and not user.private.real_name:
+            user.private.real_name = patch.display_name.strip()
         if patch.city and (
             user.private.location is None or len(user.private.location.coordinates) != 2
         ):

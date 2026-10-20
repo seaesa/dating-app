@@ -750,12 +750,32 @@
             "title": "Web2Maccountholder",
             "type": "string"
           },
+          "web2MApiGetQr": {
+            "default": "",
+            "title": "Web2Mapigetqr",
+            "type": "string"
+          },
+          "web2MApiGetTransaction": {
+            "default": "",
+            "title": "Web2Mapigettransaction",
+            "type": "string"
+          },
           "web2MBankName": {
             "title": "Web2Mbankname",
             "type": "string"
           },
           "web2MBankNumber": {
             "title": "Web2Mbanknumber",
+            "type": "string"
+          },
+          "web2MBankPassword": {
+            "default": "",
+            "title": "Web2Mbankpassword",
+            "type": "string"
+          },
+          "web2MBankToken": {
+            "default": "",
+            "title": "Web2Mbanktoken",
             "type": "string"
           }
         },
@@ -819,6 +839,28 @@
             ],
             "title": "Web2Maccountholder"
           },
+          "web2MApiGetQr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Web2Mapigetqr"
+          },
+          "web2MApiGetTransaction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Web2Mapigettransaction"
+          },
           "web2MBankName": {
             "anyOf": [
               {
@@ -840,9 +882,129 @@
               }
             ],
             "title": "Web2Mbanknumber"
+          },
+          "web2MBankPassword": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Web2Mbankpassword"
+          },
+          "web2MBankToken": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Web2Mbanktoken"
           }
         },
         "title": "AdminSystemConfigUpdate",
+        "type": "object"
+      },
+      "AdminTestWeb2MRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "apiGetTransaction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Apigettransaction"
+          },
+          "bankName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bankname"
+          },
+          "bankNumber": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Banknumber"
+          },
+          "bankPassword": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bankpassword"
+          },
+          "bankToken": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Banktoken"
+          }
+        },
+        "title": "AdminTestWeb2MRequest",
+        "type": "object"
+      },
+      "AdminTestWeb2MResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "details": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "success": {
+            "title": "Success",
+            "type": "boolean"
+          },
+          "transactionCount": {
+            "default": 0,
+            "title": "Transactioncount",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "AdminTestWeb2MResponse",
         "type": "object"
       },
       "AdminTokenResponse": {
@@ -1063,6 +1225,33 @@
           "options"
         ],
         "title": "AttributeRead",
+        "type": "object"
+      },
+      "BlockedUserRead": {
+        "additionalProperties": false,
+        "properties": {
+          "blockedAt": {
+            "format": "date-time",
+            "title": "Blockedat",
+            "type": "string"
+          },
+          "interactionId": {
+            "$ref": "#/components/schemas/PydanticObjectId"
+          },
+          "target": {
+            "$ref": "#/components/schemas/UserRead"
+          },
+          "targetId": {
+            "$ref": "#/components/schemas/PydanticObjectId"
+          }
+        },
+        "required": [
+          "interactionId",
+          "targetId",
+          "target",
+          "blockedAt"
+        ],
+        "title": "BlockedUserRead",
         "type": "object"
       },
       "ChallengeRead": {
@@ -2709,6 +2898,11 @@
             "title": "Interests",
             "type": "array"
           },
+          "isVip": {
+            "default": false,
+            "title": "Isvip",
+            "type": "boolean"
+          },
           "prompts": {
             "items": {
               "$ref": "#/components/schemas/ProfilePrompt"
@@ -2719,6 +2913,17 @@
           "verified": {
             "title": "Verified",
             "type": "boolean"
+          },
+          "vipPlan": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vipplan"
           }
         },
         "required": [
@@ -4435,6 +4640,22 @@
               ],
               "title": "User Id"
             }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
           }
         ],
         "responses": {
@@ -4929,6 +5150,108 @@
           }
         ],
         "summary": "Update Admin System Config",
+        "tags": [
+          "Admin System Config"
+        ]
+      }
+    },
+    "/v1/admin/system-config/test-web2m": {
+      "post": {
+        "operationId": "testAdminWeb2MConnection",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminTestWeb2MRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTestWeb2MResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation Failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "adminBearerAuth": []
+          }
+        ],
+        "summary": "Test Admin Web2M Connection",
         "tags": [
           "Admin System Config"
         ]
@@ -7295,6 +7618,213 @@
           }
         ],
         "summary": "Create Interaction",
+        "tags": [
+          "interactions"
+        ]
+      }
+    },
+    "/v1/interactions/blocked": {
+      "get": {
+        "description": "Fetch users blocked by current user.",
+        "operationId": "getBlockedUsers",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BlockedUserRead"
+                  },
+                  "title": "Response Getblockedusers",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation Failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Get Blocked Users",
+        "tags": [
+          "interactions"
+        ]
+      }
+    },
+    "/v1/interactions/blocked/{target_id}": {
+      "delete": {
+        "description": "Unblock a user.",
+        "operationId": "unblockUser",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "target_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/PydanticObjectId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Validation Failed"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/problem+json": {}
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Unblock User",
         "tags": [
           "interactions"
         ]

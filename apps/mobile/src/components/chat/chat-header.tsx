@@ -56,6 +56,8 @@ export function ChatHeader({
             name={profile.displayName}
             age={profile.age}
             verified={profile.verified}
+            isVip={profile.isVip}
+            vipPlan={profile.vipPlan}
             className="text-base"
           />
           <Text className="text-xs text-muted-foreground" numberOfLines={1}>

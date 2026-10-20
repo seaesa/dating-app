@@ -315,6 +315,23 @@ export default function HomeFeedScreen() {
                         <Text className="text-base font-extrabold text-foreground">
                           {profile.age} tuổi
                         </Text>
+                        {profile.isVip ? (
+                          profile.vipPlan === "99k" ? (
+                            <View className="flex-row items-center gap-0.5 rounded-full bg-violet-600 px-1.5 py-0.5 shadow-sm shadow-violet-600/20">
+                              <Text className="text-[9px]">💎</Text>
+                              <Text className="text-[9px] font-black tracking-wider text-white">
+                                VIP PRO
+                              </Text>
+                            </View>
+                          ) : (
+                            <View className="flex-row items-center gap-0.5 rounded-full bg-amber-500 px-1.5 py-0.5 shadow-sm shadow-amber-500/20">
+                              <Text className="text-[9px]">👑</Text>
+                              <Text className="text-[9px] font-black tracking-wider text-white">
+                                VIP
+                              </Text>
+                            </View>
+                          )
+                        ) : null}
                       </View>
 
                       <Text className="text-xs text-muted-foreground" numberOfLines={1}>

@@ -27,8 +27,9 @@ def export_openapi(destination: pathlib.Path) -> None:
         jwt_secret="x" * 32,
     )
     schema = create_app(settings).openapi()
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(json.dumps(schema, indent=2, sort_keys=True) + "\n")
+    destination.write_text(
+        json.dumps(schema, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     print(f"wrote {destination} ({len(schema['paths'])} paths)")
 
 

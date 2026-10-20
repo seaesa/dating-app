@@ -1,9 +1,12 @@
+import contextlib
+import re
 from datetime import UTC, datetime
 from typing import Any
 
 from beanie import PydanticObjectId
 from fastapi import APIRouter, Query, Request
 
+from app.core.config import get_settings
 from app.core.deps import SettingsDep
 from app.core.errors import ConflictError, NotFoundError, UnauthorizedError
 from app.core.schemas import Message
@@ -23,6 +26,8 @@ from app.modules.admin.schemas import (
     AdminPlanUpdate,
     AdminSystemConfigRead,
     AdminSystemConfigUpdate,
+    AdminTestWeb2MRequest,
+    AdminTestWeb2MResponse,
     AdminTokenResponse,
     AdminUserBanRequest,
     AdminUserListItem,
@@ -47,10 +52,21 @@ def _build_admin_order_read(
     user: User | None = None,
     plan: MembershipPlan | None = None,
 ) -> AdminOrderRead:
+    display_name = None
+    if user:
+        display_name = (
+            user.public.display_name.strip()
+            if user.public and user.public.display_name
+            else None
+        ) or (
+            user.private.real_name.strip()
+            if user.private and user.private.real_name
+            else None
+        )
     return AdminOrderRead(
         id=str(order.oid),
         user_id=str(order.user_id),
-        user_display_name=user.public.display_name if user else None,
+        user_display_name=display_name,
         user_phone=user.phone if user else None,
         plan_code=order.plan_code,
         plan_name=plan.name if plan else None,
@@ -313,6 +329,30 @@ async def delete_admin_plan(
 # --- Admin System Config ---
 
 
+def _build_admin_system_config_read(config: SystemConfig) -> AdminSystemConfigRead:
+    settings = get_settings()
+    return AdminSystemConfigRead(
+        free_mode_enabled=config.free_mode_enabled,
+        qr_ttl_minutes=config.qr_ttl_minutes,
+        web2m_bank_name=(config.web2m_bank_name or settings.web2m_bank_name or "MBBank"),
+        web2m_bank_number=config.web2m_bank_number or settings.web2m_bank_number or "",
+        web2m_account_holder=(
+            config.web2m_account_holder or settings.web2m_account_holder or ""
+        ),
+        web2m_bank_password=(
+            config.web2m_bank_password or settings.web2m_bank_password or ""
+        ),
+        web2m_bank_token=config.web2m_bank_token or settings.web2m_bank_token or "",
+        web2m_api_get_transaction=(
+            config.web2m_api_get_transaction or settings.web2m_api_get_transaction or ""
+        ),
+        web2m_api_get_qr=config.web2m_api_get_qr or settings.web2m_api_get_qr or "",
+        support_zalo_url=config.support_zalo_url,
+        updated_at=config.updated_at,
+        updated_by=config.updated_by,
+    )
+
+
 @router.get(
     "/system-config",
     response_model=AdminSystemConfigRead,
@@ -325,16 +365,7 @@ async def get_admin_system_config(_: CurrentAdmin) -> AdminSystemConfigRead:
         config = SystemConfig()
         await config.insert()
 
-    return AdminSystemConfigRead(
-        free_mode_enabled=config.free_mode_enabled,
-        qr_ttl_minutes=config.qr_ttl_minutes,
-        web2m_bank_name=config.web2m_bank_name,
-        web2m_bank_number=config.web2m_bank_number,
-        web2m_account_holder=config.web2m_account_holder,
-        support_zalo_url=config.support_zalo_url,
-        updated_at=config.updated_at,
-        updated_by=config.updated_by,
-    )
+    return _build_admin_system_config_read(config)
 
 
 @router.put(
@@ -369,15 +400,47 @@ async def update_admin_system_config(
         ip_address=ip,
     )
 
-    return AdminSystemConfigRead(
-        free_mode_enabled=config.free_mode_enabled,
-        qr_ttl_minutes=config.qr_ttl_minutes,
-        web2m_bank_name=config.web2m_bank_name,
-        web2m_bank_number=config.web2m_bank_number,
-        web2m_account_holder=config.web2m_account_holder,
-        support_zalo_url=config.support_zalo_url,
-        updated_at=config.updated_at,
-        updated_by=config.updated_by,
+    return _build_admin_system_config_read(config)
+
+
+@router.post(
+    "/system-config/test-web2m",
+    response_model=AdminTestWeb2MResponse,
+    tags=["Admin System Config"],
+    operation_id="testAdminWeb2MConnection",
+)
+async def test_admin_web2m_connection(
+    body: AdminTestWeb2MRequest,
+    admin: CurrentAdmin,
+    request: Request,
+) -> AdminTestWeb2MResponse:
+    service = PaymentService()
+    result = await service.test_connection(
+        bank_name=body.bank_name,
+        bank_number=body.bank_number,
+        bank_password=body.bank_password,
+        bank_token=body.bank_token,
+        api_get_transaction=body.api_get_transaction,
+    )
+
+    ip = request.client.host if request.client else None
+    await log_admin_action(
+        admin=admin,
+        action="test_web2m_connection",
+        target_type="system_config",
+        details={
+            "bank_name": body.bank_name,
+            "bank_number": body.bank_number,
+            "success": result.get("success"),
+        },
+        ip_address=ip,
+    )
+
+    return AdminTestWeb2MResponse(
+        success=bool(result.get("success")),
+        message=str(result.get("message", "")),
+        transaction_count=int(result.get("transaction_count", 0)),
+        details=result.get("details"),
     )
 
 
@@ -397,6 +460,7 @@ async def get_admin_orders(
     status: OrderStatus | None = Query(default=None),
     payment_code: str | None = Query(default=None),
     user_id: str | None = Query(default=None),
+    search: str | None = Query(default=None),
 ) -> AdminOrderPage:
     query_filter: dict[str, Any] = {}
     if status is not None:
@@ -417,6 +481,48 @@ async def get_admin_orders(
                 limit=limit,
                 total_pages=0,
             )
+
+    if search and search.strip():
+        term = search.strip()
+        escaped_term = re.escape(term)
+        phone_patterns = [escaped_term, re.escape(term.lstrip("+"))]
+        if term.startswith("0") and len(term) >= 9:
+            phone_patterns.append(re.escape("+84" + term[1:]))
+            phone_patterns.append(re.escape(term[1:]))
+        elif term.startswith("+84") and len(term) >= 11:
+            phone_patterns.append(re.escape("0" + term[3:]))
+            phone_patterns.append(re.escape(term[3:]))
+        elif term.startswith("84") and len(term) >= 11:
+            phone_patterns.append(re.escape("0" + term[2:]))
+            phone_patterns.append(re.escape(term[2:]))
+
+        user_or: list[dict[str, Any]] = [
+            {"public.display_name": {"$regex": escaped_term, "$options": "i"}},
+            {"private.real_name": {"$regex": escaped_term, "$options": "i"}},
+        ]
+        for pat in set(phone_patterns):
+            if pat:
+                user_or.append({"phone": {"$regex": pat, "$options": "i"}})
+        with contextlib.suppress(Exception):
+            user_or.append({"_id": PydanticObjectId(term)})
+
+        matched_users = await User.find({"$or": user_or}).limit(100).to_list()
+        matched_user_ids = [u.oid for u in matched_users]
+
+        order_or: list[dict[str, Any]] = [
+            {"payment_code": {"$regex": escaped_term, "$options": "i"}}
+        ]
+        if matched_user_ids:
+            order_or.append({"user_id": {"$in": matched_user_ids}})
+        with contextlib.suppress(Exception):
+            oid = PydanticObjectId(term)
+            order_or.append({"_id": oid})
+            order_or.append({"user_id": oid})
+
+        if "$or" in query_filter:
+            query_filter = {"$and": [query_filter, {"$or": order_or}]}
+        else:
+            query_filter["$or"] = order_or
 
     total = await Order.find(query_filter).count()
     skip = (page - 1) * limit

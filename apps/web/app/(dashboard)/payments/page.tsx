@@ -105,11 +105,7 @@ export default function AdminPaymentsPage() {
       page,
       limit: 10,
       status: statusFilter === "all" ? undefined : statusFilter,
-      paymentCode: debouncedSearch.startsWith("TD") ? debouncedSearch : undefined,
-      userId:
-        !debouncedSearch.startsWith("TD") && debouncedSearch
-          ? debouncedSearch
-          : undefined,
+      search: debouncedSearch || undefined,
     }),
   );
 
@@ -260,8 +256,8 @@ export default function AdminPaymentsPage() {
             <Icon as={Search} size={15} className="text-muted-foreground" />
           </div>
           <Input
-            accessibilityLabel="Tìm kiếm theo mã chuyển khoản hoặc ID"
-            placeholder="Tìm theo mã TD hoặc ID khách..."
+            accessibilityLabel="Tìm kiếm đơn hàng"
+            placeholder="Tìm theo tên, SĐT, mã TD hoặc ID khách..."
             value={searchInput}
             onChangeText={setSearchInput}
             className="pl-9 h-9 text-xs"
@@ -367,18 +363,22 @@ export default function AdminPaymentsPage() {
                           </div>
                         </td>
 
-                        <td className="px-4 py-3.5 whitespace-nowrap min-w-[140px]">
-                          <div className="flex flex-col">
-                            <span className="text-foreground text-xs font-semibold">
-                              {order.userPhone || (
-                                <span className="font-mono text-muted-foreground">
-                                  Chưa có SĐT
+                        <td className="px-4 py-3.5 whitespace-nowrap min-w-[160px]">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-foreground text-xs font-bold">
+                              {order.userDisplayName || (
+                                <span className="font-normal italic text-muted-foreground">
+                                  Chưa đặt tên
                                 </span>
                               )}
                             </span>
-                            <span className="text-muted-foreground font-mono text-[10px]">
-                              UID: {order.userId.slice(-6)}
-                            </span>
+                            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                              <span>{order.userPhone || "Chưa có SĐT"}</span>
+                              <span className="opacity-40">•</span>
+                              <span className="font-mono text-[10px] opacity-75">
+                                UID: {order.userId.slice(-6)}
+                              </span>
+                            </div>
                           </div>
                         </td>
 
@@ -496,11 +496,16 @@ export default function AdminPaymentsPage() {
 
             {/* Modal Summary */}
             <div className="my-4 flex flex-col gap-2 rounded-xl bg-muted/40 p-3.5 text-xs">
-              <div className="flex flex-row justify-between">
+              <div className="flex flex-row justify-between items-center">
                 <span className="text-muted-foreground">Khách hàng:</span>
-                <span className="text-foreground font-semibold">
-                  {selectedOrder.userPhone || selectedOrder.userId}
-                </span>
+                <div className="flex flex-col items-end">
+                  <span className="text-foreground font-bold text-xs">
+                    {selectedOrder.userDisplayName || "Chưa đặt tên"}
+                  </span>
+                  <span className="text-muted-foreground text-[11px]">
+                    {selectedOrder.userPhone || `UID: ${selectedOrder.userId.slice(-6)}`}
+                  </span>
+                </div>
               </div>
               <div className="flex flex-row justify-between">
                 <span className="text-muted-foreground">Gói cước:</span>

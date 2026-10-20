@@ -62,16 +62,40 @@ class PaymentService:
             if sys_config and sys_config.web2m_account_holder
             else None
         ) or self.settings.web2m_account_holder
+        bank_password = (
+            sys_config.web2m_bank_password
+            if sys_config and sys_config.web2m_bank_password
+            else None
+        ) or self.settings.web2m_bank_password
+        bank_token = (
+            sys_config.web2m_bank_token
+            if sys_config and sys_config.web2m_bank_token
+            else None
+        ) or self.settings.web2m_bank_token
+        api_get_transaction = (
+            sys_config.web2m_api_get_transaction
+            if sys_config and sys_config.web2m_api_get_transaction
+            else None
+        ) or self.settings.web2m_api_get_transaction
+        api_get_qr = (
+            sys_config.web2m_api_get_qr
+            if sys_config and sys_config.web2m_api_get_qr
+            else None
+        ) or self.settings.web2m_api_get_qr
         return {
             "bank_name": bank_name,
             "bank_number": bank_number,
             "account_holder": account_holder,
+            "bank_password": bank_password,
+            "bank_token": bank_token,
+            "api_get_transaction": api_get_transaction,
+            "api_get_qr": api_get_qr,
         }
 
     async def generate_qr_url(self, amount: int, payment_code: str) -> str:
         """Construct VietQR QuickLink image URL via Web2M."""
         cfg = await self.get_payment_bank_config()
-        api_get_qr = self.settings.web2m_api_get_qr.rstrip("/")
+        api_get_qr = cfg["api_get_qr"].rstrip("/")
         encoded_holder = urllib.parse.quote(cfg["account_holder"])
         params = urllib.parse.urlencode(
             {
@@ -88,18 +112,16 @@ class PaymentService:
     async def fetch_web2m_transactions(self) -> list[dict[str, Any]]:
         """Fetch recent bank transactions from Web2M API."""
         cfg = await self.get_payment_bank_config()
-        bank_password = self.settings.web2m_bank_password
+        bank_password = cfg["bank_password"]
         bank_number = cfg["bank_number"]
-        bank_token = self.settings.web2m_bank_token
+        bank_token = cfg["bank_token"]
+        api_get_transaction = cfg["api_get_transaction"].rstrip("/")
 
-        if not (bank_password and bank_number and bank_token):
+        if not (bank_password and bank_number and bank_token and api_get_transaction):
             log.warning("web2m.credentials_missing", has_number=bool(bank_number))
             return []
 
-        api_url = (
-            f"{self.settings.web2m_api_get_transaction.rstrip('/')}/"
-            f"{bank_password}/{bank_number}/{bank_token}"
-        )
+        api_url = f"{api_get_transaction}/{bank_password}/{bank_number}/{bank_token}"
 
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
@@ -114,6 +136,107 @@ class PaymentService:
             log.warning("web2m.network_error", error=str(exc))
             return []
 
+    async def test_connection(
+        self,
+        bank_name: str | None = None,
+        bank_number: str | None = None,
+        bank_password: str | None = None,
+        bank_token: str | None = None,
+        api_get_transaction: str | None = None,
+    ) -> dict[str, Any]:
+        """Test Web2M transaction API connectivity with provided or stored credentials."""
+        cfg = await self.get_payment_bank_config()
+        b_name = (bank_name.strip() if bank_name else None) or cfg["bank_name"]
+        b_number = (bank_number.strip() if bank_number else None) or cfg["bank_number"]
+        b_pass = (bank_password.strip() if bank_password else None) or cfg[
+            "bank_password"
+        ]
+        b_token = (bank_token.strip() if bank_token else None) or cfg["bank_token"]
+        b_api_tx = (
+            api_get_transaction.strip().rstrip("/") if api_get_transaction else None
+        ) or cfg["api_get_transaction"].rstrip("/")
+
+        missing = []
+        if not b_number:
+            missing.append("Số tài khoản")
+        if not b_pass:
+            missing.append("Mật khẩu")
+        if not b_token:
+            missing.append("Token")
+        if not b_api_tx:
+            missing.append("URL API Transaction")
+
+        if missing:
+            return {
+                "success": False,
+                "message": f"Thiếu thông tin kết nối: {', '.join(missing)}.",
+                "transaction_count": 0,
+            }
+
+        api_url = f"{b_api_tx}/{b_pass}/{b_number}/{b_token}"
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                res = await client.get(api_url)
+                if res.status_code == 200:
+                    data = res.json()
+                    if isinstance(data, dict):
+                        is_status_ok = data.get("status")
+                        messages = (
+                            data.get("messages")
+                            or data.get("message")
+                            or data.get("msg")
+                            or ""
+                        )
+                        if is_status_ok is False:
+                            err_msg = messages or "Xác thực không thành công"
+                            return {
+                                "success": False,
+                                "message": f"Web2M báo lỗi: {err_msg}",
+                                "transaction_count": 0,
+                                "details": data,
+                            }
+                        transactions = data.get("transactions", [])
+                        count = len(transactions) if isinstance(transactions, list) else 0
+                        success_msg = (
+                            f"Kết nối Web2M thành công! Đã xác thực tài khoản {b_number} "
+                            f"({b_name}) và truy xuất được {count} giao dịch gần nhất."
+                        )
+                        return {
+                            "success": True,
+                            "message": success_msg,
+                            "transaction_count": count,
+                            "details": {
+                                "bank_name": b_name,
+                                "bank_number": b_number,
+                                "transaction_count": count,
+                            },
+                        }
+                    return {
+                        "success": True,
+                        "message": "Kết nối Web2M thành công (phản hồi 200 OK).",
+                        "transaction_count": 0,
+                    }
+                return {
+                    "success": False,
+                    "message": f"Máy chủ Web2M phản hồi mã lỗi HTTP {res.status_code}.",
+                    "transaction_count": 0,
+                }
+        except httpx.TimeoutException:
+            return {
+                "success": False,
+                "message": (
+                    "Hết thời gian chờ (Timeout 10s) khi kết nối đến Web2M. "
+                    "Vui lòng kiểm tra lại đường dẫn API."
+                ),
+                "transaction_count": 0,
+            }
+        except Exception as exc:
+            return {
+                "success": False,
+                "message": f"Lỗi kết nối mạng đến Web2M: {exc}",
+                "transaction_count": 0,
+            }
+
     async def create_order(
         self, user_id: PydanticObjectId, plan_code: str
     ) -> tuple[Order, str]:
@@ -125,6 +248,37 @@ class PaymentService:
             )
 
         now = datetime.now(UTC)
+
+        # Check active membership rules to disallow downgrading while active
+        user = await User.get(user_id)
+        if user is None:
+            raise NotFoundError(detail="Người dùng không tồn tại.")
+
+        if (
+            user.membership.is_active
+            and user.membership.expires_at is not None
+            and user.membership.expires_at > now
+            and user.membership.plan_code
+        ):
+            current_plan = await MembershipPlan.find_one(
+                {"code": user.membership.plan_code}
+            )
+            if current_plan:
+                current_rank = (
+                    current_plan.sort_order
+                    if current_plan.sort_order
+                    else current_plan.price
+                )
+                new_rank = plan.sort_order if plan.sort_order else plan.price
+                if new_rank < current_rank:
+                    raise BadRequestError(
+                        detail=(
+                            f"Bạn đang sử dụng {current_plan.name} cao cấp hơn. "
+                            "Không thể hạ cấp xuống gói này khi gói hiện tại "
+                            "chưa hết hạn."
+                        )
+                    )
+
         reuse_cutoff = now - timedelta(minutes=10)
 
         # Check for existing pending order to avoid creating duplicate QR codes
@@ -278,19 +432,30 @@ class PaymentService:
         duration_days = plan.duration_days if plan else 30
         now = datetime.now(UTC)
 
-        # Extend if currently active, otherwise start from now
-        if (
+        # If currently active with same plan, extend from existing expiration date.
+        # If upgrading to a higher tier plan, start fresh from now for new plan duration.
+        current_expiry = user.membership.expires_at
+        is_currently_active = (
             user.membership.is_active
-            and user.membership.expires_at
-            and user.membership.expires_at > now
+            and current_expiry is not None
+            and current_expiry > now
+        )
+
+        new_expiry: datetime
+        if (
+            is_currently_active
+            and current_expiry is not None
+            and user.membership.plan_code == plan_code
         ):
-            new_expiry = user.membership.expires_at + timedelta(days=duration_days)
+            # Same plan renewal: extend from current expiration
+            new_expiry = current_expiry + timedelta(days=duration_days)
         else:
+            # New VIP or upgrade to higher tier: start fresh from now
             new_expiry = now + timedelta(days=duration_days)
 
         user.membership.is_active = True
         user.membership.plan_code = plan_code
-        if not user.membership.started_at:
+        if not user.membership.started_at or not is_currently_active:
             user.membership.started_at = now
         user.membership.expires_at = new_expiry
         user.updated_at = now
