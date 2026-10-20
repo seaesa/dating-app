@@ -68,7 +68,9 @@ export function BasicsStep() {
           if (problem || !iso) return;
           // Confirmed once, because it cannot change later.
           if (!(await confirmAge(ageOn(iso)))) return;
-          await updateMyIdentity({ dateOfBirth: iso });
+          await updateMyIdentity({ dateOfBirth: iso, realName: name.trim() });
+        } else {
+          await updateMyIdentity({ realName: name.trim() });
         }
         accept(await updateMyProfile({ displayName: name.trim(), gender }));
         await next();

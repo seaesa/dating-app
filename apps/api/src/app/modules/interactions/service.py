@@ -6,6 +6,7 @@ from beanie import PydanticObjectId
 from app.core.errors import BadRequestError, NotFoundError
 from app.modules.interactions.models import UserInteraction
 from app.modules.interactions.schemas import (
+    BlockedUserRead,
     InteractionAction,
     InteractionCreate,
     InteractionResultRead,
@@ -179,3 +180,53 @@ class InteractionService:
             )
 
         return results
+
+    async def get_blocked_users(
+        self, user: User, limit: int = 100
+    ) -> list[BlockedUserRead]:
+        """Fetch users currently blocked by the current user."""
+        blocked_docs = (
+            await UserInteraction.find(
+                {
+                    "actor_id": user.oid,
+                    "action": InteractionAction.BLOCK,
+                }
+            )
+            .sort("-created_at")
+            .limit(limit)
+            .to_list()
+        )
+        if not blocked_docs:
+            return []
+
+        target_ids = [doc.target_id for doc in blocked_docs]
+        target_users = await User.find({"_id": {"$in": target_ids}}).to_list()
+        target_map = {u.oid: u for u in target_users}
+
+        results: list[BlockedUserRead] = []
+        for doc in blocked_docs:
+            target = target_map.get(doc.target_id)
+            if not target or doc.id is None:
+                continue
+            projected = project_user(target, RevealScope.PUBLIC)
+            results.append(
+                BlockedUserRead(
+                    interaction_id=doc.id,
+                    target_id=doc.target_id,
+                    target=projected,
+                    blocked_at=doc.created_at,
+                )
+            )
+        return results
+
+    async def unblock_user(self, user: User, target_id: PydanticObjectId) -> None:
+        """Remove a block interaction between current user and target user."""
+        interaction = await UserInteraction.find_one(
+            {
+                "actor_id": user.oid,
+                "target_id": target_id,
+                "action": InteractionAction.BLOCK,
+            }
+        )
+        if interaction is not None:
+            await interaction.delete()

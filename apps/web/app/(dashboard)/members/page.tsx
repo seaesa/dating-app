@@ -42,34 +42,19 @@ const VIP_FEATURES: FeatureOption[] = [
     desc: "Không bị giới hạn lượt quẹt thẻ mỗi ngày",
   },
   {
-    id: "REWIND_LAST_PASS",
-    label: "Hoàn tác lượt bỏ qua",
-    desc: "Quay lại hồ sơ vừa vô tình quẹt trái",
-  },
-  {
     id: "VIP_BADGE",
-    label: "Huy hiệu VIP",
-    desc: "Huy hiệu vương miện nổi bật trên trang cá nhân",
+    label: "Huy hiệu VIP Hoàng Gia",
+    desc: "Huy hiệu vương miện vàng nổi bật trên trang cá nhân",
   },
   {
-    id: "DAILY_SUPER_LIKES",
-    label: "Tặng Super Likes",
-    desc: "Tặng 5 lượt siêu thích gửi thông báo trực tiếp",
+    id: "DIAMOND_BADGE",
+    label: "Huy hiệu VIP Kim Cương (VIP PRO)",
+    desc: "Biểu tượng kim cương tím nổi bật nhất trang khám phá",
   },
   {
     id: "PROFILE_BOOST",
-    label: "Đẩy nổi bật hồ sơ",
-    desc: "Tăng 10x lượt xuất hiện trong feed khám phá",
-  },
-  {
-    id: "ADVANCED_FILTERS",
-    label: "Bộ lọc nâng cao",
-    desc: "Lọc chuẩn xác theo tiêu chí, độ tuổi, khoảng cách",
-  },
-  {
-    id: "FAST_TRACK_REVEAL",
-    label: "Ưu tiên mở danh tính",
-    desc: "Gửi yêu cầu mở danh tính ưu tiên không giới hạn",
+    label: "Tự động Đẩy hồ sơ lên Top (Boost)",
+    desc: "Cộng +30 điểm xếp hạng ưu tiên trong feed khám phá",
   },
 ];
 

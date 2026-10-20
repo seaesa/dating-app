@@ -20,6 +20,8 @@ export interface ProfileCardProps {
   bio?: string | null;
   interests?: Array<string | ProfileCardInterest>;
   avatarUrl?: string | null;
+  isVip?: boolean;
+  vipPlan?: string | null;
 }
 
 const GENDER_CONFIG = {
@@ -106,6 +108,8 @@ export function ProfileCard({
   bio,
   interests = [],
   avatarUrl,
+  isVip,
+  vipPlan,
 }: ProfileCardProps) {
   const genderInfo = gender ? GENDER_CONFIG[gender] : null;
 
@@ -129,11 +133,29 @@ export function ProfileCard({
           </View>
 
           <View className="flex-1 justify-center gap-1.5">
-            <View className="flex-row items-center gap-1.5">
+            <View className="flex-row items-center gap-1.5 flex-wrap">
               <Text className="text-2xl font-black tracking-tight text-foreground">
                 {nickname}
               </Text>
-              <Text className="text-sm">✨</Text>
+              {isVip ? (
+                vipPlan === "99k" ? (
+                  <View className="flex-row items-center gap-1 rounded-full bg-violet-600 px-2.5 py-0.5 shadow-sm shadow-violet-600/30">
+                    <Text className="text-[10px]">💎</Text>
+                    <Text className="text-[10px] font-black tracking-wider text-white">
+                      VIP PRO
+                    </Text>
+                  </View>
+                ) : (
+                  <View className="flex-row items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 shadow-sm shadow-amber-500/25">
+                    <Text className="text-[10px]">👑</Text>
+                    <Text className="text-[10px] font-black tracking-wider text-white">
+                      VIP
+                    </Text>
+                  </View>
+                )
+              ) : (
+                <Text className="text-sm">✨</Text>
+              )}
             </View>
 
             {/* Badges for Gender, Age, City */}

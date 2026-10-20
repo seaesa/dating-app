@@ -11,12 +11,9 @@ import {
 export const MEMBERSHIP_FEATURES = {
   SEE_WHO_LIKED_YOU: "SEE_WHO_LIKED_YOU",
   UNLIMITED_LIKES: "UNLIMITED_LIKES",
-  REWIND_LAST_PASS: "REWIND_LAST_PASS",
   VIP_BADGE: "VIP_BADGE",
-  DAILY_SUPER_LIKES: "DAILY_SUPER_LIKES",
+  DIAMOND_BADGE: "DIAMOND_BADGE",
   PROFILE_BOOST: "PROFILE_BOOST",
-  ADVANCED_FILTERS: "ADVANCED_FILTERS",
-  FAST_TRACK_REVEAL: "FAST_TRACK_REVEAL",
 } as const;
 
 export type MembershipFeatureKey = keyof typeof MEMBERSHIP_FEATURES;
@@ -121,7 +118,6 @@ export function useMembership(): UseMembershipResult {
         const basicFeatures = [
           MEMBERSHIP_FEATURES.SEE_WHO_LIKED_YOU,
           MEMBERSHIP_FEATURES.UNLIMITED_LIKES,
-          MEMBERSHIP_FEATURES.REWIND_LAST_PASS,
           MEMBERSHIP_FEATURES.VIP_BADGE,
         ];
         return (basicFeatures as string[]).includes(featureCode);

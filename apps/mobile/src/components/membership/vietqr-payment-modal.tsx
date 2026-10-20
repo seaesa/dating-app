@@ -17,6 +17,8 @@ import type { OrderRead } from "@repo/api-contract";
 import { createOrder, orderStatusQuery } from "@repo/api-contract";
 import { Button, Icon, Text } from "@repo/ui";
 
+import { useMembership } from "@/hooks/use-membership";
+
 export interface VietQrPaymentModalProps {
   visible: boolean;
   planCode: string | null;
@@ -77,6 +79,15 @@ export function VietQrPaymentModal({
 }: VietQrPaymentModalProps) {
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
+  const { isVip, currentPlan, plans } = useMembership();
+
+  const targetPlan = plans.find((p) => p.code === planCode);
+  const currentRank = currentPlan?.sort_order ?? currentPlan?.price ?? 0;
+  const targetRank = targetPlan?.sort_order ?? targetPlan?.price ?? 0;
+
+  const isRenewal =
+    isVip && Boolean(currentPlan) && targetPlan?.code === currentPlan?.code;
+  const isUpgrade = isVip && Boolean(currentPlan) && targetRank > currentRank;
 
   const [order, setOrder] = React.useState<OrderRead | null>(null);
   const [timeLeft, setTimeLeft] = React.useState<number>(0);
@@ -338,6 +349,41 @@ export function VietQrPaymentModal({
                   </Text>
                 </Text>
               </View>
+
+              {/* Dynamic Upgrade / Renewal note */}
+              {isUpgrade && targetPlan ? (
+                <View className="mb-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3 flex-row items-start gap-2.5">
+                  <Icon as={Sparkles} className="text-amber-500 mt-0.5" size={15} />
+                  <View className="flex-1">
+                    <Text className="text-xs font-bold text-amber-500">
+                      Nâng cấp lên {targetPlan.name}:
+                    </Text>
+                    <Text className="text-xs text-muted-foreground mt-0.5 leading-4">
+                      Đặc quyền gói sẽ được áp dụng ngay từ bây giờ trong vòng{" "}
+                      <Text className="font-bold text-amber-500">
+                        {targetPlan.duration_days} ngày
+                      </Text>{" "}
+                      (thay thế gói {currentPlan?.name} hiện tại).
+                    </Text>
+                  </View>
+                </View>
+              ) : isRenewal && targetPlan ? (
+                <View className="mb-3 rounded-2xl border border-primary/40 bg-primary/10 p-3 flex-row items-start gap-2.5">
+                  <Icon as={Clock} className="text-primary mt-0.5" size={15} />
+                  <View className="flex-1">
+                    <Text className="text-xs font-bold text-primary">
+                      Gia hạn gói {targetPlan.name}:
+                    </Text>
+                    <Text className="text-xs text-muted-foreground mt-0.5 leading-4">
+                      Thời hạn sẽ được cộng dồn thêm{" "}
+                      <Text className="font-bold text-primary">
+                        {targetPlan.duration_days} ngày
+                      </Text>{" "}
+                      vào ngày hết hạn hiện tại của bạn.
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
 
               {/* VietQR QuickLink Image */}
               <View className="items-center justify-center py-2">

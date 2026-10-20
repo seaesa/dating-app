@@ -1,4 +1,6 @@
 import Check from "lucide-react-native/icons/check";
+import CircleAlert from "lucide-react-native/icons/circle-alert";
+import Clock from "lucide-react-native/icons/clock";
 import Crown from "lucide-react-native/icons/crown";
 import Sparkles from "lucide-react-native/icons/sparkles";
 import X from "lucide-react-native/icons/x";
@@ -25,7 +27,7 @@ const FALLBACK_PLANS: MembershipPlanRead[] = [
     price: 49000,
     original_price: 99000,
     duration_days: 30,
-    features: ["SEE_WHO_LIKED_YOU", "UNLIMITED_LIKES", "REWIND_LAST_PASS", "VIP_BADGE"],
+    features: ["SEE_WHO_LIKED_YOU", "UNLIMITED_LIKES", "VIP_BADGE"],
     is_active: true,
     is_popular: false,
     sort_order: 1,
@@ -39,12 +41,9 @@ const FALLBACK_PLANS: MembershipPlanRead[] = [
     features: [
       "SEE_WHO_LIKED_YOU",
       "UNLIMITED_LIKES",
-      "REWIND_LAST_PASS",
       "VIP_BADGE",
-      "DAILY_SUPER_LIKES",
+      "DIAMOND_BADGE",
       "PROFILE_BOOST",
-      "ADVANCED_FILTERS",
-      "FAST_TRACK_REVEAL",
     ],
     is_active: true,
     is_popular: true,
@@ -75,25 +74,20 @@ const HIGHLIGHT_FEATURES: FeatureItem[] = [
     description: "Quẹt và gửi lời chào thỏa thích mỗi ngày",
   },
   {
-    icon: "⏪",
-    title: "Quay lại lượt bỏ qua",
-    description: "Lấy lại cơ hội với người bạn vô tình lướt qua",
-  },
-  {
     icon: "👑",
-    title: "Huy hiệu VIP độc quyền",
-    description: "Tăng 200% độ uy tín và lượt phản hồi tin nhắn",
+    title: "Huy hiệu VIP Hoàng Gia",
+    description: "Vương miện vàng uy tín tăng lượt phản hồi tin nhắn",
   },
   {
-    icon: "⚡",
-    title: "5 Siêu thích (Super Likes)/ngày",
-    description: "Gửi thông báo nổi bật trực tiếp đến đối phương",
+    icon: "💎",
+    title: "Huy hiệu VIP Kim Cương (VIP PRO)",
+    description: "Biểu tượng kim cương tím nổi bật nhất trang khám phá",
     isPremiumOnly: true,
   },
   {
     icon: "🚀",
-    title: "Đẩy hồ sơ lên Top (Boost)",
-    description: "Tăng gấp 3 lần lượt hiển thị hồ sơ trong khu vực",
+    title: "Tự động Đẩy hồ sơ lên Top (Boost)",
+    description: "Ưu tiên xếp hạng +30 điểm trên trang Khám phá",
     isPremiumOnly: true,
   },
 ];
@@ -104,7 +98,7 @@ export function MembershipModal({
   onSelectPlan,
 }: MembershipModalProps) {
   const insets = useSafeAreaInsets();
-  const { plans: serverPlans } = useMembership();
+  const { plans: serverPlans, isVip, currentPlan } = useMembership();
 
   const plans = serverPlans && serverPlans.length > 0 ? serverPlans : FALLBACK_PLANS;
 
@@ -120,6 +114,14 @@ export function MembershipModal({
 
   const selectedPlan = plans.find((p) => p.code === selectedCode) ?? plans[0];
   const isSelectedTierPremium = selectedCode === "99k";
+
+  const currentRank = currentPlan?.sort_order ?? currentPlan?.price ?? 0;
+  const selectedRank = selectedPlan.sort_order ?? selectedPlan.price ?? 0;
+
+  const isRenewal =
+    isVip && Boolean(currentPlan) && selectedPlan.code === currentPlan?.code;
+  const isUpgrade = isVip && Boolean(currentPlan) && selectedRank > currentRank;
+  const isDowngrade = isVip && Boolean(currentPlan) && selectedRank < currentRank;
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -255,6 +257,54 @@ export function MembershipModal({
               </View>
             </View>
 
+            {/* Upgrade / Renewal Context Notice */}
+            {isUpgrade ? (
+              <View className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3.5 flex-row items-start gap-2.5 my-1">
+                <Icon as={Sparkles} className="text-amber-500 mt-0.5" size={16} />
+                <View className="flex-1">
+                  <Text className="text-xs font-bold text-amber-500">
+                    Lưu ý khi nâng cấp gói VIP:
+                  </Text>
+                  <Text className="text-xs text-muted-foreground mt-0.5 leading-4">
+                    Gói {selectedPlan.name} sẽ được áp dụng ngay từ bây giờ trong vòng{" "}
+                    <Text className="font-bold text-amber-500">
+                      {selectedPlan.duration_days} ngày
+                    </Text>{" "}
+                    (thay thế gói {currentPlan?.name} hiện tại).
+                  </Text>
+                </View>
+              </View>
+            ) : isRenewal ? (
+              <View className="rounded-2xl border border-primary/40 bg-primary/10 p-3.5 flex-row items-start gap-2.5 my-1">
+                <Icon as={Clock} className="text-primary mt-0.5" size={16} />
+                <View className="flex-1">
+                  <Text className="text-xs font-bold text-primary">
+                    Gia hạn gói hiện tại:
+                  </Text>
+                  <Text className="text-xs text-muted-foreground mt-0.5 leading-4">
+                    Thời hạn sẽ được cộng dồn thêm{" "}
+                    <Text className="font-bold text-primary">
+                      {selectedPlan.duration_days} ngày
+                    </Text>{" "}
+                    vào ngày hết hạn hiện tại của bạn.
+                  </Text>
+                </View>
+              </View>
+            ) : isDowngrade ? (
+              <View className="rounded-2xl border border-destructive/40 bg-destructive/10 p-3.5 flex-row items-start gap-2.5 my-1">
+                <Icon as={CircleAlert} className="text-destructive mt-0.5" size={16} />
+                <View className="flex-1">
+                  <Text className="text-xs font-bold text-destructive">
+                    Không thể hạ cấp gói:
+                  </Text>
+                  <Text className="text-xs text-muted-foreground mt-0.5 leading-4">
+                    Bạn đang sử dụng {currentPlan?.name} cao cấp hơn. Vui lòng đợi gói
+                    hiện tại kết thúc nếu muốn chuyển sang gói này.
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+
             {/* Features Checklist */}
             <View className="rounded-2xl border border-border/40 bg-secondary/15 p-4 gap-3 my-2">
               <View className="flex-row items-center gap-2">
@@ -318,11 +368,22 @@ export function MembershipModal({
           {/* Sticky Bottom CTA Button */}
           <View className="pt-2">
             <Button
+              disabled={isDowngrade}
               onPress={() => onSelectPlan(selectedPlan.code)}
-              className="h-13 w-full rounded-full bg-primary shadow-md shadow-primary/25"
+              className={`h-13 w-full rounded-full shadow-md ${
+                isDowngrade
+                  ? "bg-muted opacity-60"
+                  : "bg-primary shadow-primary/25 active:opacity-90"
+              }`}
             >
               <Text className="text-base font-bold text-primary-foreground">
-                {`Nâng cấp ngay • ${formatVND(selectedPlan.price)}`}
+                {isDowngrade
+                  ? "Không thể hạ cấp gói"
+                  : isUpgrade
+                    ? `Nâng cấp ngay • ${formatVND(selectedPlan.price)}`
+                    : isRenewal
+                      ? `Gia hạn gói • ${formatVND(selectedPlan.price)}`
+                      : `Đăng ký ngay • ${formatVND(selectedPlan.price)}`}
               </Text>
             </Button>
           </View>

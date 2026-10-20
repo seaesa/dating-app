@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from app.modules.matching.ranking import rank_and_explore
@@ -120,14 +121,33 @@ class MatchingService:
             user, filters=filters, limit=candidate_pool_limit
         )
 
-        # Stage 2: Calculate compatibility scores & apply Reciprocal Boost
+        # Stage 2: Calculate compatibility scores & apply Reciprocal / VIP Boost
         admirer_ids = await self.repository.get_inbound_admirer_ids(user.oid)
         scored_candidates: list[ScoredCandidate] = []
+        now = datetime.now(UTC)
         for cand in eligible:
             scores = calculate_match_score(user, cand.user, distance_km=cand.distance_km)
-            is_boosted = cand.user.oid in admirer_ids
-            if is_boosted:
-                boosted_total = min(100.0, round(scores.total_score + 25.0, 2))
+            is_admirer = cand.user.oid in admirer_ids
+            # Auto Profile Boost for active 99k VIP members
+            cand_membership = cand.user.membership
+            is_vip_pro = bool(
+                cand_membership
+                and cand_membership.is_active
+                and cand_membership.plan_code == "99k"
+                and (
+                    cand_membership.expires_at is None or cand_membership.expires_at > now
+                )
+            )
+
+            bonus = 0.0
+            if is_admirer:
+                bonus += 25.0
+            if is_vip_pro:
+                bonus += 30.0  # Auto Profile Boost up to top of feed
+
+            is_boosted = is_admirer or is_vip_pro
+            if bonus > 0.0:
+                boosted_total = min(100.0, round(scores.total_score + bonus, 2))
                 scores = scores.model_copy(update={"total_score": boosted_total})
 
             scored_candidates.append(

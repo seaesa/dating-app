@@ -14,6 +14,10 @@ class SystemConfig(Document):
     web2m_bank_name: str = "MBBank"
     web2m_bank_number: str = ""
     web2m_account_holder: str = ""
+    web2m_bank_password: str = ""
+    web2m_bank_token: str = ""
+    web2m_api_get_transaction: str = ""
+    web2m_api_get_qr: str = ""
     support_zalo_url: str = ""
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_by: str | None = None

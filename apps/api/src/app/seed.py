@@ -224,7 +224,6 @@ async def seed_membership_data(settings: Settings) -> None:
             features=[
                 "SEE_WHO_LIKED_YOU",
                 "UNLIMITED_LIKES",
-                "REWIND_LAST_PASS",
                 "VIP_BADGE",
             ],
             is_active=True,
@@ -234,7 +233,16 @@ async def seed_membership_data(settings: Settings) -> None:
         await plan_49k.insert()
         print("seeded MembershipPlan '49k'")
     else:
-        print("MembershipPlan '49k' already exists, skipped")
+        plan_49k.features = [
+            "SEE_WHO_LIKED_YOU",
+            "UNLIMITED_LIKES",
+            "VIP_BADGE",
+        ]
+        plan_49k.description = (
+            "Mở khóa ai thích bạn và lướt không giới hạn trong 30 ngày."
+        )
+        await plan_49k.save()
+        print("updated MembershipPlan '49k'")
 
     # Seed 99k plan
     plan_99k = await MembershipPlan.find_one({"code": "99k"})
@@ -243,8 +251,8 @@ async def seed_membership_data(settings: Settings) -> None:
             code="99k",
             name="Gói VIP Toàn Diện",
             description=(
-                "Trải nghiệm VIP cao cấp nhất: Boost hồ sơ, "
-                "Super Likes và bộ lọc nâng cao trong 90 ngày."
+                "Trọn bộ đặc quyền VIP trong 90 ngày (tiết kiệm 33%): "
+                "Tự động đẩy hồ sơ lên Top và Huy hiệu VIP Kim Cương."
             ),
             price=99000,
             original_price=199000,
@@ -252,12 +260,9 @@ async def seed_membership_data(settings: Settings) -> None:
             features=[
                 "SEE_WHO_LIKED_YOU",
                 "UNLIMITED_LIKES",
-                "REWIND_LAST_PASS",
                 "VIP_BADGE",
-                "DAILY_SUPER_LIKES",
                 "PROFILE_BOOST",
-                "ADVANCED_FILTERS",
-                "FAST_TRACK_REVEAL",
+                "DIAMOND_BADGE",
             ],
             is_active=True,
             is_popular=True,
@@ -266,7 +271,19 @@ async def seed_membership_data(settings: Settings) -> None:
         await plan_99k.insert()
         print("seeded MembershipPlan '99k'")
     else:
-        print("MembershipPlan '99k' already exists, skipped")
+        plan_99k.features = [
+            "SEE_WHO_LIKED_YOU",
+            "UNLIMITED_LIKES",
+            "VIP_BADGE",
+            "PROFILE_BOOST",
+            "DIAMOND_BADGE",
+        ]
+        plan_99k.description = (
+            "Trọn bộ đặc quyền VIP trong 90 ngày (tiết kiệm 33%): "
+            "Tự động đẩy hồ sơ lên Top và Huy hiệu VIP Kim Cương."
+        )
+        await plan_99k.save()
+        print("updated MembershipPlan '99k'")
 
 
 async def run_seed_membership(settings: Settings) -> None:

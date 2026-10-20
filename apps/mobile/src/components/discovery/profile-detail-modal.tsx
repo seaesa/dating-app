@@ -25,6 +25,8 @@ export interface ProfileDetailData {
   distanceKm?: number | null;
   bio?: string | null;
   verified?: boolean;
+  isVip?: boolean;
+  vipPlan?: string | null;
   interests?: string[];
   attributes?: ProfileAttributes | null;
   prompts?: ProfilePrompt[] | null;
@@ -50,6 +52,8 @@ export function extractProfileDetail(
       distanceKm: candidate.distanceKm,
       bio: profile.bio,
       verified: profile.verified,
+      isVip: profile.isVip,
+      vipPlan: profile.vipPlan,
       interests: profile.interests,
       attributes: profile.attributes,
       prompts: profile.prompts,
@@ -69,6 +73,8 @@ export function extractProfileDetail(
     city: profile.city,
     bio: profile.bio,
     verified: profile.verified,
+    isVip: profile.isVip,
+    vipPlan: profile.vipPlan,
     interests: profile.interests,
     attributes: profile.attributes,
     prompts: profile.prompts,
@@ -272,8 +278,19 @@ export function ProfileDetailContent({
           <Text className="text-xs font-semibold text-emerald-600">Đang hoạt động</Text>
         </View>
 
-        {/* Action buttons: Share & Close */}
+        {/* Action buttons: Report/Block, Share & Close */}
         <View className="flex-row items-center gap-2">
+          {data.userId ? (
+            <Pressable
+              onPress={handleReportOrBlock}
+              hitSlop={8}
+              accessibilityLabel="Báo cáo hoặc chặn"
+              className="h-9 w-9 items-center justify-center rounded-full bg-secondary active:opacity-70"
+            >
+              <Text className="text-sm text-muted-foreground">⚑</Text>
+            </Pressable>
+          ) : null}
+
           <Pressable
             onPress={handleShare}
             hitSlop={8}
@@ -320,8 +337,8 @@ export function ProfileDetailContent({
             </View>
           </View>
 
-          {/* Display Name + Age + Verified Tick */}
-          <View className="flex-row items-center gap-2">
+          {/* Display Name + Age + Verified Tick + VIP Badge */}
+          <View className="flex-row items-center gap-2 flex-wrap justify-center">
             <Text className="text-2xl font-black tracking-tight text-foreground">
               {data.displayName} {data.age}
             </Text>
@@ -329,6 +346,23 @@ export function ProfileDetailContent({
               <View className="h-5 w-5 items-center justify-center rounded-full bg-sky-500">
                 <Text className="text-[11px] font-bold text-white">✓</Text>
               </View>
+            ) : null}
+            {data.isVip ? (
+              data.vipPlan === "99k" ? (
+                <View className="flex-row items-center gap-1 rounded-full bg-violet-600 px-2 py-0.5 shadow-sm shadow-violet-600/25">
+                  <Text className="text-[10px]">💎</Text>
+                  <Text className="text-[10px] font-black tracking-wider text-white">
+                    VIP PRO
+                  </Text>
+                </View>
+              ) : (
+                <View className="flex-row items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 shadow-sm shadow-amber-500/25">
+                  <Text className="text-[10px]">👑</Text>
+                  <Text className="text-[10px] font-black tracking-wider text-white">
+                    VIP
+                  </Text>
+                </View>
+              )
             ) : null}
           </View>
 

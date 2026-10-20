@@ -78,6 +78,10 @@ class AdminSystemConfigRead(BaseSchema):
     web2m_bank_name: str
     web2m_bank_number: str
     web2m_account_holder: str
+    web2m_bank_password: str = ""
+    web2m_bank_token: str = ""
+    web2m_api_get_transaction: str = ""
+    web2m_api_get_qr: str = ""
     support_zalo_url: str = ""
     updated_at: datetime
     updated_by: str | None = None
@@ -89,7 +93,26 @@ class AdminSystemConfigUpdate(BaseSchema):
     web2m_bank_name: str | None = None
     web2m_bank_number: str | None = None
     web2m_account_holder: str | None = None
+    web2m_bank_password: str | None = None
+    web2m_bank_token: str | None = None
+    web2m_api_get_transaction: str | None = None
+    web2m_api_get_qr: str | None = None
     support_zalo_url: str | None = None
+
+
+class AdminTestWeb2MRequest(BaseSchema):
+    bank_name: str | None = None
+    bank_number: str | None = None
+    bank_password: str | None = None
+    bank_token: str | None = None
+    api_get_transaction: str | None = None
+
+
+class AdminTestWeb2MResponse(BaseSchema):
+    success: bool
+    message: str
+    transaction_count: int = 0
+    details: dict[str, Any] | None = None
 
 
 class AdminOrderRead(BaseSchema):

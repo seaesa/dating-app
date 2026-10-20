@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
@@ -96,6 +97,11 @@ def project_user(
     allow it.
     """
     verification = target.private.verification
+    now = datetime.now(UTC)
+    is_vip = bool(
+        target.membership.is_active
+        and (target.membership.expires_at is None or target.membership.expires_at > now)
+    )
     profile = PublicProfileRead(
         display_name=target.public.display_name,
         age=age_from_birth_year(target.public.birth_year),
@@ -106,6 +112,8 @@ def project_user(
         interests=target.public.interests,
         prompts=target.public.prompts,
         verified=verification.status is VerificationStatus.VERIFIED,
+        is_vip=is_vip,
+        vip_plan=target.membership.plan_code if is_vip else None,
     )
 
     if scope is RevealScope.PUBLIC:
@@ -119,8 +127,9 @@ def project_user(
     is_self = scope is RevealScope.SELF
     identity = PrivateIdentityRead(
         # The name is public (displayName); the real name and socials stay with
-        # the owner. A reveal opens photos only; the phone never leaves the owner.
-        real_name=target.private.real_name if is_self else None,
+        real_name=(target.private.real_name or target.public.display_name)
+        if is_self
+        else None,
         photo_urls=[url for _, url in photos or []] if is_self or grants.photos else [],
         socials=target.private.socials if is_self else {},
     )

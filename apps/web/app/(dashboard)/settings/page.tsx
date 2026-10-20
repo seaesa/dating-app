@@ -6,14 +6,18 @@ import CircleAlert from "lucide-react-native/icons/circle-alert";
 import Clock from "lucide-react-native/icons/clock";
 import Crown from "lucide-react-native/icons/crown";
 import ExternalLink from "lucide-react-native/icons/external-link";
+import Eye from "lucide-react-native/icons/eye";
+import EyeOff from "lucide-react-native/icons/eye-off";
 import Landmark from "lucide-react-native/icons/landmark";
 import RefreshCw from "lucide-react-native/icons/refresh-cw";
 import Save from "lucide-react-native/icons/save";
 import ShieldAlert from "lucide-react-native/icons/shield-alert";
+import Zap from "lucide-react-native/icons/zap";
 import * as React from "react";
 
 import {
   adminSystemConfigQuery,
+  testAdminWeb2MConnection,
   updateAdminSystemConfig,
   type AdminSystemConfigUpdate,
 } from "@repo/api-contract";
@@ -49,8 +53,23 @@ export default function AdminSettingsPage() {
   const [bankName, setBankName] = React.useState("");
   const [bankNumber, setBankNumber] = React.useState("");
   const [accountHolder, setAccountHolder] = React.useState("");
+  const [bankPassword, setBankPassword] = React.useState("");
+  const [bankToken, setBankToken] = React.useState("");
+  const [apiGetTransaction, setApiGetTransaction] = React.useState("");
+  const [apiGetQr, setApiGetQr] = React.useState("");
   const [qrTtlMinutes, setQrTtlMinutes] = React.useState("15");
   const [supportZaloUrl, setSupportZaloUrl] = React.useState("");
+
+  // Visibility toggle states
+  const [showBankPassword, setShowBankPassword] = React.useState(false);
+  const [showBankToken, setShowBankToken] = React.useState(false);
+
+  // Test connection states
+  const [isTesting, setIsTesting] = React.useState(false);
+  const [testFeedback, setTestFeedback] = React.useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   // Feedback states
   const [feedback, setFeedback] = React.useState<{
@@ -68,6 +87,10 @@ export default function AdminSettingsPage() {
       setBankName(config.web2MBankName ?? "");
       setBankNumber(config.web2MBankNumber ?? "");
       setAccountHolder(config.web2MAccountHolder ?? "");
+      setBankPassword(config.web2MBankPassword ?? "");
+      setBankToken(config.web2MBankToken ?? "");
+      setApiGetTransaction(config.web2MApiGetTransaction ?? "");
+      setApiGetQr(config.web2MApiGetQr ?? "");
       setQrTtlMinutes(String(config.qrTtlMinutes ?? 15));
       setSupportZaloUrl(config.supportZaloUrl ?? "");
     }
@@ -86,6 +109,10 @@ export default function AdminSettingsPage() {
         setBankName(updated.web2MBankName ?? "");
         setBankNumber(updated.web2MBankNumber ?? "");
         setAccountHolder(updated.web2MAccountHolder ?? "");
+        setBankPassword(updated.web2MBankPassword ?? "");
+        setBankToken(updated.web2MBankToken ?? "");
+        setApiGetTransaction(updated.web2MApiGetTransaction ?? "");
+        setApiGetQr(updated.web2MApiGetQr ?? "");
         setQrTtlMinutes(String(updated.qrTtlMinutes ?? 15));
         setSupportZaloUrl(updated.supportZaloUrl ?? "");
       }
@@ -115,9 +142,50 @@ export default function AdminSettingsPage() {
       web2MBankName: bankName.trim(),
       web2MBankNumber: bankNumber.trim(),
       web2MAccountHolder: accountHolder.trim(),
+      web2MBankPassword: bankPassword.trim(),
+      web2MBankToken: bankToken.trim(),
+      web2MApiGetTransaction: apiGetTransaction.trim(),
+      web2MApiGetQr: apiGetQr.trim(),
       qrTtlMinutes: ttl,
       supportZaloUrl: supportZaloUrl.trim(),
     });
+  };
+
+  const handleTestConnection = async () => {
+    setIsTesting(true);
+    setTestFeedback(null);
+    try {
+      const res = await testAdminWeb2MConnection({
+        bankName: bankName.trim() || undefined,
+        bankNumber: bankNumber.trim() || undefined,
+        bankPassword: bankPassword.trim() || undefined,
+        bankToken: bankToken.trim() || undefined,
+        apiGetTransaction: apiGetTransaction.trim() || undefined,
+      });
+      if (res.success) {
+        setTestFeedback({
+          type: "success",
+          message: res.message,
+        });
+      } else {
+        setTestFeedback({
+          type: "error",
+          message: res.message || "Kiểm tra kết nối thất bại.",
+        });
+      }
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? ((err as { response?: { data?: { detail?: string } } }).response?.data
+              ?.detail ?? "Lỗi kiểm tra kết nối Web2M.")
+          : "Không thể kết nối đến máy chủ để thử nghiệm.";
+      setTestFeedback({
+        type: "error",
+        message: msg,
+      });
+    } finally {
+      setIsTesting(false);
+    }
   };
 
   const handleToggleFreeModeClick = () => {
@@ -255,13 +323,13 @@ export default function AdminSettingsPage() {
             <Input
               accessibilityLabel="Tên Ngân Hàng"
               accessibilityLabelledBy="bank-name"
-              placeholder="vd: MBBank, Vietcombank, Techcombank"
+              placeholder="vd: MBBank, Vietcombank, ACB"
               value={bankName}
               onChangeText={setBankName}
               editable={!updateMutation.isPending}
             />
             <span className="text-muted-foreground text-[11px]">
-              Tên viết tắt hoặc mã chuẩn của ngân hàng (vd: MBBank)
+              Mã ngân hàng chuẩn VietQR (vd: MBBank, ACB, VCB)
             </span>
           </div>
 
@@ -276,7 +344,7 @@ export default function AdminSettingsPage() {
               editable={!updateMutation.isPending}
             />
             <span className="text-muted-foreground text-[11px]">
-              Số tài khoản chính xác để tạo mã QR tự động
+              Số tài khoản ngân hàng nhận tiền thanh toán
             </span>
           </div>
 
@@ -311,7 +379,137 @@ export default function AdminSettingsPage() {
               Thời gian tối đa trước khi mã QR hết hạn (mặc định 15 phút)
             </span>
           </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label nativeID="bank-password">Mật Khẩu Ngân Hàng (Web2M)</Label>
+            <div className="relative flex items-center justify-center">
+              <Input
+                accessibilityLabel="Mật Khẩu Ngân Hàng Web2M"
+                accessibilityLabelledBy="bank-password"
+                placeholder="Nhập mật khẩu Web2M / iBanking"
+                value={bankPassword}
+                onChangeText={setBankPassword}
+                secureTextEntry={!showBankPassword}
+                editable={!updateMutation.isPending}
+              />
+              <button
+                type="button"
+                onClick={() => setShowBankPassword(!showBankPassword)}
+                className="hover:text-foreground text-muted-foreground absolute right-3 flex items-center justify-center"
+                title={showBankPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              >
+                <Icon as={showBankPassword ? EyeOff : Eye} size={16} />
+              </button>
+            </div>
+            <span className="text-muted-foreground text-[11px]">
+              Mật khẩu cấu hình trên Web2M để truy vấn biến động số dư
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label nativeID="bank-token">Web2M Bank Token</Label>
+            <div className="relative flex items-center justify-center">
+              <Input
+                accessibilityLabel="Web2M Bank Token"
+                accessibilityLabelledBy="bank-token"
+                placeholder="Nhập Token được Web2M cấp"
+                value={bankToken}
+                onChangeText={setBankToken}
+                secureTextEntry={!showBankToken}
+                editable={!updateMutation.isPending}
+              />
+              <button
+                type="button"
+                onClick={() => setShowBankToken(!showBankToken)}
+                className="hover:text-foreground text-muted-foreground absolute right-3 flex items-center justify-center"
+                title={showBankToken ? "Ẩn Token" : "Hiện Token"}
+              >
+                <Icon as={showBankToken ? EyeOff : Eye} size={16} />
+              </button>
+            </div>
+            <span className="text-muted-foreground text-[11px]">
+              Token bảo mật của ngân hàng lấy từ cổng Web2M
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label nativeID="api-transaction">URL API Lịch Sử Giao Dịch</Label>
+            <Input
+              accessibilityLabel="URL API Transaction"
+              accessibilityLabelledBy="api-transaction"
+              placeholder="vd: https://api.web2m.com/historyapiacbv3"
+              value={apiGetTransaction}
+              onChangeText={setApiGetTransaction}
+              autoCapitalize="none"
+              editable={!updateMutation.isPending}
+            />
+            <span className="text-muted-foreground text-[11px]">
+              Đường dẫn API lấy transaction (vd: ACB v3, MB v3 hoặc API chung)
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label nativeID="api-qr">URL API QuickLink QR</Label>
+            <Input
+              accessibilityLabel="URL API QuickLink QR"
+              accessibilityLabelledBy="api-qr"
+              placeholder="https://api.web2m.com/quicklink"
+              value={apiGetQr}
+              onChangeText={setApiGetQr}
+              autoCapitalize="none"
+              editable={!updateMutation.isPending}
+            />
+            <span className="text-muted-foreground text-[11px]">
+              Endpoint sinh ảnh QR tự động (mặc định: https://api.web2m.com/quicklink)
+            </span>
+          </div>
         </div>
+
+        {/* Test Connection Action Box */}
+        <div className="border-border/60 bg-muted/30 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col">
+            <span className="text-foreground text-xs font-semibold">
+              Kiểm Tra Xác Thực Web2M
+            </span>
+            <span className="text-muted-foreground text-[11px]">
+              Gửi yêu cầu thử nghiệm tới API lịch sử giao dịch để kiểm tra tính hợp lệ của
+              STK, mật khẩu và token.
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleTestConnection}
+            disabled={isTesting || updateMutation.isPending}
+            className="border-primary/20 bg-primary/10 hover:bg-primary/20 text-primary flex shrink-0 flex-row items-center justify-center gap-2 rounded-lg border px-3.5 py-2 text-xs font-semibold transition-colors disabled:opacity-50"
+          >
+            <Icon
+              as={isTesting ? RefreshCw : Zap}
+              size={14}
+              className={isTesting ? "animate-spin" : ""}
+            />
+            <span>{isTesting ? "Đang kiểm tra..." : "Kiểm Tra Kết Nối Web2M"}</span>
+          </button>
+        </div>
+
+        {testFeedback ? (
+          <div
+            className={`flex flex-row items-start gap-2.5 rounded-xl border p-3.5 ${
+              testFeedback.type === "success"
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                : "border-destructive/30 bg-destructive/10 text-destructive"
+            }`}
+          >
+            <Icon
+              as={testFeedback.type === "success" ? Check : CircleAlert}
+              size={16}
+              className="mt-0.5 shrink-0"
+            />
+            <span className="text-xs font-medium leading-relaxed">
+              {testFeedback.message}
+            </span>
+          </div>
+        ) : null}
       </div>
 
       {/* SECTION 3: CSKH & SUPPORT */}

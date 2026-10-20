@@ -42,3 +42,10 @@ class ReceivedInteractionRead(BaseSchema):
     action: InteractionAction
     created_at: datetime
     distance_km: float | None = None
+
+
+class BlockedUserRead(BaseSchema):
+    interaction_id: PydanticObjectId
+    target_id: PydanticObjectId
+    target: UserRead
+    blocked_at: datetime

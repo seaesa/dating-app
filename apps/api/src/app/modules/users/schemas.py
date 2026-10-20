@@ -216,6 +216,8 @@ class PublicProfileRead(BaseSchema):
     interests: list[str]
     prompts: list[ProfilePrompt] = Field(default_factory=list)
     verified: bool
+    is_vip: bool = False
+    vip_plan: str | None = None
 
 
 class PrivateIdentityRead(BaseSchema):

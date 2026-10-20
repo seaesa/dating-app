@@ -14,10 +14,13 @@ import type {
   AdminPlanUpdate,
   AdminSystemConfigRead,
   AdminSystemConfigUpdate,
+  AdminTestWeb2mRequest,
+  AdminTestWeb2mResponse,
   AdminTokenResponse,
   AdminUserBanRequest,
   AdminUserListItem,
   AdminUserPage,
+  BlockedUserRead,
   ChallengeRead,
   CloseBody,
   ConnectionPage,
@@ -145,6 +148,24 @@ export const receivedInteractionsQuery = (limit = 50) =>
   queryOptions({
     queryKey: ["interactions", "received", limit],
     queryFn: () => getReceivedInteractions(limit),
+  });
+
+export const getBlockedUsers = (limit = 50) =>
+  http
+    .get<BlockedUserRead[]>("/v1/interactions/blocked", {
+      params: { limit },
+    })
+    .then((r) => r.data);
+
+export const unblockUser = (targetId: string) =>
+  http
+    .delete<void>(`/v1/interactions/blocked/${encodeURIComponent(targetId)}`)
+    .then((r) => r.data);
+
+export const blockedUsersQuery = (limit = 50) =>
+  queryOptions({
+    queryKey: ["interactions", "blocked", limit],
+    queryFn: () => getBlockedUsers(limit),
   });
 
 export const discoveryFeedQuery = (params?: GetDiscoveryFeedData["query"]) =>
@@ -364,6 +385,15 @@ export const updateAdminSystemConfig = (body: AdminSystemConfigUpdate, token?: s
     )
     .then((r) => r.data);
 
+export const testAdminWeb2MConnection = (body: AdminTestWeb2mRequest, token?: string) =>
+  http
+    .post<AdminTestWeb2mResponse>(
+      "/v1/admin/system-config/test-web2m",
+      body,
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    )
+    .then((r) => r.data);
+
 // Admin Orders
 
 export interface GetAdminOrdersParams {
@@ -372,6 +402,7 @@ export interface GetAdminOrdersParams {
   status?: OrderStatus;
   paymentCode?: string;
   userId?: string;
+  search?: string;
 }
 
 export const getAdminOrders = (params?: GetAdminOrdersParams, token?: string) =>
@@ -383,6 +414,7 @@ export const getAdminOrders = (params?: GetAdminOrdersParams, token?: string) =>
         status: params?.status,
         payment_code: params?.paymentCode,
         user_id: params?.userId,
+        search: params?.search,
       },
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     })

@@ -355,12 +355,19 @@ export default function AdminOverviewPage() {
                         <td className="text-foreground px-4 py-3 font-mono text-xs font-bold whitespace-nowrap min-w-[140px]">
                           {order.paymentCode || order.id.slice(-8)}
                         </td>
-                        <td className="text-foreground px-4 py-3 text-xs whitespace-nowrap min-w-[130px]">
-                          {order.userPhone || (
-                            <span className="text-muted-foreground font-mono">
-                              ID: {order.userId.slice(-6)}
+                        <td className="px-4 py-3 whitespace-nowrap min-w-[140px]">
+                          <div className="flex flex-col">
+                            <span className="text-foreground text-xs font-semibold">
+                              {order.userDisplayName || (
+                                <span className="font-normal italic text-muted-foreground">
+                                  Chưa đặt tên
+                                </span>
+                              )}
                             </span>
-                          )}
+                            <span className="text-muted-foreground text-[10px]">
+                              {order.userPhone || `ID: ${order.userId.slice(-6)}`}
+                            </span>
+                          </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap min-w-[100px]">
                           <span className="bg-secondary text-secondary-foreground rounded-md px-2 py-0.5 text-xs font-semibold uppercase">

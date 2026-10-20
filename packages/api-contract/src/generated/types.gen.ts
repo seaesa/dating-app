@@ -447,6 +447,14 @@ export type AdminSystemConfigRead = {
    */
   web2MAccountHolder: string;
   /**
+   * Web2Mapigetqr
+   */
+  web2MApiGetQr?: string;
+  /**
+   * Web2Mapigettransaction
+   */
+  web2MApiGetTransaction?: string;
+  /**
    * Web2Mbankname
    */
   web2MBankName: string;
@@ -454,6 +462,14 @@ export type AdminSystemConfigRead = {
    * Web2Mbanknumber
    */
   web2MBankNumber: string;
+  /**
+   * Web2Mbankpassword
+   */
+  web2MBankPassword?: string;
+  /**
+   * Web2Mbanktoken
+   */
+  web2MBankToken?: string;
 };
 
 /**
@@ -477,6 +493,14 @@ export type AdminSystemConfigUpdate = {
    */
   web2MAccountHolder?: string | null;
   /**
+   * Web2Mapigetqr
+   */
+  web2MApiGetQr?: string | null;
+  /**
+   * Web2Mapigettransaction
+   */
+  web2MApiGetTransaction?: string | null;
+  /**
    * Web2Mbankname
    */
   web2MBankName?: string | null;
@@ -484,6 +508,64 @@ export type AdminSystemConfigUpdate = {
    * Web2Mbanknumber
    */
   web2MBankNumber?: string | null;
+  /**
+   * Web2Mbankpassword
+   */
+  web2MBankPassword?: string | null;
+  /**
+   * Web2Mbanktoken
+   */
+  web2MBankToken?: string | null;
+};
+
+/**
+ * AdminTestWeb2MRequest
+ */
+export type AdminTestWeb2mRequest = {
+  /**
+   * Apigettransaction
+   */
+  apiGetTransaction?: string | null;
+  /**
+   * Bankname
+   */
+  bankName?: string | null;
+  /**
+   * Banknumber
+   */
+  bankNumber?: string | null;
+  /**
+   * Bankpassword
+   */
+  bankPassword?: string | null;
+  /**
+   * Banktoken
+   */
+  bankToken?: string | null;
+};
+
+/**
+ * AdminTestWeb2MResponse
+ */
+export type AdminTestWeb2mResponse = {
+  /**
+   * Details
+   */
+  details?: {
+    [key: string]: unknown;
+  } | null;
+  /**
+   * Message
+   */
+  message: string;
+  /**
+   * Success
+   */
+  success: boolean;
+  /**
+   * Transactioncount
+   */
+  transactionCount?: number;
 };
 
 /**
@@ -621,6 +703,19 @@ export type AttributeRead = {
    * Options
    */
   options: Array<OptionRead>;
+};
+
+/**
+ * BlockedUserRead
+ */
+export type BlockedUserRead = {
+  /**
+   * Blockedat
+   */
+  blockedAt: string;
+  interactionId: PydanticObjectId;
+  target: UserRead;
+  targetId: PydanticObjectId;
 };
 
 /**
@@ -1525,6 +1620,10 @@ export type PublicProfileRead = {
    */
   interests: Array<string>;
   /**
+   * Isvip
+   */
+  isVip?: boolean;
+  /**
    * Prompts
    */
   prompts?: Array<ProfilePrompt>;
@@ -1532,6 +1631,10 @@ export type PublicProfileRead = {
    * Verified
    */
   verified: boolean;
+  /**
+   * Vipplan
+   */
+  vipPlan?: string | null;
 };
 
 /**
@@ -2338,6 +2441,10 @@ export type GetAdminOrdersData = {
      * User Id
      */
     user_id?: string | null;
+    /**
+     * Search
+     */
+    search?: string | null;
   };
   url: "/v1/admin/orders";
 };
@@ -2578,6 +2685,53 @@ export type UpdateAdminSystemConfigResponses = {
 
 export type UpdateAdminSystemConfigResponse =
   UpdateAdminSystemConfigResponses[keyof UpdateAdminSystemConfigResponses];
+
+export type TestAdminWeb2mConnectionData = {
+  body: AdminTestWeb2mRequest;
+  path?: never;
+  query?: never;
+  url: "/v1/admin/system-config/test-web2m";
+};
+
+export type TestAdminWeb2mConnectionErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type TestAdminWeb2mConnectionError =
+  TestAdminWeb2mConnectionErrors[keyof TestAdminWeb2mConnectionErrors];
+
+export type TestAdminWeb2mConnectionResponses = {
+  /**
+   * Successful Response
+   */
+  200: AdminTestWeb2mResponse;
+};
+
+export type TestAdminWeb2mConnectionResponse =
+  TestAdminWeb2mConnectionResponses[keyof TestAdminWeb2mConnectionResponses];
 
 export type GetAdminUsersData = {
   body?: never;
@@ -3605,6 +3759,106 @@ export type CreateInteractionResponses = {
 
 export type CreateInteractionResponse =
   CreateInteractionResponses[keyof CreateInteractionResponses];
+
+export type GetBlockedUsersData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Limit
+     */
+    limit?: number;
+  };
+  url: "/v1/interactions/blocked";
+};
+
+export type GetBlockedUsersErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type GetBlockedUsersError = GetBlockedUsersErrors[keyof GetBlockedUsersErrors];
+
+export type GetBlockedUsersResponses = {
+  /**
+   * Response Getblockedusers
+   *
+   * Successful Response
+   */
+  200: Array<BlockedUserRead>;
+};
+
+export type GetBlockedUsersResponse =
+  GetBlockedUsersResponses[keyof GetBlockedUsersResponses];
+
+export type UnblockUserData = {
+  body?: never;
+  path: {
+    target_id: PydanticObjectId;
+  };
+  query?: never;
+  url: "/v1/interactions/blocked/{target_id}";
+};
+
+export type UnblockUserErrors = {
+  /**
+   * Bad Request
+   */
+  400: Problem;
+  /**
+   * Unauthorized
+   */
+  401: Problem;
+  /**
+   * Forbidden
+   */
+  403: Problem;
+  /**
+   * Not Found
+   */
+  404: Problem;
+  /**
+   * Validation Failed
+   */
+  422: Problem;
+  /**
+   * Too Many Requests
+   */
+  429: Problem;
+};
+
+export type UnblockUserError = UnblockUserErrors[keyof UnblockUserErrors];
+
+export type UnblockUserResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type UnblockUserResponse = UnblockUserResponses[keyof UnblockUserResponses];
 
 export type GetReceivedInteractionsData = {
   body?: never;
