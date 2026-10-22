@@ -42,28 +42,35 @@ export function ConsentSheet({
             ? `${peerName} muốn mở ${noun} với bạn`
             : `Mở ${noun} với ${peerName}?`}
         </Text>
-        <Text className="text-base text-muted-foreground">
+        <Text className="text-xs text-muted-foreground leading-4">
           {accepting
             ? `Khi bạn đồng ý, hai bạn sẽ cùng thấy ${noun} của nhau.`
             : `Khi ${peerName} đồng ý, hai bạn sẽ cùng thấy ${noun} của nhau.`}
         </Text>
       </View>
 
-      <Button
-        size="xl"
-        disabled={busy}
-        onPress={onConfirm}
-        className="h-14 rounded-full bg-primary"
-      >
-        <Text className="text-base font-bold text-primary-foreground">
-          {accepting ? `Đồng ý mở ${noun}` : "Gửi yêu cầu"}
-        </Text>
-      </Button>
-      {accepting && onDecline ? (
-        <Button variant="ghost" disabled={busy} onPress={onDecline}>
-          <Text>Từ chối</Text>
+      <View className="gap-2 pt-1">
+        <Button
+          size="default"
+          disabled={busy}
+          onPress={onConfirm}
+          className="h-12 rounded-full bg-primary"
+        >
+          <Text className="text-sm font-bold text-primary-foreground">
+            {accepting ? `Đồng ý mở ${noun}` : "Gửi yêu cầu"}
+          </Text>
         </Button>
-      ) : null}
+        {accepting && onDecline ? (
+          <Button
+            variant="ghost"
+            disabled={busy}
+            onPress={onDecline}
+            className="h-10 rounded-full"
+          >
+            <Text className="text-sm text-muted-foreground">Từ chối</Text>
+          </Button>
+        ) : null}
+      </View>
     </BottomSheet>
   );
 }

@@ -31,6 +31,10 @@ export function ChatHeader({
   onOpenMenu,
 }: ChatHeaderProps) {
   const { profile, identity } = peer;
+  const isRevealed = Boolean(identity?.photoUrls && identity.photoUrls.length > 0);
+  const anonymousName = `${GENDER[profile.gender ?? "other"]}, ${profile.age ?? ""} tuổi`;
+  const headerTitle = isRevealed ? profile.displayName : anonymousName;
+
   return (
     <View className="h-16 flex-row items-center gap-1 border-b border-border/40 px-2">
       <Pressable
@@ -43,7 +47,7 @@ export function ChatHeader({
       </Pressable>
       <Pressable
         onPress={onOpenProfile}
-        accessibilityLabel={`Xem hồ sơ của ${profile.displayName}`}
+        accessibilityLabel={`Xem hồ sơ của ${headerTitle}`}
         className="flex-1 flex-row items-center gap-3"
       >
         <PeerAvatar
@@ -52,22 +56,28 @@ export function ChatHeader({
           size={40}
         />
         <View className="flex-1">
-          <VerifiedName
-            name={profile.displayName}
-            age={profile.age}
-            verified={profile.verified}
-            isVip={profile.isVip}
-            vipPlan={profile.vipPlan}
-            className="text-base"
-          />
+          {isRevealed ? (
+            <VerifiedName
+              name={profile.displayName}
+              age={profile.age}
+              verified={profile.verified}
+              isVip={profile.isVip}
+              vipPlan={profile.vipPlan}
+              className="text-base"
+            />
+          ) : (
+            <Text className="text-base font-bold text-foreground" numberOfLines={1}>
+              {anonymousName}
+            </Text>
+          )}
           <Text className="text-xs text-muted-foreground" numberOfLines={1}>
-            {GENDER[profile.gender ?? "other"]} · {profile.city}
+            {profile.city || "Việt Nam"}
           </Text>
         </View>
       </Pressable>
       <Pressable
         onPress={onOpenPrivacy}
-        accessibilityLabel="Ảnh và số điện thoại"
+        accessibilityLabel="Ảnh và thông tin cá nhân"
         hitSlop={8}
         className="h-11 w-11 items-center justify-center"
       >

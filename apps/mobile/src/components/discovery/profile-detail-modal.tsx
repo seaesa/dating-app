@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
-import { Alert, Modal, Pressable, ScrollView, Share, View } from "react-native";
+import { Alert, Modal, Platform, Pressable, ScrollView, Share, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
@@ -14,7 +14,10 @@ import {
 import { APP_NAME } from "@repo/core";
 import { Avatar, AvatarFallback, Badge, Text } from "@repo/ui";
 
+import { MatchCelebrationModal } from "../matches/match-celebration-modal";
+
 import { attributeEntry, interestEntry, useCatalog } from "@/chat/catalog";
+import { useToast } from "@/hooks/use-toast";
 
 export interface ProfileDetailData {
   userId: string;
@@ -92,7 +95,7 @@ export interface ProfileDetailContentProps {
   onClose?: () => void;
   onActionComplete?: (action: InteractionAction) => void;
   mode?: "discovery" | "admirer";
-  onMatch?: (connectionId?: string | null) => void;
+  onMatch?: (connectionId?: string | null, partnerName?: string) => void;
 }
 
 export function ProfileDetailContent({
@@ -104,7 +107,12 @@ export function ProfileDetailContent({
 }: ProfileDetailContentProps) {
   const queryClient = useQueryClient();
   const catalog = useCatalog();
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [celebrationMatch, setCelebrationMatch] = React.useState<{
+    connectionId?: string | null;
+    partnerName: string;
+  } | null>(null);
 
   const lifestyleBadges = React.useMemo(() => {
     if (!data.attributes) return [];
@@ -162,15 +170,20 @@ export function ProfileDetailContent({
       onActionComplete?.(variables.action);
       if (result.matched) {
         if (onMatch) {
-          onMatch(result.connectionId);
+          onMatch(result.connectionId, data.displayName);
+          onClose?.();
         } else {
-          Alert.alert("Chúc mừng! 🎉", "Hai bạn đã gửi tín hiệu cho nhau!");
+          setCelebrationMatch({
+            connectionId: result.connectionId,
+            partnerName: data.displayName,
+          });
         }
+      } else {
+        onClose?.();
       }
-      onClose?.();
     },
     onError: (error) => {
-      Alert.alert("Lỗi", "Không thể gửi tương tác. Vui lòng thử lại sau.");
+      toast.error("Không thể gửi tương tác. Vui lòng thử lại sau.");
       console.error("Interaction failed:", error);
     },
     onSettled: () => {
@@ -195,6 +208,17 @@ export function ProfileDetailContent({
     if (!data.userId || isSubmitting) return;
 
     if (action === "pass" && mode === "admirer") {
+      if (Platform.OS === "web") {
+        const ok =
+          typeof window !== "undefined" && typeof window.confirm === "function"
+            ? window.confirm(
+                `Bỏ qua lời chào\nBạn có chắc chắn muốn bỏ qua ${data.displayName}? Người này sẽ không còn xuất hiện trong danh sách.`,
+              )
+            : true;
+        if (ok) executeAction(action);
+        return;
+      }
+
       Alert.alert(
         "Bỏ qua lời chào",
         `Bạn có chắc chắn muốn bỏ qua ${data.displayName}? Người này sẽ không còn xuất hiện trong danh sách.`,
@@ -222,7 +246,7 @@ export function ProfileDetailContent({
         setIsSubmitting(false);
         onActionComplete?.(action);
         if (action === "like" || action === "star" || action === "greet") {
-          Alert.alert("Thành công! 🎉", "Đã gửi tín hiệu kết nối!");
+          toast.success("Đã gửi tín hiệu kết nối!");
         }
         onClose?.();
       }, 250);
@@ -237,6 +261,40 @@ export function ProfileDetailContent({
 
   function handleReportOrBlock() {
     if (!data.userId) return;
+
+    if (Platform.OS === "web") {
+      const choice =
+        typeof window !== "undefined" && typeof window.confirm === "function"
+          ? window.confirm(
+              `Bạn muốn báo cáo hồ sơ của ${data.displayName}? (Bấm OK để Báo cáo, Cancel để Chặn)`,
+            )
+          : true;
+      if (choice) {
+        interactionMutation.mutate({
+          targetId: data.userId,
+          action: "report",
+        });
+        if (typeof window !== "undefined" && typeof window.alert === "function") {
+          window.alert("Đã ghi nhận. Cảm ơn bạn đã phản hồi.");
+        }
+      } else {
+        const confirmBlock =
+          typeof window !== "undefined" && typeof window.confirm === "function"
+            ? window.confirm(`Bạn có chắc chắn muốn chặn ${data.displayName}?`)
+            : true;
+        if (confirmBlock) {
+          interactionMutation.mutate({
+            targetId: data.userId,
+            action: "block",
+          });
+          if (typeof window !== "undefined" && typeof window.alert === "function") {
+            window.alert(`Đã chặn. Bạn sẽ không còn thấy ${data.displayName} nữa.`);
+          }
+        }
+      }
+      return;
+    }
+
     Alert.alert(
       "Báo cáo hoặc Chặn",
       `Bạn muốn thực hiện thao tác nào với ${data.displayName}?`,
@@ -249,7 +307,7 @@ export function ProfileDetailContent({
               targetId: data.userId,
               action: "report",
             });
-            Alert.alert("Đã ghi nhận", "Cảm ơn bạn đã phản hồi.");
+            toast.info("Cảm ơn bạn đã phản hồi. Chúng tôi đã ghi nhận.");
           },
         },
         {
@@ -260,7 +318,7 @@ export function ProfileDetailContent({
               targetId: data.userId,
               action: "block",
             });
-            Alert.alert("Đã chặn", `Bạn sẽ không còn thấy ${data.displayName} nữa.`);
+            toast.info(`Đã chặn. Bạn sẽ không còn thấy ${data.displayName} nữa.`);
           },
         },
         { text: "Hủy", style: "cancel" },
@@ -548,6 +606,17 @@ export function ProfileDetailContent({
           </View>
         )}
       </SafeAreaView>
+
+      <MatchCelebrationModal
+        visible={celebrationMatch !== null}
+        partnerName={celebrationMatch?.partnerName || data.displayName}
+        partnerGender={data.gender}
+        connectionId={celebrationMatch?.connectionId}
+        onClose={() => {
+          setCelebrationMatch(null);
+          onClose?.();
+        }}
+      />
     </View>
   );
 }
@@ -559,7 +628,7 @@ export interface ProfileDetailModalProps {
   profileData?: ProfileDetailData | null;
   onActionComplete?: (action: InteractionAction) => void;
   mode?: "discovery" | "admirer";
-  onMatch?: (connectionId?: string | null) => void;
+  onMatch?: (connectionId?: string | null, partnerName?: string) => void;
 }
 
 export function ProfileDetailModal({

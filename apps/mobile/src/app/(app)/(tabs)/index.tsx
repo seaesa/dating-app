@@ -1,13 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { router } from "expo-router";
+import ChevronRight from "lucide-react-native/icons/chevron-right";
+import Heart from "lucide-react-native/icons/heart";
+import RotateCw from "lucide-react-native/icons/rotate-cw";
+import Search from "lucide-react-native/icons/search";
+import SlidersHorizontal from "lucide-react-native/icons/sliders-horizontal";
+import Sparkles from "lucide-react-native/icons/sparkles";
+import User from "lucide-react-native/icons/user";
+import X from "lucide-react-native/icons/x";
+import Zap from "lucide-react-native/icons/zap";
 import * as React from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, RefreshControl, ScrollView, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
@@ -17,23 +20,32 @@ import {
   type DiscoveryCandidateRead,
 } from "@repo/api-contract";
 import { APP_NAME } from "@repo/core";
-import { Button, Text } from "@repo/ui";
+import { Button, Icon, Text } from "@repo/ui";
 
+import {
+  DiscoveryCardSkeleton,
+  DiscoveryHeroCard,
+} from "../../../components/discovery/discovery-hero-card";
 import type { DiscoveryFilterState } from "../../../components/discovery/filter-modal";
 import { DEFAULT_FILTERS, FilterModal } from "../../../components/discovery/filter-modal";
 import {
   extractProfileDetail,
   type ProfileDetailData,
-  ProfileDetailModal,
 } from "../../../components/discovery/profile-detail-modal";
+import { MatchCelebrationModal } from "../../../components/matches/match-celebration-modal";
+
+import { useToast } from "@/hooks/use-toast";
 
 export default function HomeFeedScreen() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [greeted, setGreeted] = React.useState<Record<string, boolean>>({});
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
-  const [selectedProfile, setSelectedProfile] = React.useState<ProfileDetailData | null>(
-    null,
-  );
+  const [celebrationData, setCelebrationData] = React.useState<{
+    partnerName: string;
+    partnerGender?: string | null;
+    connectionId?: string | null;
+  } | null>(null);
   const [activeFilters, setActiveFilters] =
     React.useState<DiscoveryFilterState>(DEFAULT_FILTERS);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -66,9 +78,28 @@ export default function HomeFeedScreen() {
   // Mutation for Greet / Interaction
   const greetMutation = useMutation({
     mutationFn: createInteraction,
-    onSuccess: (_result, vars) => {
+    onSuccess: (result, vars) => {
       setGreeted((prev) => ({ ...prev, [vars.targetId]: true }));
       queryClient.invalidateQueries({ queryKey: ["discovery"] });
+      queryClient.invalidateQueries({ queryKey: ["connections"] });
+      const partner = allProfiles.find((p) => p.userId === vars.targetId);
+      const partnerGenderLabel =
+        partner?.gender === "female"
+          ? "Bạn nữ"
+          : partner?.gender === "male"
+            ? "Bạn nam"
+            : "Bạn mới";
+      const partnerTitle = `${partnerGenderLabel}${partner?.age ? ` (${partner.age}t)` : ""}`;
+
+      if (result.matched) {
+        setCelebrationData({
+          partnerName: partnerTitle,
+          partnerGender: partner?.gender,
+          connectionId: result.connectionId,
+        });
+      } else {
+        toast.success(`Đã gửi tín hiệu tới ${partnerTitle}!`);
+      }
     },
   });
 
@@ -93,7 +124,7 @@ export default function HomeFeedScreen() {
     },
   });
 
-  // Client-side search and dismiss filtering
+  // Client-side search and dismiss filtering (City and Age)
   const filteredProfiles = React.useMemo(() => {
     const list = allProfiles.filter((p) => !dismissed[p.userId]);
     const query = searchQuery.trim().toLowerCase();
@@ -102,9 +133,7 @@ export default function HomeFeedScreen() {
     return list.filter((p) => {
       const matchCity = p.city.toLowerCase().includes(query);
       const matchAge = p.age.toString() === query;
-      const matchInterests =
-        p.interests?.some((i) => i.toLowerCase().includes(query)) ?? false;
-      return matchCity || matchAge || matchInterests;
+      return matchCity || matchAge;
     });
   }, [allProfiles, searchQuery, dismissed]);
 
@@ -140,7 +169,7 @@ export default function HomeFeedScreen() {
       {/* Top Header */}
       <View className="h-14 w-full flex-row items-center justify-between border-b border-border/30 px-5">
         <View className="flex-row items-center gap-2">
-          <Text className="text-2xl text-primary">❤️</Text>
+          <Icon as={Heart} size={24} className="text-primary fill-primary" />
           <Text className="text-2xl font-black tracking-tight text-foreground">
             {APP_NAME}
           </Text>
@@ -151,15 +180,22 @@ export default function HomeFeedScreen() {
             onPress={() => setIsFilterOpen(true)}
             hitSlop={8}
             className="h-9 w-9 items-center justify-center rounded-full bg-secondary active:opacity-70"
+            accessibilityLabel="Bộ lọc tìm kiếm"
           >
-            <Text className="text-base text-muted-foreground">🎛️</Text>
+            <Icon as={SlidersHorizontal} size={18} className="text-muted-foreground" />
           </Pressable>
-          <View className="relative">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Trang cá nhân"
+            onPress={() => router.push("/(app)/(tabs)/profile")}
+            hitSlop={8}
+            className="relative active:scale-95 active:opacity-75"
+          >
             <View className="h-9 w-9 items-center justify-center rounded-full bg-secondary">
-              <Text className="text-sm">👤</Text>
+              <Icon as={User} size={18} className="text-muted-foreground" />
             </View>
             <View className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full border-2 border-background bg-primary" />
-          </View>
+          </Pressable>
         </View>
       </View>
 
@@ -187,8 +223,9 @@ export default function HomeFeedScreen() {
           <Pressable
             onPress={() => refetch()}
             className="h-8 w-8 items-center justify-center rounded-lg bg-secondary/80 active:opacity-70"
+            accessibilityLabel="Làm mới nhanh"
           >
-            <Text className="text-sm">⚡</Text>
+            <Icon as={Zap} size={16} className="text-amber-500 fill-amber-500" />
           </Pressable>
         </View>
 
@@ -199,7 +236,7 @@ export default function HomeFeedScreen() {
         >
           <View className="flex-row items-center gap-3">
             <View className="h-10 w-10 items-center justify-center rounded-xl bg-primary/15">
-              <Text className="text-lg">✨</Text>
+              <Icon as={Sparkles} size={20} className="text-primary" />
             </View>
             <View>
               <Text className="text-sm font-bold text-foreground">Gợi ý hôm nay</Text>
@@ -209,22 +246,26 @@ export default function HomeFeedScreen() {
               </Text>
             </View>
           </View>
-          <Text className="text-lg font-bold text-muted-foreground">›</Text>
+          <Icon as={ChevronRight} size={20} className="text-muted-foreground" />
         </Pressable>
 
         {/* Search Input */}
         <View className="mb-4 h-12 flex-row items-center rounded-2xl border border-border/80 bg-secondary/50 px-4">
-          <Text className="mr-2 text-base text-muted-foreground">🔍</Text>
+          <Icon as={Search} size={18} className="mr-2 text-muted-foreground" />
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Tìm theo độ tuổi, quận hoặc sở thích..."
+            placeholder="Tìm theo độ tuổi, thành phố hoặc quận huyện..."
             placeholderTextColor="hsl(var(--muted-foreground))"
             className="flex-1 text-sm text-foreground"
           />
           {searchQuery ? (
-            <Pressable onPress={() => setSearchQuery("")} hitSlop={8}>
-              <Text className="text-xs text-muted-foreground">✕</Text>
+            <Pressable
+              onPress={() => setSearchQuery("")}
+              hitSlop={8}
+              accessibilityLabel="Xóa tìm kiếm"
+            >
+              <Icon as={X} size={14} className="text-muted-foreground" />
             </Pressable>
           ) : null}
         </View>
@@ -238,24 +279,29 @@ export default function HomeFeedScreen() {
             onPress={() => refetch()}
             className="flex-row items-center gap-1 active:opacity-70"
           >
+            <Icon
+              as={RotateCw}
+              size={13}
+              className={`text-primary ${isRefetching ? "animate-spin" : ""}`}
+            />
             <Text className="text-xs font-semibold text-primary">
-              {isRefetching ? "Đang tải..." : "Làm mới ↻"}
+              {isRefetching ? "Đang tải..." : "Làm mới"}
             </Text>
           </Pressable>
         </View>
 
-        {/* Loading Indicator */}
+        {/* Loading Indicator with Bento Skeleton */}
         {isLoading ? (
-          <View className="items-center py-12">
-            <ActivityIndicator size="small" color="hsl(var(--primary))" />
-            <Text className="mt-3 text-xs text-muted-foreground">
-              Đang tìm kiếm hồ sơ phù hợp...
-            </Text>
+          <View className="pb-6">
+            <DiscoveryCardSkeleton />
+            <DiscoveryCardSkeleton />
           </View>
         ) : filteredProfiles.length === 0 ? (
           /* Empty State */
           <View className="items-center justify-center rounded-3xl border border-dashed border-border/80 bg-secondary/30 p-8 my-4">
-            <Text className="text-4xl">🔍</Text>
+            <View className="h-16 w-16 items-center justify-center rounded-full bg-secondary">
+              <Icon as={Search} size={32} className="text-muted-foreground" />
+            </View>
             <Text className="mt-3 text-base font-bold text-foreground">
               Chưa tìm thấy hồ sơ phù hợp
             </Text>
@@ -274,107 +320,19 @@ export default function HomeFeedScreen() {
             </Button>
           </View>
         ) : (
-          /* Cards List */
-          <View className="gap-2.5 pb-6">
-            {filteredProfiles.map((profile) => {
-              const isFemale = profile.gender === "female";
-              const isGreeted = greeted[profile.userId];
-
-              return (
-                <View
-                  key={profile.userId}
-                  className="flex-row items-center justify-between rounded-2xl border border-border/60 bg-card p-3 shadow-sm shadow-black/5"
-                >
-                  {/* Left: Avatar + Only 3 info points (Gender, Age, Location) */}
-                  <View className="flex-1 flex-row items-center gap-3 pr-2">
-                    {/* Anonymous Avatar */}
-                    <View
-                      className={`h-12 w-12 items-center justify-center rounded-full shrink-0 ${
-                        isFemale ? "bg-rose-500/10" : "bg-blue-500/10"
-                      }`}
-                    >
-                      <Text className="text-xl">{isFemale ? "👩" : "👨"}</Text>
-                    </View>
-
-                    {/* Info */}
-                    <View className="flex-1 gap-0.5">
-                      <View className="flex-row items-center gap-1.5 flex-wrap">
-                        <View
-                          className={`rounded-md px-1.5 py-0.5 ${
-                            isFemale ? "bg-rose-500/15" : "bg-blue-500/15"
-                          }`}
-                        >
-                          <Text
-                            className={`text-[10px] font-bold ${
-                              isFemale ? "text-rose-600" : "text-blue-600"
-                            }`}
-                          >
-                            {isFemale ? "Nữ" : "Nam"}
-                          </Text>
-                        </View>
-                        <Text className="text-base font-extrabold text-foreground">
-                          {profile.age} tuổi
-                        </Text>
-                        {profile.isVip ? (
-                          profile.vipPlan === "99k" ? (
-                            <View className="flex-row items-center gap-0.5 rounded-full bg-violet-600 px-1.5 py-0.5 shadow-sm shadow-violet-600/20">
-                              <Text className="text-[9px]">💎</Text>
-                              <Text className="text-[9px] font-black tracking-wider text-white">
-                                VIP PRO
-                              </Text>
-                            </View>
-                          ) : (
-                            <View className="flex-row items-center gap-0.5 rounded-full bg-amber-500 px-1.5 py-0.5 shadow-sm shadow-amber-500/20">
-                              <Text className="text-[9px]">👑</Text>
-                              <Text className="text-[9px] font-black tracking-wider text-white">
-                                VIP
-                              </Text>
-                            </View>
-                          )
-                        ) : null}
-                      </View>
-
-                      <Text className="text-xs text-muted-foreground" numberOfLines={1}>
-                        📍 {profile.city || "Việt Nam"}
-                        {profile.distanceKm !== undefined && profile.distanceKm !== null
-                          ? ` • Cách ${profile.distanceKm} km`
-                          : ""}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Responsive Action Buttons: ✕ Bỏ qua & 💌 Chào */}
-                  <View className="flex-row items-center gap-1.5 shrink-0">
-                    <Pressable
-                      disabled={isGreeted || passMutation.isPending}
-                      onPress={() => handlePass(profile.userId)}
-                      hitSlop={6}
-                      className="h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-secondary/80 active:opacity-60"
-                      accessibilityLabel="Bỏ qua"
-                    >
-                      <Text className="text-xs font-bold text-muted-foreground">✕</Text>
-                    </Pressable>
-
-                    <Button
-                      size="sm"
-                      disabled={isGreeted || greetMutation.isPending}
-                      onPress={() => handleGreet(profile.userId)}
-                      className={`h-9 rounded-full px-3.5 ${
-                        isGreeted ? "bg-secondary" : "bg-primary"
-                      }`}
-                    >
-                      <Text
-                        className={`text-xs font-bold ${
-                          isGreeted ? "text-muted-foreground" : "text-primary-foreground"
-                        }`}
-                      >
-                        {isGreeted ? "✓ Đã chào" : "💌 Chào"}
-                      </Text>
-                    </Button>
-                  </View>
-                </View>
-              );
-            })}
+          /* Cards List: Hero Bento Cards */
+          <View className="pb-6">
+            {filteredProfiles.map((profile) => (
+              <DiscoveryHeroCard
+                key={profile.userId}
+                profile={profile}
+                onGreet={handleGreet}
+                onPass={handlePass}
+                isGreeted={greeted[profile.userId]}
+                isGreetPending={greetMutation.isPending}
+                isPassPending={passMutation.isPending}
+              />
+            ))}
           </View>
         )}
 
@@ -386,17 +344,13 @@ export default function HomeFeedScreen() {
         </View>
       </ScrollView>
 
-      {/* Profile Detail Modal (Ảnh 3) */}
-      <ProfileDetailModal
-        visible={!!selectedProfile}
-        profileData={selectedProfile}
-        onClose={() => setSelectedProfile(null)}
-        onActionComplete={(_action) => {
-          if (selectedProfile) {
-            setGreeted((prev) => ({ ...prev, [selectedProfile.userId]: true }));
-          }
-          setSelectedProfile(null);
-        }}
+      {/* Match Celebration Modal */}
+      <MatchCelebrationModal
+        visible={celebrationData !== null}
+        partnerName={celebrationData?.partnerName || "người ấy"}
+        partnerGender={celebrationData?.partnerGender}
+        connectionId={celebrationData?.connectionId}
+        onClose={() => setCelebrationData(null)}
       />
 
       {/* Filter Modal (Bottom Sheet - Ảnh 2) */}

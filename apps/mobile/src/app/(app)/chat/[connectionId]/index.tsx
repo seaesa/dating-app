@@ -84,7 +84,10 @@ export default function ChatRoomScreen() {
   }
 
   const { connection, me } = room;
-  const peerName = connection.peer.profile.displayName;
+  const isRevealed = connection.reveals.photos.state === "granted";
+  const genderLabel = connection.peer.profile.gender === "female" ? "Nữ" : "Nam";
+  const anonymousName = `${genderLabel}${connection.peer.profile.age ? `, ${connection.peer.profile.age} tuổi` : ""}`;
+  const peerName = isRevealed ? connection.peer.profile.displayName : anonymousName;
   const incoming = REVEAL_KINDS.find(
     (kind) => chipState(connection.reveals[kind], me.id) === "incoming",
   );
@@ -178,7 +181,11 @@ export default function ChatRoomScreen() {
           ListHeaderComponent={
             room.hasOlder ? null : (
               <IntroCard
-                peer={connection.peer.profile}
+                peer={
+                  photosOpen
+                    ? connection.peer.profile
+                    : { ...connection.peer.profile, interests: [] }
+                }
                 me={me.profile}
                 catalog={catalog}
                 showIcebreakers={!room.hasText}
