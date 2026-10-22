@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Modal, Pressable } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Modal, Platform, Pressable, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { cn } from "@repo/ui";
 
@@ -13,6 +13,9 @@ export interface BottomSheetProps {
 
 /** A sheet over a dimmed backdrop; tapping the backdrop closes it. */
 export function BottomSheet({ visible, onClose, className, children }: BottomSheetProps) {
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom, Platform.OS === "web" ? 36 : 24);
+
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable
@@ -20,12 +23,17 @@ export function BottomSheet({ visible, onClose, className, children }: BottomShe
         onPress={onClose}
         accessibilityLabel="Đóng"
       />
-      <SafeAreaView
-        edges={["bottom"]}
-        className={cn("rounded-t-3xl bg-background px-5 pb-3 pt-5", className)}
+      <View
+        style={{ paddingBottom: bottomPadding }}
+        className={cn(
+          "w-full max-w-lg self-center rounded-t-3xl bg-background px-5 pt-3 shadow-2xl",
+          className,
+        )}
       >
+        {/* Grab indicator pill */}
+        <View className="mb-2 h-1 w-10 self-center rounded-full bg-muted-foreground/30" />
         {children}
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 }

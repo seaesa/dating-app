@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import ArrowLeft from "lucide-react-native/icons/arrow-left";
 import EyeOff from "lucide-react-native/icons/eye-off";
+import LockKeyhole from "lucide-react-native/icons/lock-keyhole";
 import * as React from "react";
 import {
   ActivityIndicator,
@@ -52,8 +53,8 @@ const STATE_LABEL: Record<ChipState, string> = {
 };
 const ACTION: Record<RevealKind, Record<"none" | "incoming" | "outgoing", string>> = {
   photos: {
-    none: "Yêu cầu mở ảnh",
-    incoming: "Xem yêu cầu mở ảnh",
+    none: "Yêu cầu mở ảnh & thông tin",
+    incoming: "Xem yêu cầu mở ảnh & thông tin",
     outgoing: "Đang chờ đồng ý",
   },
 };
@@ -118,6 +119,9 @@ export default function PartnerProfileScreen() {
     );
   const photoAction = photoState === "granted" ? null : ACTION.photos[photoState];
 
+  const isRevealed = photoState === "granted";
+  const anonymousName = `${GENDER[profile.gender ?? "other"]}, ${profile.age ?? ""} tuổi`;
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View className="h-14 flex-row items-center px-2">
@@ -169,7 +173,9 @@ export default function PartnerProfileScreen() {
             <PeerAvatar gender={profile.gender} size={96} />
             <View className="flex-row items-center gap-1.5">
               <Icon as={EyeOff} size={16} className="text-muted-foreground" />
-              <Text className="text-sm text-muted-foreground">Ảnh đang ẩn</Text>
+              <Text className="text-sm text-muted-foreground">
+                Ảnh & thông tin đang ẩn
+              </Text>
             </View>
             {photoAction ? (
               <Button
@@ -186,84 +192,114 @@ export default function PartnerProfileScreen() {
         )}
 
         <View className="gap-1 px-5 pt-5">
-          <VerifiedName
-            name={profile.displayName}
-            age={profile.age}
-            verified={profile.verified}
-            className="text-3xl font-black"
-            iconSize={24}
-          />
+          {isRevealed ? (
+            <VerifiedName
+              name={profile.displayName}
+              age={profile.age}
+              verified={profile.verified}
+              className="text-3xl font-black"
+              iconSize={24}
+            />
+          ) : (
+            <Text className="text-3xl font-black text-foreground">{anonymousName}</Text>
+          )}
           <Text className="text-base text-muted-foreground">
-            {GENDER[profile.gender ?? "other"]} · {profile.city}
+            {profile.city || "Việt Nam"}
           </Text>
         </View>
 
         <View className="mx-5 mt-5 gap-2 rounded-2xl border border-border p-4">
           <Text className="text-sm font-bold text-foreground">Thông tin đã mở</Text>
           <View className="flex-row items-center justify-between">
-            <Text className="text-xs text-muted-foreground">Ảnh</Text>
+            <Text className="text-xs text-muted-foreground">Ảnh & thông tin cá nhân</Text>
             <Text className="text-sm font-semibold text-foreground">
               {STATE_LABEL[photoState]}
             </Text>
           </View>
         </View>
 
-        <View className="gap-4 px-5 pt-6">
-          <Text className="text-lg font-bold text-foreground">
-            Về {profile.displayName}
-          </Text>
-          {ATTRIBUTES.map((key) => {
-            const entry = attributeEntry(catalog, key, profile.attributes[key]);
-            if (!entry) return null;
-            return (
-              <View key={key} className="flex-row items-center gap-3">
-                <Text className="w-7 text-center text-lg">{entry.icon ?? ""}</Text>
-                <View className="flex-1">
-                  <Text className="text-xs text-muted-foreground">{entry.title}</Text>
-                  <Text className="text-base font-semibold text-foreground">
-                    {entry.label}
-                  </Text>
-                </View>
-              </View>
-            );
-          })}
-          {profile.bio ? (
-            <Text className="text-base leading-6 text-foreground">{profile.bio}</Text>
-          ) : null}
-          {profile.interests.length > 0 ? (
-            <View className="flex-row flex-wrap gap-2">
-              {profile.interests.map((key) => {
-                const entry = interestEntry(catalog, key);
-                const common = shared.has(key);
-                return (
-                  <View
-                    key={key}
-                    className={cn(
-                      "rounded-full px-3 py-1",
-                      common ? "bg-primary-muted" : "bg-secondary",
-                    )}
-                  >
-                    <Text
-                      className={cn(
-                        "text-sm",
-                        common ? "font-semibold text-primary" : "text-foreground",
-                      )}
-                    >
-                      {entry.icon ? `${entry.icon} ` : ""}
+        {isRevealed ? (
+          <View className="gap-4 px-5 pt-6">
+            <Text className="text-lg font-bold text-foreground">
+              Về {profile.displayName}
+            </Text>
+            {ATTRIBUTES.map((key) => {
+              const entry = attributeEntry(catalog, key, profile.attributes[key]);
+              if (!entry) return null;
+              return (
+                <View key={key} className="flex-row items-center gap-3">
+                  <Text className="w-7 text-center text-lg">{entry.icon ?? ""}</Text>
+                  <View className="flex-1">
+                    <Text className="text-xs text-muted-foreground">{entry.title}</Text>
+                    <Text className="text-base font-semibold text-foreground">
                       {entry.label}
                     </Text>
                   </View>
-                );
-              })}
+                </View>
+              );
+            })}
+            {profile.bio ? (
+              <Text className="text-base leading-6 text-foreground">{profile.bio}</Text>
+            ) : null}
+            {profile.interests.length > 0 ? (
+              <View className="flex-row flex-wrap gap-2">
+                {profile.interests.map((key) => {
+                  const entry = interestEntry(catalog, key);
+                  const common = shared.has(key);
+                  return (
+                    <View
+                      key={key}
+                      className={cn(
+                        "rounded-full px-3 py-1",
+                        common ? "bg-primary-muted" : "bg-secondary",
+                      )}
+                    >
+                      <Text
+                        className={cn(
+                          "text-sm",
+                          common ? "font-semibold text-primary" : "text-foreground",
+                        )}
+                      >
+                        {entry.icon ? `${entry.icon} ` : ""}
+                        {entry.label}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : null}
+            {(profile.prompts ?? []).map((prompt) => (
+              <View key={prompt.promptId} className="gap-1 rounded-2xl bg-secondary p-4">
+                <Text className="text-xs text-muted-foreground">{prompt.question}</Text>
+                <Text className="text-base text-foreground">{prompt.answer}</Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View className="mx-5 mt-6 items-center justify-center rounded-3xl border border-dashed border-border/80 bg-secondary/30 p-6 gap-3">
+            <View className="h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+              <Icon as={LockKeyhole} size={26} className="text-primary" />
             </View>
-          ) : null}
-          {(profile.prompts ?? []).map((prompt) => (
-            <View key={prompt.promptId} className="gap-1 rounded-2xl bg-secondary p-4">
-              <Text className="text-xs text-muted-foreground">{prompt.question}</Text>
-              <Text className="text-base text-foreground">{prompt.answer}</Text>
-            </View>
-          ))}
-        </View>
+            <Text className="text-base font-bold text-foreground text-center">
+              Thông tin cá nhân & sở thích đang ẩn
+            </Text>
+            <Text className="text-center text-xs text-muted-foreground leading-5">
+              Để bảo vệ quyền riêng tư theo yêu cầu, tên thật, bio, sở thích và thông tin
+              chi tiết chỉ được tiết lộ khi cả hai bạn cùng đồng ý mở khóa.
+            </Text>
+            {photoAction ? (
+              <Button
+                size="sm"
+                variant={photoState === "outgoing" ? "ghost" : "default"}
+                disabled={photoState === "outgoing"}
+                onPress={() => onReveal("photos", photoState)}
+                className="mt-2 rounded-full px-5"
+              >
+                <Text className="text-xs font-semibold">{photoAction}</Text>
+              </Button>
+            ) : null}
+          </View>
+        )}
 
         <View className="px-5 pt-8">
           <Button size="xl" onPress={goBack} className="h-14 rounded-full bg-primary">
@@ -290,7 +326,7 @@ export default function PartnerProfileScreen() {
           visible
           kind={consentKind}
           mode={consentMode(consentKind)}
-          peerName={profile.displayName}
+          peerName={isRevealed ? profile.displayName : anonymousName}
           busy={room.reveal.pending}
           onConfirm={() =>
             run(() =>

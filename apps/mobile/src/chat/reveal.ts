@@ -12,6 +12,6 @@ export function chipState(reveal: RevealRead, myId: string): ChipState {
 }
 
 export const REVEAL_NOUNS: Record<RevealKind, string> = {
-  photos: "ảnh",
+  photos: "ảnh và thông tin cá nhân",
 };
 export const REVEAL_KINDS: RevealKind[] = ["photos"];

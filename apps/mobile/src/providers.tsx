@@ -12,6 +12,7 @@ import {
   useAuthStore,
 } from "@repo/store";
 
+import { ToastProvider } from "@/components/feedback/toast";
 import { unregisterPushToken } from "@/push";
 
 const queryClient = createQueryClient();
@@ -55,9 +56,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
-        {children}
-        {/* Required by dialogs and menus: React Native has no DOM portals. */}
-        <PortalHost />
+        <ToastProvider>
+          {children}
+          {/* Required by dialogs and menus: React Native has no DOM portals. */}
+          <PortalHost />
+        </ToastProvider>
       </SafeAreaProvider>
     </QueryClientProvider>
   );
