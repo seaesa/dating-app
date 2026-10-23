@@ -53,6 +53,9 @@ services:
       # Needs the face-check-worker service; without it every profile photo
       # waits out FACE_CHECK_WAIT_SECONDS and sign-up stops at the main photo.
       FACE_CHECK_ENABLED: ${FACE_CHECK_ENABLED:-true}
+      # VietQR image style. Bank credentials are set in the admin web.
+      WEB2M_IS_MASK: ${WEB2M_IS_MASK:-false}
+      WEB2M_BANK_BACKGROUND: ${WEB2M_BANK_BACKGROUND:-default}
       LOG_JSON: "true"
       # Caddy is the API's only client (no published port), so trust its
       # X-Forwarded-For. Otherwise every user shares Caddy's address, and with
