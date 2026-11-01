@@ -160,7 +160,7 @@ services:
   # To run them here:
   #   docker compose -f docker-compose.prod.yml --profile selfhosted up -d
   mongo:
-    image: mongo:8
+    image: mongo:9
     profiles: ["selfhosted"]
     restart: unless-stopped
     command: ["--replSet", "rs0", "--bind_ip_all"]
