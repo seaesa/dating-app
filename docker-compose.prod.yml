@@ -196,7 +196,7 @@ services:
   # S3_ENDPOINT's host, so phones reach this port directly: set S3_ENDPOINT to
   # this host's public address and S3_PORT.
   s3:
-    image: chrislusf/seaweedfs:4.48
+    image: chrislusf/seaweedfs:4.50
     profiles: ["selfhosted"]
     restart: unless-stopped
     ports:
